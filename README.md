@@ -1,16 +1,12 @@
 # The Forgotten Lands
 
-# USE THE MOD LAUNCHER TO HAVE AUTO UPDATES
-Link : [OpenGOAL Mod Launcher](https://jakmods.dev/#download).
+The Forgotten Lands is a new adventure with a new story and levels for you to explore.
 
-The Forgotten Lands is a new adventure with a new story and levels for you to explore. 
+To get to the custom levels, simply start a new game and beat Geyser Rock.
 
-To get to the custom levels, simply start a new game and beat Geyser Rock
+## Chapter 3 Details Coming Soon <!-- omit from toc -->
 
-
-
-# The rest of this README will cover features in the mod. Stop here if you don't wish to be spoiled!
-
+# The rest of this README will cover features in the mod. Stop here if you don't wish to be spoiled! <!-- omit from toc -->
 
 ## Crystal Cave
 This is the first level being added, here's the list of current features and incoming ones.
@@ -64,16 +60,25 @@ Third level in the mod
   - Super red crystal
   - Breakable boulder
 
-Forked from OpenGoal-Mod-Base :
-# OpenGoal-Mod-Base
+Forked from OG-Mod-Base:
+# OG-Mod-Base
 Serves as a base template for openGOAL mods that will be supported via [OG-ModLauncher](https://github.com/OpenGOAL-Mods/OG-ModLauncher).
 
-- Please ensure you are not committing copyrighted material to your repo (the `.gitignore` should help prevent this). 
+- Please ensure you are not committing copyrighted material to your repo (the `.gitignore` should help prevent this).
 - Generally speaking you should only be updating certain directories/files:
   - GOAL code (`/goal_src`)
   - Assets specific to the PC Port (`/game/assets/jak1/`, `/custom_assets/`)
   - The executable binaries (`/out/build/Release/goalc.exe`, `/out/build/Release/gk.exe`, `/out/build/Release/extractor.exe`)
   - Decompiler config (`/decompiler/config`)
+
+## Custom `nav-mesh`es In TFL
+
+TFL uses a different system for nav meshes from the one originally described below by Luminar Light. Instead of giving actors specific actor IDs and hardcoding cases in `custom-nav-mesh-check-and-setup`, there is a `*custom-nav-list*` in `tfl-nav-mesh.gc` along with a bunch of `nav-mesh` objects. The `*custom-nav-list*` maps nav mesh names that you use in the custom level JSON to the actual `nav-mesh`es.
+With an entry of `(crystalc-ice-cube *nav-crystalc-ice-cube*)` in the list for example, giving an enemy the `*nav-crystalc-ice-cube*` nav mesh is as simple as adding this lump to the entity: `"custom-nav": ["symbol", "crystalc-ice-cube"]`.
+
+The `custom-hacky?` field was also removed as it is no longer needed after adding some null checks to `recursive-inside-poly`.
+
+---
 
 ## Custom Navmesh Implementation and Example
 
@@ -139,12 +144,11 @@ Additionally, you can find further documentation and answers to **frequently ask
 > **Do not use this decompilation project without providing your own legally purchased copy of the game.** We do not distribute any assets from the game - you must use your own legitimately obtained PS2 copy of the game. We support every retail PAL, NTSC, and NTSC-J build, including Greatest Hits copies.
 
 - [The Forgotten Lands](#the-forgotten-lands)
-- [USE THE MOD LAUNCHER TO HAVE AUTO UPDATES](#use-the-mod-launcher-to-have-auto-updates)
-- [The rest of this README will cover features in the mod. Stop here if you don't wish to be spoiled!](#the-rest-of-this-readme-will-cover-features-in-the-mod-stop-here-if-you-dont-wish-to-be-spoiled)
   - [Crystal Cave](#crystal-cave)
   - [Crescent Top](#crescent-top)
   - [Energy Bay](#energy-bay)
-- [OpenGoal-Mod-Base](#opengoal-mod-base)
+- [OG-Mod-Base](#og-mod-base)
+  - [Custom `nav-mesh`es In TFL](#custom-nav-meshes-in-tfl)
   - [Custom Navmesh Implementation and Example](#custom-navmesh-implementation-and-example)
     - [Getting Started](#getting-started)
     - [Final Words](#final-words)
