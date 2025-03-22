@@ -22,7 +22,9 @@ const std::map<std::string, std::string> level_names = {{"intro", "Intro"},
                                                         {"finalboss", "Final Boss"},
                                                         {"crystal-cave", "Crystal Cave"},
                                                         {"crescent-top", "Crescent Top"},
-                                                        {"energy-bay", "Energy Bay"}};
+                                                        {"energy-bay", "Energy Bay"},
+                                                        {"open-mines", "Open Mines"},
+                                                        {"valley", "Taiga Valley"}};
 
 // for remapping sub-level names to the matching one in level_names
 const std::map<std::string, std::string> level_name_remap = {{"jungleb", "jungle"},
@@ -32,8 +34,9 @@ const std::map<std::string, std::string> level_name_remap = {{"jungleb", "jungle
 
 // levels that are not affected by time of day
 const std::vector<std::string> indoor_levels = {
-    "intro",    "title",    "jungleb", "sunken",       "sunkenb",      "maincave",  "robocave",
-    "darkcave", "lavatube", "citadel", "crystal-cave", "crescent-top", "energy-bay"};
+    "intro",        "title",        "jungleb",    "sunken",     "sunkenb",
+    "maincave",     "robocave",     "darkcave",   "lavatube",   "citadel",
+    "crystal-cave", "crescent-top", "energy-bay", "open-mines", "valley"};
 
 // time of day string to append to level name for icons
 const char* time_of_day_str(float time) {
