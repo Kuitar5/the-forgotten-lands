@@ -1,0 +1,1168 @@
+;;-*-Lisp-*-
+(in-package goal)
+(deftype crystalc-part (part-spawner) ())
+
+;; group-id range for crystal cave : 800-849
+;; part-id range for crystal cave : 3000-3199
+
+(defpartgroup group-crystalc-waterfall-01
+  :id 800
+  ;; NEEDS TO BE UNIQUE
+  :flags (always-draw)
+  :bounds (static-bspherem 0 12 0 12)
+  :parts
+  ((sp-item 3000 :fade-after (meters 160) :falloff-to (meters 160)) ;;sp-item = start the items under
+   (sp-item 3001 :fade-after (meters 160) :falloff-to (meters 160))
+   (sp-item 3002 :fade-after (meters 160) :falloff-to (meters 160))
+   (sp-item 3003 :fade-after (meters 160) :falloff-to (meters 160))))
+
+(defpart 3000
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x18 :page #x2))
+   (:num 1.5) ;; Particles quantity
+   (:x (meters -3.0) (meters 6.0) 1.0) ;; (Start pos) (start lenght)
+   (:y (meters 77.0)) ;; Start height
+   (:z (meters -40.0) (meters 4.0) 1.0) ;; (Start pos) (start lenght)
+   (:scale-x (meters 2.4) (meters 1.6) 1.0) ;; X Scaling of the particle texture
+   (:scale-y (meters 1.2) (meters 0.8) 1.0) ;; Y Scaling of the particle texture
+   (:r 192.0) ;; Red lighting (64.0 to 192.0)
+   (:g 192.0) ;; Green lighting (64.0 to 192.0)
+   (:b 192.0) ;; Blue lighting (64.0 to 192.0)
+   (:a 36.0 16.0 1.0) ;; Alpha ?? multiplier
+   (:vel-x (meters -0.055)) ;; Starting velocity X
+   (:vel-y (meters 0.013333334) (meters 0.013333334) 1.0) ;; Starting velocity Y
+   (:vel-z (meters -0.0026666667) (meters 0.0033333334) 1.0) ;; Starting velocity Z
+   (:scalevel-x (meters 0.0073242188)) ;; Scale while falling X
+   (:scalevel-y (meters 0.029296875)) ;; Scale while falling Y
+   (:accel-x 5.5000000) ;; Acceleration X (forward)
+   (:accel-y -15.018667 -2.7306666 1.0) ;; Acceleration Y (falling)
+   (:accel-z 6.5000000) ;; Acceleration Z (forward)
+   (:timer 480) ;; Timer before death
+   (:flags (bit2)) ;; ??
+   (:next-time 460) ;; Timer before next-launcher
+   (:next-launcher 3005) ;; 3005 = Fade-out
+   (:launchrot-x (degrees -15.0) (degrees 30.0) 1.0) ;; X rotation of the particle texture
+   (:rotate-y (degrees 90.0)) ;; Y rotation of the particle texture
+   ))
+
+(defpart 3001
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x18 :page #x2))
+   (:num 5.0) ;; Particles quantity
+   (:x (meters -12.0) (meters 12.0) 1.0) ;; (Start pos) (start lenght)
+   (:y (meters 78.0)) ;; Start height
+   (:z (meters -41.0) (meters 4.0) 1.0) ;; (Start pos) (start lenght)
+   (:scale-x (meters 2.4) (meters 1.6) 1.0) ;; X Scaling of the particle texture
+   (:scale-y (meters 1.2) (meters 0.8) 1.0) ;; Y Scaling of the particle texture
+   (:r 192.0) ;; Red lighting (64.0 to 192.0)
+   (:g 192.0) ;; Green lighting (64.0 to 192.0)
+   (:b 192.0) ;; Blue lighting (64.0 to 192.0)
+   (:a 36.0 16.0 1.0) ;; Alpha ?? multiplier
+   (:vel-x (meters -0.035)) ;; Starting velocity X
+   (:vel-y (meters 0.013333334) (meters 0.013333334) 1.0) ;; Starting velocity Y
+   (:vel-z (meters -0.0026666667) (meters 0.0033333334) 1.0) ;; Starting velocity Z
+   (:scalevel-x (meters 0.0073242188)) ;; Scale while falling X
+   (:scalevel-y (meters 0.029296875)) ;; Scale while falling Y
+   (:accel-x 3.8000000) ;; Acceleration X (forward)
+   (:accel-y -15.018667 -2.7306666 1.0) ;; Acceleration Y (falling)
+   (:accel-z 7.3000000) ;; Acceleration Z (forward)
+   (:timer 480) ;; Timer before death
+   (:flags (bit2)) ;; ??
+   (:next-time 460) ;; Timer before next-launcher
+   (:next-launcher 3005) ;; 3005 = Fade-out
+   (:launchrot-x (degrees -15.0) (degrees 30.0) 1.0) ;; X rotation of the particle texture
+   (:rotate-y (degrees 90.0)) ;; Y rotation of the particle texture
+   ))
+
+(defpart 3002
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x18 :page #x2))
+   (:num 2.5) ;; Particles quantity
+   (:x (meters -16.0) (meters 6.0) 1.0) ;; Random Start pos between 2pt
+   (:y (meters 79.0)) ;; Start height
+   (:z (meters -41.5) (meters .0) 1.0) ;; Random Start pos between 2pt
+   (:scale-x (meters 2.4) (meters 1.6) 1.0) ;; X Scaling of the particle texture
+   (:scale-y (meters 1.2) (meters 0.8) 1.0) ;; Y Scaling of the particle texture
+   (:r 192.0) ;; Red lighting (64.0 to 192.0)
+   (:g 192.0) ;; Green lighting (64.0 to 192.0)
+   (:b 192.0) ;; Blue lighting (64.0 to 192.0)
+   (:a 36.0 16.0 1.0) ;; Random Alpha / multiplier
+   (:vel-x (meters -0.075)) ;; Starting velocity X
+   (:vel-y (meters 0.013333334) (meters 0.013333334) 1.0) ;; Starting velocity Y
+   (:vel-z (meters -0.0026666667) (meters 0.0033333334) 1.0) ;; Starting velocity Z
+   (:scalevel-x (meters 0.0073242188)) ;; Scale while moving X
+   (:scalevel-y (meters 0.029296875)) ;; Scale while moving Y
+   (:accel-x 8.2000000) ;; Acceleration X (forward)
+   (:accel-y -15.018667 -2.7306666 1.0) ;; Acceleration Y (falling)
+   (:accel-z 9.5000000) ;; Acceleration Z (forward)
+   (:timer 480) ;; Timer before death
+   (:flags (bit2)) ;; ??
+   (:next-time 440) ;; Timer before next-launcher
+   (:next-launcher 3005) ;; 3005 = Fade out of the alpha
+   (:launchrot-x (degrees -15.0) (degrees 30.0) 1.0) ;; X rotation of the particle texture
+   (:rotate-y (degrees 90.0)) ;; Y rotation of the particle texture
+   ))
+
+(defpart 3003
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x19 :page #x2))
+   (:num 0.2) ;; Particles quantity
+   (:x (meters -2) (meters 10) 1.0) ;; Random Start pos between 2pt
+   (:y (meters -3.5)) ;; Start height
+   (:z (meters -2) (meters 10) 1.0) ;; Random Start pos between 2pt
+   (:scale-x (meters 12)) ;; X Scaling of the particle texture
+   (:rot-z (degrees 0.0) (degrees 360.0) 1.0) ;; Starting random rotation
+   (:scale-y :copy scale-x) ;; Copy X scaling to Y
+   (:r 128.0) ;; Red lighting (64.0 to 192.0)
+   (:g 128.0) ;; Green lighting (64.0 to 192.0)
+   (:b 128.0) ;; Blue lighting (64.0 to 192.0)
+   (:a 0.0) ;; Starting Alpha
+   (:vel-x (meters -0.006666667) (meters 0.02) 1.0) ;; Starting velocity X
+   (:vel-y (meters 0.053333335)) ;; Starting velocity Y
+   (:vel-z (meters -0.006666667) (meters 0.013333334) 1.0) ;; Starting velocity Z
+   (:scalevel-x (meters 0.006666667)) ;; Scale while moving X
+   (:rotvel-z (degrees -0.3) (degrees 0.6) 1.0) ;; Random rotation while moving Z
+   (:scalevel-y :copy scalevel-x) ;; Copy X Scale while moving to Y
+   (:fade-a 1.28) ;; Fade alpha to visible
+   (:accel-y 0.013653334) ;; Acceleration Y
+   (:friction 0.99) ;; Friction (slowdown)
+   (:timer 900) ;; Timer before death
+   (:flags (bit2)) ;; ??
+   (:next-time 45 29 1) ;; Random Timer before next-launcher
+   (:next-launcher 3005) ;; 3005 = Fade out of the alpha
+   (:rotate-y (degrees 90.0)) ;; Y rotation of the particle texture
+   ))
+
+(defpartgroup group-crystalc-bad-ground
+  :id 801
+  ;; NEEDS TO BE UNIQUE
+  :flags (always-draw)
+  :bounds (static-bspherem 0 12 0 12)
+  :parts
+  ((sp-item 3006 :fade-after (meters 160) :falloff-to (meters 160)) ;;sp-item = start the items under
+   ))
+
+(defpart 3006
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x19 :page #x2))
+   (:num 0.1 0.05) ;; Particles quantity
+   (:x (meters -10) (meters 20) 1.0) ;; Random Start pos between 2pt
+   (:y (meters -2) (meters 2) 1.0) ;; Start height
+   (:z (meters -10) (meters 20) 1.0) ;; Random Start pos between 2pt
+   (:scale-x (meters 8) (meters 3)) ;; X Scaling of the particle texture
+   (:rot-z (degrees 0.0) (degrees 360.0) 1.0) ;; Starting random rotation
+   (:scale-y :copy scale-x) ;; Copy X scaling to Y
+   (:r 120.0) ;; Red lighting (64.0 to 192.0)
+   (:g 20.0) ;; Green lighting (64.0 to 192.0)
+   (:b 90.0) ;; Blue lighting (64.0 to 192.0)
+   (:a 0.0) ;; Starting Alpha
+   (:vel-x (meters -0.006666667) (meters 0.02) 1.0) ;; Starting velocity X
+   (:vel-y (meters 0.020)) ;; Starting velocity Y
+   (:vel-z (meters -0.006666667) (meters 0.013333334) 1.0) ;; Starting velocity Z
+   (:scalevel-x (meters 0.006666667)) ;; Scale while moving X
+   (:rotvel-z (degrees -0.3) (degrees 0.6) 1.0) ;; Random rotation while moving Z
+   (:scalevel-y :copy scalevel-x) ;; Copy X Scale while moving to Y
+   (:fade-a 0.4) ;; Fade alpha to visible
+   (:accel-y 0.013653334) ;; Acceleration Y
+   (:friction 0.99) ;; Friction (slowdown)
+   (:timer 900) ;; Timer before death
+   (:flags (bit2)) ;; ??
+   (:next-time 200 50 1) ;; Random Timer before next-launcher
+   (:next-launcher 3005) ;; 3005 = Fade out of the alpha
+   (:rotate-y (degrees 90.0)) ;; Y rotation of the particle texture
+   ))
+
+(defpartgroup group-crystalc-bad-shroom-big
+  :id 802
+  ;; NEEDS TO BE UNIQUE
+  :flags (always-draw)
+  :bounds (static-bspherem 0 12 0 12)
+  :parts
+  ((sp-item 3007 :fade-after (meters 160) :falloff-to (meters 160)) ;;sp-item = start the items under
+   ))
+
+(defpart 3007
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x19 :page #x2))
+   (:num 0.3) ;; Particles quantity
+   (:x (meters 0) (meters 1) 1.0) ;; Random Start pos between 2pt
+   (:y (meters 0) (meters 1) 1.0) ;; Start height
+   (:z (meters 0) (meters 1) 1.0) ;; Random Start pos between 2pt
+   (:scale-x (meters 3)) ;; X Scaling of the particle texture
+   (:rot-z (degrees 0.0) (degrees 360.0) 1.0) ;; Starting random rotation
+   (:scale-y :copy scale-x) ;; Copy X scaling to Y
+   (:r 120.0) ;; Red lighting (64.0 to 192.0)
+   (:g 20.0) ;; Green lighting (64.0 to 192.0)
+   (:b 90.0) ;; Blue lighting (64.0 to 192.0)
+   (:a 0.0) ;; Starting Alpha
+   (:vel-x (meters 0.005) (meters -0.02) 1.0) ;; Starting velocity X
+   (:vel-y (meters 0.005) (meters -0.02) 1.0) ;; Starting velocity Y
+   (:vel-z (meters 0.005) (meters -0.02) 1.0) ;; Starting velocity Z
+   (:scalevel-x (meters 0.006666667)) ;; Scale while moving X
+   (:rotvel-z (degrees -0.3) (degrees 0.6) 1.0) ;; Random rotation while moving Z
+   (:scalevel-y :copy scalevel-x) ;; Copy X Scale while moving to Y
+   (:fade-a 0.5) ;; Fade alpha to visible
+   (:friction 0.99) ;; Friction (slowdown)
+   (:timer 900) ;; Timer before death
+   (:flags (bit2)) ;; ??
+   (:next-time 70 30 1) ;; Random Timer before next-launcher
+   (:next-launcher 3005) ;; 3005 = Fade out of the alpha
+   (:rotate-y (degrees 90.0)) ;; Y rotation of the particle texture
+   ))
+
+(defpartgroup group-crystalc-bad-shroom-small
+  :id 803
+  ;; NEEDS TO BE UNIQUE
+  :flags (always-draw)
+  :bounds (static-bspherem 0 12 0 12)
+  :parts
+  ((sp-item 3008 :fade-after (meters 160) :falloff-to (meters 160)) ;;sp-item = start the items under
+   ))
+
+(defpart 3008
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x19 :page #x2))
+   (:num 0.2) ;; Particles quantity
+   (:x (meters 0) (meters 0.5) 1.0) ;; Random Start pos between 2pt
+   (:y (meters 0) (meters 0.5) 1.0) ;; Start height
+   (:z (meters 0) (meters 0.5) 1.0) ;; Random Start pos between 2pt
+   (:scale-x (meters 2)) ;; X Scaling of the particle texture
+   (:rot-z (degrees 0.0) (degrees 360.0) 1.0) ;; Starting random rotation
+   (:scale-y :copy scale-x) ;; Copy X scaling to Y
+   (:r 120.0) ;; Red lighting (64.0 to 192.0)
+   (:g 20.0) ;; Green lighting (64.0 to 192.0)
+   (:b 90.0) ;; Blue lighting (64.0 to 192.0)
+   (:a 0.0) ;; Starting Alpha
+   (:vel-x (meters 0.005) (meters -0.02) 1.0) ;; Starting velocity X
+   (:vel-y (meters 0.005) (meters -0.02) 1.0) ;; Starting velocity Y
+   (:vel-z (meters 0.005) (meters -0.02) 1.0) ;; Starting velocity Z
+   (:scalevel-x (meters 0.006666667)) ;; Scale while moving X
+   (:rotvel-z (degrees -0.3) (degrees 0.6) 1.0) ;; Random rotation while moving Z
+   (:scalevel-y :copy scalevel-x) ;; Copy X Scale while moving to Y
+   (:fade-a 0.5) ;; Fade alpha to visible
+   (:friction 0.99) ;; Friction (slowdown)
+   (:timer 900) ;; Timer before death
+   (:flags (bit2)) ;; ??
+   (:next-time 50 20 1) ;; Random Timer before next-launcher
+   (:next-launcher 3005) ;; 3005 = Fade out of the alpha
+   (:rotate-y (degrees 90.0)) ;; Y rotation of the particle texture
+   ))
+
+(defpartgroup group-crystalc-godrays-01
+  :id 804
+  :bounds (static-bspherem 0 0 0 55)
+  :parts ((sp-item 3009 :fade-after (meters 130) :falloff-to (meters 160))))
+
+(defpart 3009
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x2 :page #x2))
+   (:num 0.01)
+   (:x (meters 5) (meters 2) 1.0)
+   (:y (meters -70))
+   (:z (meters 6) (meters 2) 1.0)
+   (:scale-x (meters 140) (meters 140) 1.0)
+   (:rot-x (meters 180))
+   (:rot-y (meters 180))
+   (:rot-z (degrees 255.0) (degrees 20.0) 1.0)
+   ;;(:rot-y (meters 0))
+   (:scale-y (meters 70) (meters 30) 1.0)
+   (:r 192.0)
+   (:g 192.0)
+   (:b 64.0 128.0 1.0)
+   (:a 0.0)
+   (:scalevel-x (meters 0.0003))
+   (:rotvel-z (degrees -0.001) (degrees 0.002) 1.0)
+   (:scalevel-y (meters 0.0003))
+   (:fade-a 0.035)
+   (:timer 1600)
+   (:flags (bit2 bit3 bit14))
+   (:next-time 800)
+   (:next-launcher 3010)
+   (:rotate-y (degrees 0.0))))
+
+(defpart 3010
+  :init-specs ((:fade-a -0.035)))
+
+(defpartgroup group-crystalc-waterfall-02
+  :id 805
+  ;; NEEDS TO BE UNIQUE
+  :flags (always-draw)
+  :bounds (static-bspherem 0 12 0 12)
+  :parts
+  ((sp-item 3011 :fade-after (meters 160) :falloff-to (meters 160)) ;;sp-item = start the items under
+   ))
+
+(defpart 3011
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x18 :page #x2))
+   (:num 1.2) ;; Particles quantity
+   (:x (meters -1.5) (meters 3.0) 1.0) ;; (Start pos) (start lenght)
+   (:y (meters 1)) ;; Start height
+   (:z (meters -1.5) (meters 3.0) 1.0) ;; (Start pos) (start lenght)
+   (:scale-x (meters 2.4) (meters 1.6) 1.0) ;; X Scaling of the particle texture
+   (:scale-y (meters 1.2) (meters 0.8) 1.0) ;; Y Scaling of the particle texture
+   (:r 192.0) ;; Red lighting (64.0 to 192.0)
+   (:g 192.0) ;; Green lighting (64.0 to 192.0)
+   (:b 192.0) ;; Blue lighting (64.0 to 192.0)
+   (:a 45.0 16.0 1.0) ;; Alpha ?? multiplier
+   (:vel-x (meters -0.05) (meters 0.01) 1.0) ;; Starting velocity X
+   (:vel-y (meters 0.01) (meters 0.01) 1.0) ;; Starting velocity Y
+   (:vel-z (meters 0.005) (meters 0.01) 1.0) ;; Starting velocity Z
+   (:scalevel-x (meters 0.0073242188)) ;; Scale while falling X
+   (:scalevel-y (meters 0.029296875)) ;; Scale while falling Y
+   (:accel-x 0.0000000) ;; Acceleration X (forward)
+   (:accel-y -15.018667 -2.7306666 1.0) ;; Acceleration Y (falling)
+   (:accel-z 0.0000000) ;; Acceleration Z (forward)
+   (:timer 250) ;; Timer before death
+   (:flags (bit2)) ;; ??
+   (:next-time 60) ;; Timer before next-launcher
+   (:next-launcher 3012) ;; 3005 = Fade-out
+   (:launchrot-x (degrees -15.0) (degrees 30.0) 1.0) ;; X rotation of the particle texture
+   (:rotate-y (degrees 90.0)) ;; Y rotation of the particle texture
+   ))
+
+(defpart 3012
+  :init-specs ((:fade-a -0.3)))
+
+(defpartgroup group-crystalc-waterfall-03
+  :id 806
+  ;; NEEDS TO BE UNIQUE
+  :flags (always-draw)
+  :bounds (static-bspherem 0 12 0 12)
+  :parts
+  ((sp-item 3013 :fade-after (meters 160) :falloff-to (meters 160)) ;;sp-item = start the items under
+   ))
+
+(defpart 3013
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x18 :page #x2))
+   (:num 2.5) ;; Particles quantity
+   (:x (meters -3.25) (meters 6.5) 1.0) ;; (Start pos) (start lenght)
+   (:y (meters 1)) ;; Start height
+   (:z (meters -3.25) (meters 6.5) 1.0) ;; (Start pos) (start lenght)
+   (:scale-x (meters 2.4) (meters 1.6) 1.0) ;; X Scaling of the particle texture
+   (:scale-y (meters 1.2) (meters 0.8) 1.0) ;; Y Scaling of the particle texture
+   (:r 192.0) ;; Red lighting (64.0 to 192.0)
+   (:g 192.0) ;; Green lighting (64.0 to 192.0)
+   (:b 192.0) ;; Blue lighting (64.0 to 192.0)
+   (:a 45.0 16.0 1.0) ;; Alpha ?? multiplier
+   (:vel-x (meters -0.05) (meters 0.01) 1.0) ;; Starting velocity X
+   (:vel-y (meters 0.01) (meters 0.01) 1.0) ;; Starting velocity Y
+   (:vel-z (meters 0.005) (meters 0.01) 1.0) ;; Starting velocity Z
+   (:scalevel-x (meters 0.0073242188)) ;; Scale while falling X
+   (:scalevel-y (meters 0.029296875)) ;; Scale while falling Y
+   (:accel-x 0.0000000) ;; Acceleration X (forward)
+   (:accel-y -15.018667 -2.7306666 1.0) ;; Acceleration Y (falling)
+   (:accel-z 0.0000000) ;; Acceleration Z (forward)
+   (:timer 250) ;; Timer before death
+   (:flags (bit2)) ;; ??
+   (:next-time 60) ;; Timer before next-launcher
+   (:next-launcher 3012) ;; 3005 = Fade-out
+   (:launchrot-x (degrees -15.0) (degrees 30.0) 1.0) ;; X rotation of the particle texture
+   (:rotate-y (degrees 90.0)) ;; Y rotation of the particle texture
+   ))
+
+(defpartgroup group-crystalc-waterfall-04
+  :id 807
+  ;; NEEDS TO BE UNIQUE
+  :flags (always-draw)
+  :bounds (static-bspherem 0 12 0 12)
+  :parts
+  ((sp-item 3014 :fade-after (meters 160) :falloff-to (meters 160)) ;;sp-item = start the items under
+   (sp-item 3015 :fade-after (meters 160) :falloff-to (meters 160))
+   (sp-item 3016 :fade-after (meters 160) :falloff-to (meters 160))))
+
+(defpart 3014
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x18 :page #x2))
+   (:num 7.0) ;; Particles quantity
+   (:x (meters -4.25) (meters 8.5) 1.0) ;; (Start pos) (start lenght)
+   (:y (meters 1)) ;; Start height
+   (:z (meters -3.25) (meters 3) 1.0) ;; (Start pos) (start lenght)
+   (:scale-x (meters 2.4) (meters 1.6) 1.0) ;; X Scaling of the particle texture
+   (:scale-y (meters 1.2) (meters 0.8) 1.0) ;; Y Scaling of the particle texture
+   (:r 130.0) ;; Red lighting (64.0 to 192.0)
+   (:g 152.0) ;; Green lighting (64.0 to 192.0)
+   (:b 130.0) ;; Blue lighting (64.0 to 192.0)
+   (:a 45.0 16.0 1.0) ;; Alpha ?? multiplier
+   (:vel-x (meters 0.008) (meters 0.01) 1.0) ;; Starting velocity X
+   (:vel-y (meters -0.05) (meters 0.01) 1.0) ;; Starting velocity Y
+   (:vel-z (meters 0.020) (meters 0.01) 1.0) ;; Starting velocity Z
+   (:scalevel-x (meters 0.008)) ;; Scale while falling X
+   (:scalevel-y (meters 0.015)) ;; Scale while falling Y
+   (:accel-x 6.00) ;; Acceleration X (forward)
+   (:accel-y -10.018667 -2.7306666 1.0) ;; Acceleration Y (falling)
+   (:accel-z 9.00) ;; Acceleration Z (forward)
+   (:timer 400) ;; Timer before death
+   (:flags (bit2)) ;; ??
+   (:next-time 130) ;; Timer before next-launcher
+   (:next-launcher 3005) ;; 3005 = Fade-out
+   (:launchrot-x (degrees -15.0) (degrees 30.0) 1.0) ;; X rotation of the particle texture
+   (:rotate-y (degrees 90.0)) ;; Y rotation of the particle texture
+   ))
+
+(defpart 3005
+  :init-specs ((:fade-a -0.22)))
+
+(defpart 3015
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x18 :page #x2))
+   (:num 7.0) ;; Particles quantity
+   (:x (meters -11) (meters 9.0) 1.0) ;; (Start pos) (start lenght)
+   (:y (meters 1)) ;; Start height
+   (:z (meters 2.5) (meters 3) 1.0) ;; (Start pos) (start lenght)
+   (:scale-x (meters 2.4) (meters 1.6) 1.0) ;; X Scaling of the particle texture
+   (:scale-y (meters 1.2) (meters 0.8) 1.0) ;; Y Scaling of the particle texture
+   (:r 130.0) ;; Red lighting (64.0 to 192.0)
+   (:g 152.0) ;; Green lighting (64.0 to 192.0)
+   (:b 130.0) ;; Blue lighting (64.0 to 192.0)
+   (:a 45.0 16.0 1.0) ;; Alpha ?? multiplier
+   (:vel-x (meters 0.008) (meters 0.01) 1.0) ;; Starting velocity X
+   (:vel-y (meters -0.05) (meters 0.01) 1.0) ;; Starting velocity Y
+   (:vel-z (meters 0.020) (meters 0.01) 1.0) ;; Starting velocity Z
+   (:scalevel-x (meters 0.008)) ;; Scale while falling X
+   (:scalevel-y (meters 0.015)) ;; Scale while falling Y
+   (:accel-x 6.00) ;; Acceleration X (forward)
+   (:accel-y -10.018667 -2.7306666 1.0) ;; Acceleration Y (falling)
+   (:accel-z 9.00) ;; Acceleration Z (forward)
+   (:timer 400) ;; Timer before death
+   (:flags (bit2)) ;; ??
+   (:next-time 130) ;; Timer before next-launcher
+   (:next-launcher 3005) ;; 3005 = Fade-out
+   (:launchrot-x (degrees -15.0) (degrees 30.0) 1.0) ;; X rotation of the particle texture
+   (:rotate-y (degrees 90.0)) ;; Y rotation of the particle texture
+   ))
+
+(defpart 3016
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x18 :page #x2))
+   (:num 7.0) ;; Particles quantity
+   (:x (meters 3.5) (meters 8.5) 1.0) ;; (Start pos) (start lenght)
+   (:y (meters 1)) ;; Start height
+   (:z (meters -9) (meters 6) 1.0) ;; (Start pos) (start lenght)
+   (:scale-x (meters 2.4) (meters 1.6) 1.0) ;; X Scaling of the particle texture
+   (:scale-y (meters 1.2) (meters 0.8) 1.0) ;; Y Scaling of the particle texture
+   (:r 130.0) ;; Red lighting (64.0 to 192.0)
+   (:g 152.0) ;; Green lighting (64.0 to 192.0)
+   (:b 130.0) ;; Blue lighting (64.0 to 192.0)
+   (:a 45.0 16.0 1.0) ;; Alpha ?? multiplier
+   (:vel-x (meters 0.008) (meters 0.01) 1.0) ;; Starting velocity X
+   (:vel-y (meters -0.05) (meters 0.01) 1.0) ;; Starting velocity Y
+   (:vel-z (meters 0.020) (meters 0.01) 1.0) ;; Starting velocity Z
+   (:scalevel-x (meters 0.008)) ;; Scale while falling X
+   (:scalevel-y (meters 0.015)) ;; Scale while falling Y
+   (:accel-x 6.00) ;; Acceleration X (forward)
+   (:accel-y -10.018667 -2.7306666 1.0) ;; Acceleration Y (falling)
+   (:accel-z 9.00) ;; Acceleration Z (forward)
+   (:timer 400) ;; Timer before death
+   (:flags (bit2)) ;; ??
+   (:next-time 130) ;; Timer before next-launcher
+   (:next-launcher 3005) ;; 3005 = Fade-out
+   (:launchrot-x (degrees -15.0) (degrees 30.0) 1.0) ;; X rotation of the particle texture
+   (:rotate-y (degrees 90.0)) ;; Y rotation of the particle texture
+   ))
+
+(defpartgroup group-crystalc-waterfall-05
+  :id 808
+  ;; NEEDS TO BE UNIQUE
+  :flags (always-draw)
+  :bounds (static-bspherem 0 12 0 12)
+  :parts
+  ((sp-item 3017 :fade-after (meters 160) :falloff-to (meters 160)) ;;sp-item = start the items under
+   (sp-item 3018 :fade-after (meters 160) :falloff-to (meters 160))))
+
+(defpart 3017
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x18 :page #x2))
+   (:num 2.5) ;; Particles quantity
+   (:x (meters -1.5) (meters 3.0) 1.0) ;; (Start pos) (start lenght)
+   (:y (meters 0.5)) ;; Start height
+   (:z (meters -1.5) (meters 3.0) 1.0) ;; (Start pos) (start lenght)
+   (:scale-x (meters 2.4) (meters 1.6) 1.0) ;; X Scaling of the particle texture
+   (:scale-y (meters 1.2) (meters 0.8) 1.0) ;; Y Scaling of the particle texture
+   (:r 192.0) ;; Red lighting (64.0 to 192.0)
+   (:g 192.0) ;; Green lighting (64.0 to 192.0)
+   (:b 192.0) ;; Blue lighting (64.0 to 192.0)
+   (:a 64.0 16.0 1.0) ;; Alpha ?? multiplier
+   (:vel-x (meters 0.0) (meters 0.01) 1.0) ;; Starting velocity X
+   (:vel-y (meters 0.01) (meters 0.01) 1.0) ;; Starting velocity Y
+   (:vel-z (meters 0.05) (meters 0.01) 1.0) ;; Starting velocity Z
+   (:scalevel-x (meters 0.0073242188)) ;; Scale while falling X
+   (:scalevel-y (meters 0.029296875)) ;; Scale while falling Y
+   (:accel-x 0.0000000) ;; Acceleration X (forward)
+   (:accel-y -15.018667 -2.7306666 1.0) ;; Acceleration Y (falling)
+   (:accel-z 0.0000000) ;; Acceleration Z (forward)
+   (:timer 100) ;; Timer before death
+   (:flags (bit2)) ;; ??
+   (:next-time 60) ;; Timer before next-launcher
+   (:next-launcher 3019) ;; 3005 = Fade-out
+   (:launchrot-x (degrees -15.0) (degrees 30.0) 1.0) ;; X rotation of the particle texture
+   (:rotate-y (degrees 90.0)) ;; Y rotation of the particle texture
+   ))
+
+(defpart 3019
+  :init-specs ((:fade-a -0.7)))
+
+(defpart 3018
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x18 :page #x2))
+   (:num 3.0) ;; Particles quantity
+   (:x (meters -4.5) (meters 4.5) 1.0) ;; (Start pos) (start lenght)
+   (:y (meters 6.5)) ;; Start height
+   (:z (meters -17) (meters 4.5) 1.0) ;; (Start pos) (start lenght)
+   (:scale-x (meters 2.4) (meters 1.6) 1.0) ;; X Scaling of the particle texture
+   (:scale-y (meters 1.2) (meters 0.8) 1.0) ;; Y Scaling of the particle texture
+   (:r 192.0) ;; Red lighting (64.0 to 192.0)
+   (:g 192.0) ;; Green lighting (64.0 to 192.0)
+   (:b 192.0) ;; Blue lighting (64.0 to 192.0)
+   (:a 64.0 16.0 1.0) ;; Alpha ?? multiplier
+   (:vel-x (meters 0.015) (meters 0.01) 1.0) ;; Starting velocity X
+   (:vel-y (meters 0.01) (meters 0.01) 1.0) ;; Starting velocity Y
+   (:vel-z (meters 0.04) (meters 0.01) 1.0) ;; Starting velocity Z
+   (:scalevel-x (meters 0.0073242188)) ;; Scale while falling X
+   (:scalevel-y (meters 0.029296875)) ;; Scale while falling Y
+   (:accel-x 0.0000000) ;; Acceleration X (forward)
+   (:accel-y -15.018667 -2.7306666 1.0) ;; Acceleration Y (falling)
+   (:accel-z 0.0000000) ;; Acceleration Z (forward)
+   (:timer 150) ;; Timer before death
+   (:flags (bit2)) ;; ??
+   (:next-time 80) ;; Timer before next-launcher
+   (:next-launcher 3019) ;; 3005 = Fade-out
+   (:launchrot-x (degrees -15.0) (degrees 30.0) 1.0) ;; X rotation of the particle texture
+   (:rotate-y (degrees 90.0)) ;; Y rotation of the particle texture
+   ))
+
+(defpartgroup group-crystalc-cavedrip-1
+  :id 809
+  :bounds (static-bspherem 0 8 0 8.25)
+  :parts
+  ((sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 369 :length 5)
+   (sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 768 :length 5)
+   (sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 1167 :length 5)
+   (sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 1701 :length 5)
+   (sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 2736 :length 5)
+   (sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 3831 :length 5)))
+
+(defpartgroup group-crystalc-cavedrip-2
+  :id 810
+  :bounds (static-bspherem 0 8 0 8.25)
+  :parts
+  ((sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 467 :length 5)
+   (sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 834 :length 5)
+   (sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 984 :length 5)
+   (sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 2237 :length 5)
+   (sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 2597 :length 5)
+   (sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 3587 :length 5)))
+
+(defpartgroup group-crystalc-cavedrip-3
+  :id 811
+  :bounds (static-bspherem 0 8 0 8.25)
+  :parts
+  ((sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 801 :length 5)
+   (sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 867 :length 5)
+   (sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 1269 :length 5)
+   (sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 1983 :length 5)
+   (sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 2601 :length 5)
+   (sp-item 3020 :fade-after (meters 60) :falloff-to (meters 60) :period 5061 :length 5)))
+
+(defpart 3020
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x9 :page #x2))
+   (:birth-func 'birth-func-y->userdata)
+   (:num 1.0)
+   (:y (meters 24))
+   (:scale-x (meters 0.1))
+   (:scale-y (meters 0.4))
+   (:r 64.0 32.0 1.0)
+   (:g 96.0 32.0 1.0)
+   (:b 80.0 32.0 1.0)
+   (:a 128.0)
+   (:vel-y (meters -0.045714285))
+   (:fade-a 0.5688889)
+   (:timer 900)
+   (:flags (bit2 bit3 bit12 bit14))
+   (:userdata -98304.0)
+   (:func 'check-drop-level-crystalc-drip)
+   (:next-time 150 74 1)
+   (:next-launcher 3036)))
+
+(defpart 3036
+  :init-specs ((:fade-a 0.0)))
+
+(defpart 3037
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x9 :page #x2))
+   (:num 3.0 4.0)
+   (:scale-x (meters 0.05) (meters 0.075))
+   (:scale-y :copy scale-x)
+   (:r 96.0 32.0)
+   (:g 112.0 64.0)
+   (:b 128.0 128.0)
+   (:a 64.0 64.0)
+   (:vel-y (meters 0.006666667) (meters 0.013333334))
+   (:fade-a -0.5688889)
+   (:accel-y (meters -0.00066666666))
+   (:timer (seconds 0.75))
+   (:flags (bit2 bit3 bit12 bit14))
+   (:conerot-x (degrees 20) (degrees 60))
+   (:conerot-y (degrees 0) (degrees 360))))
+
+(defpart 3038
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1e :page #x2))
+   (:num 1.0)
+   (:y (meters 0.02))
+   (:scale-x (meters 0.5))
+   (:scale-y :copy scale-x)
+   (:r 96.0 64.0)
+   (:g 64.0 16.0)
+   (:b 192.0 32.0)
+   (:a 64.0 64.0)
+   (:scalevel-x (meters 0.016666668) (meters 0.01))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-a -1.2222222)
+   (:timer (seconds 0.3))
+   (:flags (bit2 bit3 bit12 bit14))
+   (:rotate-y (degrees 0) (degrees 360))))
+
+(defun check-drop-level-crystalc-drip ((arg0 sparticle-system) (arg1 sparticle-cpuinfo) (arg2 vector))
+  (when (< (-> arg2 y) (-> arg1 user-float))
+    (let ((gp-0 (new 'stack-no-clear 'vector)))
+      (sp-kill-particle arg0 arg1)
+      (if (< (rand-float-gen) 0.25) (sound-play "water-drop"))
+      (set-vector! gp-0 (-> arg2 x) (-> arg1 user-float) (-> arg2 z) 1.0)
+      (launch-particles :rate 1.0 (-> *part-id-table* 3037) gp-0)
+      (launch-particles :system *sp-particle-system-3d* :rate 1.0 (-> *part-id-table* 3038) gp-0)))
+  (none))
+
+;; FIND A WAY TO CHANGE THE ROTATION CENTER FOR THIS TO BE USEABLE. MAYBE BINDING ANOTHER PART?
+(defpartgroup group-crystalc-crystal-big1
+  :id 812
+  :bounds (static-bspherem 0 0 0 55)
+  :parts ((sp-item 3023 :fade-after (meters 130) :falloff-to (meters 160))))
+
+(defpart 3023
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x2 :page #x2))
+   (:num 0.02)
+   (:x (meters 0) (meters 0) 1.0)
+   (:y (meters 0))
+   (:z (meters 0) (meters 0) 1.0)
+   (:scale-x (meters 1.5) (meters 0.10) 1.0)
+   (:rot-x (meters 0))
+   (:rot-y (meters 270))
+   (:rot-z (degrees 0) (degrees 0) 1.0)
+   (:scale-y (meters 0.15) (meters 0) 1.0)
+   (:r 64.0 16.0 1.0)
+   (:g 192.0)
+   (:b 32.0)
+   (:a 0.0)
+   (:scalevel-x (meters 0.002))
+   ;;(:rotvel-z (degrees 0.5) (degrees 0.00) 1.0)
+   (:scalevel-y (meters 0.001))
+   (:fade-a 0.5)
+   (:timer 1600)
+   (:flags (bit2 bit3 bit14))
+   (:next-time 800)
+   (:next-launcher 3024)
+   (:conerot-x (degrees 90.0))
+   (:conerot-y (degrees 0.0) (degrees 360.0) 1.0)
+   (:conerot-radius (meters 5) (meters 2) 1.0)))
+
+(defpart 3024
+  :init-specs ((:fade-a -0.2)))
+
+(defpartgroup group-crystalc-precursor-bot
+  :id 813
+  :bounds (static-bspherem 0 0 0 8)
+  :parts
+  ((sp-item 3025 :fade-after (meters 100) :falloff-to (meters 100))
+   (sp-item 3025 :fade-after (meters 50) :falloff-to (meters 50))
+   (sp-item 3026 :fade-after (meters 300) :falloff-to (meters 300))
+   (sp-item 3027 :fade-after (meters 400) :falloff-to (meters 400))
+   (sp-item 3028 :fade-after (meters 400) :falloff-to (meters 400))
+   (sp-item 3029 :fade-after (meters 400) :falloff-to (meters 400))
+   (sp-item 3030 :fade-after (meters 400) :falloff-to (meters 400))))
+
+(defpart 3025
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1f :page #x2))
+   (:num 0.3 1.2 1.0)
+   (:y (meters 2) (meters 3) 1.0)
+   (:scale-x (meters 6) (meters 2) 1.0)
+   (:rot-x 4)
+   (:rot-z (degrees -120.0) (degrees 60) 1.0)
+   (:scale-y (meters 1) (meters 0.7) 1.0)
+   (:r 32.0 32.0 1.0)
+   (:g 96.0 32.0 1.0)
+   (:b 128.0 64.0 1.0)
+   (:a 128.0)
+   (:fade-a -0.8)
+   (:timer 180)
+   (:flags (bit2 bit3 bit14))
+   (:next-time 20)
+   (:next-launcher 3031)
+   (:conerot-x (degrees 90.0))
+   (:conerot-y (degrees 0.0) (degrees 360.0) 1.0)
+   (:conerot-radius (meters 5) (meters 4) 1.0)))
+
+(defpart 3031
+  :init-specs ((:r 64.0) (:g 64.0) (:fade-r -0.4) (:fade-g -0.4) (:fade-a -0.93333334)))
+
+(defpart 3026
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x4 :page #x2))
+   (:num 2.0 3.0 1.0)
+   (:y (meters 0.75))
+   (:scale-x (meters 5) (meters 3) 1.0)
+   (:scale-y (meters 6) (meters 2) 1.0)
+   (:r 32.0)
+   (:g 96.0 16.0 1.0)
+   (:b 128.0 128.0 1.0)
+   (:a 32.0 64.0 1.0)
+   (:fade-a -1.28)
+   (:timer 75)
+   (:flags (bit2 bit14))
+   (:conerot-x (degrees 90.0))
+   (:conerot-y (degrees 0.0) (degrees 360.0) 1.0)
+   (:conerot-radius (meters 5) (meters 4) 1.0)))
+
+(defpart 3027
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x12 :page #x2))
+   (:num 0.2 1.5 1.0)
+   (:y (meters 0.75))
+   (:scale-x (meters 6) (meters 3) 1.0)
+   (:rot-z (degrees 0.0) 1 32768.0)
+   (:scale-y (meters 9) (meters 2) 1.0)
+   (:r 32.0)
+   (:g 64.0)
+   (:b 96.0 64.0 1.0)
+   (:a 128.0 64.0 1.0)
+   (:rotvel-z (degrees -0.1) (degrees 0.2) 1.0)
+   (:fade-a -0.64)
+   (:timer 300)
+   (:flags (bit2 bit3 bit14))
+   (:conerot-x (degrees 90.0))
+   (:conerot-y (degrees 0.0) (degrees 360.0) 1.0)
+   (:conerot-radius (meters 5) (meters 4) 1.0)))
+
+(defpart 3028
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1f :page #x2))
+   (:num 0.10 0.5 1.0)
+   (:y (meters 3) (meters 5) 1.0)
+   (:scale-x (meters 6) (meters 2) 1.0)
+   (:rot-x 4)
+   (:rot-z (degrees -120.0) (degrees 60) 1.0)
+   (:scale-y (meters 1) (meters 0.7) 1.0)
+   (:r 32.0 32.0 1.0)
+   (:g 96.0 32.0 1.0)
+   (:b 128.0 64.0 1.0)
+   (:a 128.0)
+   (:fade-a -0.8)
+   (:timer 180)
+   (:flags (bit2 bit3 bit14))
+   (:next-time 20)
+   (:next-launcher 3031)
+   (:conerot-x (degrees 90.0))
+   (:conerot-y (degrees 0.0) (degrees 360.0) 1.0)
+   (:conerot-radius (meters 1) (meters 5) 1.0)))
+
+(defpart 3029
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x4 :page #x2))
+   (:num 0.5 1.0 1.0)
+   (:y (meters 3))
+   (:scale-x (meters 5) (meters 3) 1.0)
+   (:scale-y (meters 6) (meters 2) 1.0)
+   (:r 32.0)
+   (:g 96.0 16.0 1.0)
+   (:b 128.0 128.0 1.0)
+   (:a 32.0 64.0 1.0)
+   (:fade-a -1.28)
+   (:timer 75)
+   (:flags (bit2 bit14))
+   (:conerot-x (degrees 90.0))
+   (:conerot-y (degrees 0.0) (degrees 360.0) 1.0)
+   (:conerot-radius (meters 1) (meters 5) 1.0)))
+
+(defpart 3030
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x12 :page #x2))
+   (:num 0.1 0.5 1.0)
+   (:y (meters 3))
+   (:scale-x (meters 6) (meters 3) 1.0)
+   (:rot-z (degrees 0.0) 1 32768.0)
+   (:scale-y (meters 6) (meters 2) 1.0)
+   (:r 32.0)
+   (:g 64.0)
+   (:b 96.0 64.0 1.0)
+   (:a 128.0 64.0 1.0)
+   (:rotvel-z (degrees -0.1) (degrees 0.2) 1.0)
+   (:fade-a -0.64)
+   (:timer 300)
+   (:flags (bit2 bit3 bit14))
+   (:conerot-x (degrees 90.0))
+   (:conerot-y (degrees 0.0) (degrees 360.0) 1.0)
+   (:conerot-radius (meters 1) (meters 5) 1.0)))
+
+(defpartgroup group-crystalc-portal-flicker
+  :id 814
+  :bounds (static-bspherem 0 0 0 8)
+  :parts ((sp-item 3032 :fade-after (meters 100) :falloff-to (meters 100))))
+
+(defpart 3032
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1f :page #x2))
+   (:num 0.01 0.04 1.0)
+   (:x (meters -1.5) (meters 2) 1.0)
+   (:y (meters -1.5) (meters 2) 1.0)
+   (:z (meters -0.5) (meters 1) 1.0)
+   (:scale-x (meters 0.3) (meters 1) 1.0)
+   (:rot-x 4)
+   ;;(:rot-x (meters 0) (meters 360) 1.0)
+   (:rot-z (degrees -120.0) (degrees 60) 1.0)
+   (:scale-y (meters 0.2) (meters 1) 1.0)
+   (:r 32.0 32.0 1.0)
+   (:g 96.0 32.0 1.0)
+   (:b 128.0 64.0 1.0)
+   (:a 128.0)
+   (:fade-a -0.8)
+   (:timer 180)
+   (:flags (bit2 bit3 bit14))
+   (:next-time 20)
+   (:next-launcher 3031)))
+
+;; TRUSTER STUFF ::
+
+(defpartgroup group-crystalc-truster-right
+  :id 816
+  :bounds (static-bspherem 0 3 0 4)
+  :parts ((sp-item 3033 :fade-after (meters 50) :falloff-to (meters 50))))
+
+(defpart 3033
+  :init-specs
+  ((:num 3.0)
+   (:x (meters -6.0) (meters 12) 1.0)
+   (:y (meters -6.0) (meters 12) 1.0)
+   (:z (meters -6.0) (meters 12) 1.0)
+   (:rot-x 5)
+   (:r 4096.0)
+   (:g 2867.2)
+   (:b 3276.8)
+   (:vel-x (meters 0.1) (meters 0.05) 1.0)
+   (:vel-y (meters -0.2) (meters 0.15) 1.0)
+   (:vel-z (meters 0.1) (meters 0.05) 1.0)
+   (:accel-y 100.0)
+   (:timer 80)
+   (:flags (aux-list))
+   (:next-time 40)
+   (:next-launcher 3034)
+   (:rotate-y (degrees 0.0) (degrees 360.0) 1.0)))
+
+(defpart 3034
+  :init-specs ((:fade-b -6.826667)))
+
+(defpartgroup group-crystalc-truster-left
+  :id 817
+  :bounds (static-bspherem 0 3 0 4)
+  :parts ((sp-item 3035 :fade-after (meters 50) :falloff-to (meters 50))))
+
+(defpart 3035
+  :init-specs
+  ((:num 3.0)
+   (:x (meters -6.0) (meters 12) 1.0)
+   (:y (meters -6.0) (meters 12) 1.0)
+   (:z (meters -6.0) (meters 12) 1.0)
+   (:rot-x 5)
+   (:r 4096.0)
+   (:g 2867.2)
+   (:b 3276.8)
+   (:vel-x (meters -0.1) (meters -0.05) 1.0)
+   (:vel-y (meters -0.2) (meters 0.15) 1.0)
+   (:vel-z (meters 0.1) (meters 0.05) 1.0)
+   (:accel-y 100.0)
+   (:timer 80)
+   (:flags (aux-list))
+   (:next-time 40)
+   (:next-launcher 3034)
+   (:rotate-y (degrees 0.0) (degrees 360.0) 1.0)))
+
+(defpartgroup group-crystalc-fireflies
+  :id 818
+  :bounds (static-bspherem 0 0 0 12)
+  :parts
+  ((sp-item 3039 :fade-after (meters 100) :falloff-to (meters 100) :binding 3040)
+   (sp-item 3040 :flags (start-dead))
+   (sp-item 3040 :flags (start-dead))
+   (sp-item 3040 :flags (start-dead))
+   (sp-item 3040 :flags (start-dead))
+   (sp-item 3040 :flags (start-dead))
+   (sp-item 3040 :flags (start-dead))
+   (sp-item 3040 :flags (start-dead))))
+
+(defpart 3039 ;; main fireflies
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2)) ;; (new 'static 'texture-id :index #x4 :page #x2)
+   (:num 0.005 0.02)
+   (:x (meters -4) (meters 8))
+   (:y (meters -3) (meters 6))
+   (:z (meters -4) (meters 8))
+   (:scale-x (meters 0.4) (meters 0.05))
+   (:scale-y :copy scale-x)
+   (:r 256.0)
+   (:g 128.0 32.0)
+   (:a 128.0)
+   (:vel-x (meters -0.005) (meters 0.015))
+   (:vel-y (meters -0.005) (meters 0.015))
+   (:vel-z (meters -0.005) (meters 0.015))
+   (:accel-x (meters -0.0003) (meters 0.0006))
+   (:accel-y (meters -0.0004) (meters 0.0008))
+   (:accel-z (meters -0.0003) (meters 0.0006))
+   (:timer (seconds 1.2) (seconds 1.3))
+   (:flags (bit2 bit3))
+   (:next-time (seconds 0.1) (seconds 0.3))
+   (:next-launcher 3041)
+   (:conerot-x (degrees 0) (degrees 360))
+   (:conerot-y (degrees 0) (degrees 360))
+   (:conerot-z (degrees 0) (degrees 360))
+   (:rotate-y (degrees -180))))
+
+(defpart 3040 ;; trail fireflies
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2)) ;;(new 'static 'texture-id :index #xf :page #x2)
+   (:num 0.01 0.09)
+   (:scale-x (meters 0.5) (meters 0.4))
+   (:scale-y :copy scale-x)
+   (:r 200.0)
+   (:g 128.0 64.0)
+   (:a 64.0 32.0)
+   (:scalevel-x (meters -0.0005))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-g -0.5 0.3)
+   (:fade-a -0.15 0.08)
+   (:timer (seconds 0.8) (seconds 0.6))
+   (:flags (bit0 bit3))
+   (:rotate-y (degrees 45))))
+
+(defpart 3041
+  :init-specs
+  ((:scale-x (meters 0.4) (meters 0.5))
+   (:scale-y :copy scale-x)
+   (:accel-x (meters -0.0002) (meters 0.0004))
+   (:accel-y (meters -0.0003) (meters 0.0006))
+   (:accel-z (meters -0.0002) (meters 0.0004))
+   (:next-time (seconds 0.1) (seconds 0.2))
+   (:next-launcher 3042)))
+
+(defpart 3042
+  :init-specs
+  ((:scale-x (meters 0.4) (meters 0.6))
+   (:scale-y :copy scale-x)
+   (:accel-x (meters -0.0002) (meters 0.0004))
+   (:accel-y (meters -0.0003) (meters 0.0006))
+   (:accel-z (meters -0.0002) (meters 0.0004))
+   (:next-time (seconds 0.1) (seconds 0.2))
+   (:next-launcher 3043)))
+
+(defpart 3043
+  :init-specs
+  ((:scale-x (meters 0.4) (meters 0.5))
+   (:scale-y :copy scale-x)
+   (:accel-x (meters -0.0002) (meters 0.0004))
+   (:accel-y (meters -0.0003) (meters 0.0006))
+   (:accel-z (meters -0.0002) (meters 0.0004))
+   (:next-time (seconds 0.1) (seconds 0.3))
+   (:next-launcher 3044)))
+
+(defpart 3044
+  :init-specs
+  ((:scale-x (meters 0.3) (meters 0.5))
+   (:scale-y :copy scale-x)
+   (:accel-x (meters -0.0002) (meters 0.0004))
+   (:accel-y (meters -0.0003) (meters 0.0006))
+   (:accel-z (meters -0.0002) (meters 0.0004))
+   (:next-time (seconds 0.1) (seconds 0.3))
+   (:next-launcher 3045)))
+
+(defpart 3045
+  :init-specs
+  ((:scale-x (meters 0.3) (meters 0.4))
+   (:scale-y :copy scale-x)
+   (:accel-x (meters -0.0002) (meters 0.0004))
+   (:accel-y (meters -0.0003) (meters 0.0006))
+   (:accel-z (meters -0.0002) (meters 0.0004))
+   (:next-time (seconds 0.1) (seconds 0.3))
+   (:next-launcher 3046)))
+
+(defpart 3046
+  :init-specs
+  ((:scale-x (meters 0.3) (meters 0.3))
+   (:scale-y :copy scale-x)
+   (:accel-x (meters -0.0002) (meters 0.0004))
+   (:accel-y (meters -0.0003) (meters 0.0006))
+   (:accel-z (meters -0.0002) (meters 0.0004))
+   (:next-time (seconds 0.1) (seconds 0.3))
+   (:next-launcher 3047)))
+
+(defpart 3047
+  :init-specs
+  ((:scale-x (meters 0.2) (meters 0.3))
+   (:scale-y :copy scale-x)
+   (:accel-x (meters -0.0002) (meters 0.0004))
+   (:accel-y (meters -0.0003) (meters 0.0006))
+   (:accel-z (meters -0.0002) (meters 0.0004))))
+
+;; electric-arc particles 3039+
+
+(defpart 3048 ;; main arc - fog
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 15.0 5.0)
+   (:x (meters -6.21) (meters 6))
+   (:y (meters 30) (meters 0.5))
+   (:z (meters -3.23) (meters 6))
+   (:scale-x (meters 2.5) (meters 7.5))
+   ;; (:rot-z (degrees -180) (degrees 360))
+   (:scale-y (meters 12))
+   (:r 0.0)
+   (:g 80.0)
+   (:b 128.0)
+   (:a 32.0)
+   (:vel-x (meters 0.03))
+   (:vel-y (meters -1.2) (meters 0.2))
+   (:scalevel-x (meters -0.0039999997))
+   ;; (:rotvel-z (degrees -1.8) (degrees 1.8))
+   (:scalevel-y :copy scalevel-x)
+   (:accel-y (meters -0.0006))
+   (:timer (seconds 0.27))
+   (:flags (bit2 bit3))))
+
+(defpart 3049 ;; left arc - fog
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 8.0 5.0)
+   (:x (meters -8.21) (meters 2))
+   (:y (meters 29) (meters 1))
+   (:z (meters -1.23) (meters 2))
+   (:scale-x (meters 2.5) (meters 4.5))
+   ;; (:rot-z (degrees -180) (degrees 360))
+   (:scale-y (meters 8))
+   (:r 0.0)
+   (:g 80.0)
+   (:b 128.0)
+   (:a 32.0)
+   (:vel-x (meters -0.36) (meters 0.1))
+   (:vel-y (meters -0.8) (meters 0.1))
+   (:vel-z (meters -0.13) (meters 0.05))
+   (:scalevel-x (meters -0.0039999997))
+   (:rotvel-z (degrees -1.8) (degrees 1.8))
+   (:scalevel-y :copy scalevel-x)
+   (:accel-y (meters -0.0006))
+   (:timer (seconds 0.08))
+   (:flags (bit2 bit3))))
+
+(defpart 3050 ;; right arc - fog
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 7.0 5.0)
+   (:x (meters -1.5) (meters 4))
+   (:y (meters 28.0) (meters 0.5))
+   (:z (meters -0.0) (meters 2))
+   (:scale-x (meters 2.5) (meters 4.5))
+   (:rot-z (degrees -180) (degrees 360))
+   (:scale-y (meters 8))
+   (:r 0.0)
+   (:g 80.0)
+   (:b 128.0)
+   (:a 32.0)
+   (:vel-x (meters 0.33) (meters 0.1))
+   (:vel-y (meters -0.37) (meters 0.1))
+   (:vel-z (meters -0.0) (meters 0.1))
+   (:scalevel-x (meters -0.0039999997))
+   (:rotvel-z (degrees -1.8) (degrees 1.8))
+   (:scalevel-y :copy scalevel-x)
+   (:accel-y (meters -0.0006))
+   (:timer (seconds 0.07))
+   (:flags (bit2 bit3))))
+
+(defpart 3051 ;; main arc - small arcs
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1f :page #x2))
+   (:num 15.0 5.0)
+   (:x (meters -8) (meters 10) 1.0)
+   (:y (meters -2.5) (meters 29) 1.0)
+   (:z (meters -3.5) (meters 10) 1.0)
+   (:scale-x (meters 2.5) (meters 3) 1.0)
+   (:rot-z (degrees -128.0) (degrees 160) 1.0)
+   (:scale-y (meters 0.5) (meters 1.5) 1.0)
+   (:r 32.0 32.0 1.0)
+   (:g 96.0 32.0 1.0)
+   (:b 128.0 64.0 1.0)
+   (:a 128.0)
+   (:fade-a -0.8)
+   (:timer 1)
+   (:flags (bit2 bit3 bit14))
+   (:next-time 0.5)
+   (:next-launcher 3031)))
+
+(defpart 3052 ;; left arc - small arcs 1
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1f :page #x2))
+   (:num 5.0 3.0)
+   (:x (meters -11) (meters 5) 1.0)
+   (:y (meters 20) (meters 7) 1.0)
+   (:z (meters -3.5) (meters 5) 1.0)
+   (:scale-x (meters 2.5) (meters 3) 1.0)
+   (:rot-z (degrees -128.0) (degrees 160) 1.0)
+   (:scale-y (meters 0.5) (meters 1.5) 1.0)
+   (:r 32.0 32.0 1.0)
+   (:g 96.0 32.0 1.0)
+   (:b 128.0 64.0 1.0)
+   (:a 128.0)
+   (:fade-a -0.8)
+   (:timer 1)
+   (:flags (bit2 bit3 bit14))
+   (:next-time 0.5)
+   (:next-launcher 3031)))
+
+(defpart 3053 ;; left arc - small arcs 2
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1f :page #x2))
+   (:num 5.0 3.0)
+   (:x (meters -15.5) (meters 5) 1.0)
+   (:y (meters 9) (meters 10) 1.0)
+   (:z (meters -3.5) (meters 5) 1.0)
+   (:scale-x (meters 2.5) (meters 3) 1.0)
+   (:rot-z (degrees -128.0) (degrees 160) 1.0)
+   (:scale-y (meters 0.5) (meters 1.5) 1.0)
+   (:r 32.0 32.0 1.0)
+   (:g 96.0 32.0 1.0)
+   (:b 128.0 64.0 1.0)
+   (:a 128.0)
+   (:fade-a -0.8)
+   (:timer 1)
+   (:flags (bit2 bit3 bit14))
+   (:next-time 0.5)
+   (:next-launcher 3031)))
+
+(defpart 3054 ;; right arc - small arcs 1
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1f :page #x2))
+   (:num 5.0 3.0)
+   (:x (meters 2) (meters 6) 1.0)
+   (:y (meters 20) (meters 7) 1.0)
+   (:z (meters -0.5) (meters 5) 1.0)
+   (:scale-x (meters 2.5) (meters 3) 1.0)
+   (:rot-z (degrees -128.0) (degrees 160) 1.0)
+   (:scale-y (meters 0.5) (meters 1.5) 1.0)
+   (:r 32.0 32.0 1.0)
+   (:g 96.0 32.0 1.0)
+   (:b 128.0 64.0 1.0)
+   (:a 128.0)
+   (:fade-a -0.8)
+   (:timer 1)
+   (:flags (bit2 bit3 bit14))
+   (:next-time 0.5)
+   (:next-launcher 3031)))

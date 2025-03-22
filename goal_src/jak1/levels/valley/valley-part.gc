@@ -1,0 +1,1055 @@
+;;-*-Lisp-*-
+(in-package goal)
+(deftype valley-part (part-spawner) ())
+
+;; group-id range for taiga valley : 1050-1069
+;; part-id range for taiga valley : 4000-4099
+
+(defpartgroup group-rolling-rock-explosion
+  :id 1050
+  :duration (seconds 1)
+  :flags (use-local-clock)
+  :bounds (static-bspherem 0 0 0 8)
+  :parts
+  ((sp-item 4000 :period (seconds 5) :length (seconds 0.017))
+   (sp-item 4001 :period (seconds 5) :length (seconds 0.017))
+   (sp-item 4002 :period (seconds 5) :length (seconds 0.05))))
+
+(defpart 4001
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x12 :page #x2))
+   (:num 3.0 2.0)
+   (:y (meters 3) (meters 2))
+   (:scale-x (meters 15) (meters 5))
+   (:scale-y :copy scale-x)
+   (:r 112.0)
+   (:g 64.0)
+   (:b 72.0)
+   (:a 94.0)
+   (:fade-a -2.1333334)
+   (:timer (seconds 0.4))
+   (:flags (bit2 bit3))))
+
+(defpart 4000
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1d :page #x2))
+   (:num 16.0 8.0)
+   (:x (meters -2) (meters 4))
+   (:y (meters 2) (meters 3))
+   (:z (meters -1) (meters 2))
+   (:scale-x (meters 0.2) (meters 0.8))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 32.0 8.0)
+   (:g 48.0 8.0)
+   (:b 72.0 24.0)
+   (:a 128.0)
+   (:vel-y (meters 0.06) (meters 0.08))
+   (:rotvel-z (degrees -1.2) (degrees 2.4))
+   (:accel-y (meters -0.0026666666))
+   (:friction 0.99)
+   (:timer (seconds 1.5))
+   (:flags (bit2))
+   (:userdata 0.0)
+   (:func 'check-water-level-drop)
+   (:conerot-x (degrees 20) (degrees 50.000004))
+   (:conerot-y (degrees 0) (degrees 360))))
+
+(defpart 4002
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 15.0)
+   (:x (meters -1.5) (meters 3))
+   (:y (meters 2) (meters 3))
+   (:z (meters -1.5) (meters 3))
+   (:scale-x (meters 1.0) (meters 3.5))
+   (:scale-y :copy scale-x)
+   (:r 64.0 24.0)
+   (:g 64.0 40.0)
+   (:b 64.0 24.0)
+   (:a 16.0 24.0)
+   (:vel-y (meters 0.02) (meters 0.025))
+   (:scalevel-x (meters 0.015))
+   (:scalevel-y (meters 0.004))
+   (:accel-y (meters -0.0003))
+   (:friction 0.95)
+   (:timer (seconds 3.0))
+   (:flags (bit2))
+   (:next-time (seconds 0.2) (seconds 1.5))
+   (:next-launcher 4003)
+   (:conerot-x (degrees 70) (degrees 20))
+   (:conerot-y (degrees 0) (degrees 360))))
+
+(defpart 4003
+  :init-specs ((:fade-a -0.22)))
+
+(defpartgroup group-valley-waterfall-1
+  :id 1051
+  :flags (always-draw)
+  :bounds (static-bspherem 0 35 0 80)
+  :parts
+  ((sp-item 4004 :fade-after (meters 160) :falloff-to (meters 160))
+   (sp-item 4005 :fade-after (meters 160) :falloff-to (meters 160))
+   (sp-item 4006 :fade-after (meters 160) :falloff-to (meters 160))
+   (sp-item 4007 :fade-after (meters 80) :falloff-to (meters 80))
+   (sp-item 4008 :fade-after (meters 160) :falloff-to (meters 160))
+   (sp-item 4009 :fade-after (meters 160) :falloff-to (meters 160))
+   (sp-item 4012 :fade-after (meters 160) :falloff-to (meters 160) :flags (is-3d))))
+
+(defpart 4004 ;; main waterfall
+  :init-specs
+  ((:texture (falls-particle effects))
+   (:num 2.5)
+   (:x (meters -28) (meters 3.5))
+   (:y (meters 72) (meters 4))
+   (:z (meters -12) (meters 24))
+   (:scale-x (meters 2.4) (meters 1.6))
+   (:scale-y (meters 1.2) (meters 0.8))
+   (:r 192.0)
+   (:g 192.0)
+   (:b 192.0)
+   (:a 32.0 16.0)
+   (:vel-x (meters 0.08) (meters 0.02))
+   (:vel-y (meters 0.02) (meters 0.02))
+   (:scalevel-x (meters 0.0073242188))
+   (:scalevel-y (meters 0.029296875))
+   (:accel-x (meters -0.00091074686))
+   (:accel-y (meters -0.0036666668) (meters -0.00066666666))
+   (:timer (seconds 2.5))
+   (:flags (bit2))
+   (:next-time (seconds 1.5))
+   (:next-launcher 4011)
+   (:launchrot-x (degrees -15) (degrees 30))
+   (:rotate-y (degrees 90))))
+
+(defpart 4005 ;; top waterfall
+  :init-specs
+  ((:texture (falls-particle effects))
+   (:num 0.9)
+   (:x (meters -28) (meters 3.5))
+   (:y (meters 70) (meters 10))
+   (:z (meters -10) (meters 20))
+   (:scale-x (meters 2.4) (meters 1.6))
+   (:scale-y (meters 1.2) (meters 0.8))
+   (:r 192.0)
+   (:g 192.0)
+   (:b 192.0)
+   (:a 32.0 16.0)
+   (:vel-x (meters 0.06) (meters 0.05))
+   (:vel-y (meters 0.02) (meters 0.015))
+   (:scalevel-x (meters 0.0073242188))
+   (:scalevel-y (meters 0.029296875))
+   (:accel-x (meters -0.00091074686))
+   (:accel-y (meters -0.0036666668) (meters -0.00066666666))
+   (:timer (seconds 1.5))
+   (:flags (bit2))
+   (:next-time (seconds 0.8))
+   (:next-launcher 4011)
+   (:launchrot-x (degrees -15) (degrees 30))
+   (:rotate-y (degrees 90))))
+
+(defpart 4006 ;; bot waterfall
+  :init-specs
+  ((:texture (falls-particle effects))
+   (:num 1.0)
+   (:x (meters -8) (meters 10))
+   (:y (meters 40) (meters 10))
+   (:z (meters -7) (meters 14))
+   (:scale-x (meters 2.4) (meters 1.6))
+   (:scale-y (meters 4.8) (meters 3.2))
+   (:r 192.0)
+   (:g 192.0)
+   (:b 192.0)
+   (:a 32.0 16.0)
+   (:vel-x (meters 0) (meters 0.026666667))
+   (:vel-y (meters -0.01) (meters 0.0033333334))
+   (:vel-z (meters -0.021666666) (meters 0.013333334))
+   (:scalevel-x (meters 0.0073242188))
+   (:scalevel-y (meters 0.029296875))
+   (:accel-y (meters -0.0036666668) (meters -0.00066666666))
+   (:timer (seconds 1.5))
+   (:flags (bit2))
+   (:next-time (seconds 1.3))
+   (:next-launcher 4011)
+   (:launchrot-x (degrees -15) (degrees 30))
+   (:rotate-y (degrees 90))))
+
+(defpart 4007 ;; Droplets 
+  :init-specs
+  ((:texture (middot effects))
+   (:num 2.5 1.0)
+   (:x (meters -28) (meters 3.5))
+   (:y (meters 75))
+   (:z (meters -10) (meters 20))
+   (:scale-x (meters 0.2) (meters 0.2))
+   (:scale-y :copy scale-x)
+   (:r 128.0)
+   (:g 128.0)
+   (:b 128.0)
+   (:a 24.0)
+   (:vel-x (meters 0.06) (meters 0.04))
+   (:vel-y (meters 0.004) (meters 0.04))
+   (:vel-z (meters -0.006666667) (meters 0.013333334))
+   (:scalevel-x (meters -0.00024414062))
+   (:scalevel-y (meters 0.001953125))
+   (:accel-x (meters -0.00069444446))
+   (:accel-y (meters -0.0016666667) (meters -0.00083333335))
+   (:timer (seconds 2.0))
+   (:flags (bit2 bit3))
+   (:launchrot-x (degrees -20) (degrees 40))
+   (:rotate-y (degrees 90))))
+
+(defpart 4008 ;; foam waterfall
+  :init-specs
+  ((:texture (bigpuff effects))
+   (:num 2.5 2.0)
+   (:x (meters -28) (meters 3.5))
+   (:y (meters 75))
+   (:z (meters -12) (meters 24))
+   (:scale-x (meters 2.5) (meters 1.2))
+   (:rot-z (degrees 0) (degrees 180))
+   (:scale-y (meters 1.2) (meters 0.8))
+   (:r 192.0)
+   (:g 192.0)
+   (:b 192.0)
+   (:a 16.0 16.0)
+   (:vel-x (meters 0.055))
+   (:vel-y (meters -0.0035) (meters 0.01))
+   (:vel-z (meters -0.0035) (meters 0.007))
+   (:scalevel-x (meters 0.0146484375))
+   (:rotvel-z (degrees -0.6) (degrees 1.2))
+   (:scalevel-y (meters 0.0146484375))
+   (:accel-x (meters -0.00029040404))
+   (:accel-y (meters -0.001) (meters -0.00025))
+   (:timer (seconds 3.5))
+   (:flags (bit2))
+   (:next-time (seconds 2.7))
+   (:next-launcher 4011)
+   (:rotate-y (degrees 90))))
+
+(defpart 4009 ;; foam bot
+  :init-specs
+  ((:texture (falls-particle-02 effects))
+   (:num 0.6)
+   (:x (meters -15) (meters 30))
+   (:y (meters -3.5))
+   (:z (meters -15) (meters 30))
+   (:scale-x (meters 12))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 128.0)
+   (:g 128.0)
+   (:b 128.0)
+   (:a 0.0)
+   (:vel-x (meters -0.006666667) (meters 0.02))
+   (:vel-y (meters 0.033333335))
+   (:vel-z (meters -0.006666667) (meters 0.013333334))
+   (:scalevel-x (meters 0.006666667))
+   (:rotvel-z (degrees -0.3) (degrees 0.6))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-a 1.1)
+   (:accel-y (meters 0.0000033333336))
+   (:friction 0.99)
+   (:timer (seconds 4.0))
+   (:flags (bit2))
+   (:next-time (seconds 0.2) (seconds 0.05))
+   (:next-launcher 4010)
+   (:rotate-y (degrees 90))))
+
+(defpart 4010
+  :init-specs ((:fade-a -0.16)))
+
+(defpart 4011
+  :init-specs ((:fade-a -2.6666667)))
+
+(defpart 4012
+  :init-specs
+  ((:texture (water-ring effects))
+   (:num 0.03 0.1)
+   (:x (meters -10) (meters 20))
+   (:y (meters 0.2))
+   (:z (meters -12) (meters 24))
+   (:scale-x (meters 2) (meters 4))
+   (:scale-y :copy scale-x)
+   (:r 92.0)
+   (:g 92.0)
+   (:b 92.0)
+   (:a 0.0)
+   (:scalevel-x (meters 0.06) (meters 0.10))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-a 0.2)
+   (:timer (seconds 3.5))
+   (:flags (bit2 bit3))
+   (:next-time (seconds 0.7))
+   (:next-launcher 4013)
+   (:rotate-y (degrees 90))))
+
+(defpart 4013
+  :init-specs ((:fade-a -0.08)))
+
+(defpartgroup group-valley-fog
+  :id 1052
+  :bounds (static-bspherem 64 7 0 96)
+  :parts ((sp-item 4014 :flags (is-3d))))
+
+(defpart 4014
+  :init-specs
+  ((:texture (bigpuff2 effects))
+   (:num 0.1 0.15)
+   (:x (meters -100) (meters 200))
+   (:y (meters -70) (meters 90))
+   (:z (meters -100) (meters 200))
+   (:scale-x (meters 128) (meters 64))
+   (:rot-y (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 8.0 24.0)
+   (:g 8.0 24.0)
+   (:b 8.0 24.0)
+   (:a 0.0)
+   (:scalevel-x (meters 0.01) (meters 0.006666667))
+   (:rotvel-y (degrees -0.01) (degrees 0.02))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-a 0.05 0.035)
+   (:timer (seconds 10))
+   (:flags (bit2 bit14 left-multiply-quat))
+   (:next-time (seconds 1) (seconds 0.2))
+   (:next-launcher 4015)
+   (:conerot-x (degrees 90))
+   (:conerot-y (degrees 0) (degrees 360))
+   (:conerot-radius (meters 16) (meters 32))
+   (:rotate-y (degrees 25.000002))))
+
+(defpart 4015
+  :init-specs ((:fade-a 0.0) (:next-time (seconds 4) (seconds 1)) (:next-launcher 4016)))
+
+(defpart 4016
+  :init-specs ((:fade-a -0.1)))
+
+(defpartgroup group-valley-mountain-snow
+  :id 1053
+  :bounds (static-bspherem 0 -16 -32 80)
+  :parts ((sp-item 4017)))
+
+(defpart 4017
+  :init-specs
+  ((:texture (bigpuff effects))
+   (:num 0.010 0.015)
+   (:x (meters -30) (meters 60))
+   (:y (meters -40) (meters 60))
+   (:z (meters -30) (meters 60))
+   (:scale-x (meters 80) (meters 60))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 196.0 64.0)
+   (:g 196.0 64.0)
+   (:b 196.0 64.0)
+   (:a 0.0)
+   (:vel-z (meters -0.03) (meters -0.1))
+   (:scalevel-x (meters 0.05))
+   (:rotvel-z (degrees -0.10) (degrees 0.2))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-a 0.13)
+   (:accel-y (meters 0.0001) (meters 0.0001))
+   (:timer (seconds 10))
+   (:flags (bit2 bit3 bit12 bit14))
+   (:next-time (seconds 0.6) (seconds 0.6))
+   (:next-launcher 4018)))
+
+(defpart 4018
+  :init-specs ((:fade-a -0.03)))
+
+(defpartgroup group-valley-butterflies
+  :id 1054
+  :bounds (static-bspherem 0 0 0 30)
+  :parts
+  ((sp-item 4019
+            :fade-after (meters 120)
+            :period (seconds 16.345)
+            :length (seconds 0.017)
+            :hour-mask #b111111100000000000111111
+            :binding 4020)
+   (sp-item 4019
+            :fade-after (meters 120)
+            :period (seconds 22.125)
+            :length (seconds 0.017)
+            :hour-mask #b111111100000000000111111
+            :binding 4020)
+   (sp-item 4019
+            :fade-after (meters 120)
+            :period (seconds 32.82)
+            :length (seconds 0.017)
+            :hour-mask #b111111100000000000111111
+            :binding 4020)
+   (sp-item 4020 :flags (start-dead launch-asap) :binding 4021)
+   (sp-item 4021 :flags (is-3d start-dead))
+   (sp-item 4020 :flags (start-dead launch-asap) :binding 4021)
+   (sp-item 4021 :flags (is-3d start-dead))
+   (sp-item 4020 :flags (start-dead launch-asap) :binding 4021)
+   (sp-item 4021 :flags (is-3d start-dead))
+   (sp-item 4020 :flags (start-dead launch-asap) :binding 4021)
+   (sp-item 4021 :flags (is-3d start-dead))
+   (sp-item 4020 :flags (start-dead launch-asap) :binding 4021)
+   (sp-item 4021 :flags (is-3d start-dead))))
+
+(defpart 4019
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2))
+   (:num 1.0)
+   (:x (meters 0) (meters 7.5))
+   (:y (meters 14) (meters 3))
+   (:scale-x (meters 1))
+   (:scale-y :copy scale-x)
+   (:r 128.0)
+   (:a 0.0)
+   (:vel-y (meters -0.036666665))
+   (:accel-y (meters 0.00033333333))
+   (:timer (seconds 20))
+   (:flags (bit3))
+   (:next-time (seconds 1.85))
+   (:next-launcher 4022)
+   (:rotate-y (degrees 0) (degrees 360))))
+
+(defpart 4022
+  :init-specs ((:accel-y (meters 0)) (:next-time (seconds 9) (seconds 4.997)) (:next-launcher 4023)))
+
+(defpart 4023
+  :init-specs ((:accel-y (meters 0.00033333333))))
+
+(defpart 4020
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2))
+   (:num 1.0)
+   (:x (meters 0) (meters 16))
+   (:y (meters 0) (meters 16))
+   (:z (meters 3) (meters 1))
+   (:scale-x (meters 0.1))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:g 0.0 256.0)
+   (:b 128.0 1 128.0)
+   (:a 0.0)
+   (:omega 0.0 65536.0)
+   (:vel-x (meters -0.017777778) (meters 0.035555556))
+   (:vel-y (meters -0.0074074077) (meters 0.0148148155))
+   (:vel-z (meters 0))
+   (:timer (seconds 20))
+   (:flags (bit3 bit7))
+   (:next-time (seconds 0.5) (seconds 1.497))
+   (:next-launcher 4024)))
+
+(defpart 4024
+  :init-specs
+  ((:vel-x (meters -0.017777778) (meters 0.035555556))
+   (:vel-y (meters -0.0074074077) (meters 0.0148148155))
+   (:rotvel-z (degrees -0.2) (degrees 0.4))))
+
+(defpart 4021
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x22 :page #x2))
+   (:birth-func 'birth-func-copy-rot-color)
+   (:num 2.0)
+   (:scale-x (meters 0.9))
+   (:rot-x (degrees -60) (degrees 300))
+   (:scale-y (meters 1.3))
+   (:r 255.0)
+   (:g 255.0)
+   (:b 255.0)
+   (:a 128.0)
+   (:fade-a -8.0)
+   (:timer (seconds 0.035))
+   (:flags (bit2 bit9 bit12))))
+
+(defpartgroup group-valley-butterfly-sitting
+  :id 1055
+  :bounds (static-bspherem 0 0.2 0 0.5)
+  :parts
+  ((sp-item 4025 :fade-after (meters 60) :flags (is-3d bit1) :period (seconds 2) :length (seconds 0.017))
+   (sp-item 4026 :fade-after (meters 60) :flags (is-3d bit1) :period (seconds 2) :length (seconds 0.017))))
+
+(defpart 4025
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x22 :page #x2))
+   (:num 1.0)
+   (:y (meters 0.05))
+   (:scale-x (meters 0.9))
+   (:rot-x (degrees 100.00001))
+   (:rot-y (degrees 72.5))
+   (:scale-y (meters 1.3))
+   (:r 0.0)
+   (:g 128.0)
+   (:b 255.0)
+   (:a 128.0)
+   (:rotvel-x (degrees 0.33333334))
+   (:timer (seconds 2))
+   (:flags (bit2 bit9 bit12 left-multiply-quat))
+   (:next-time (seconds 1))
+   (:next-launcher 4027)))
+
+(defpart 4027
+  :init-specs ((:rotvel-x (degrees -0.31666666))))
+
+(defpart 4026
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x22 :page #x2))
+   (:num 1.0)
+   (:y (meters 0.05))
+   (:scale-x (meters 0.9))
+   (:rot-x (degrees 80))
+   (:rot-y (degrees 72.5))
+   (:scale-y (meters 1.3))
+   (:r 0.0)
+   (:g 128.0)
+   (:b 255.0)
+   (:a 128.0)
+   (:rotvel-x (degrees -0.33333334))
+   (:timer (seconds 2))
+   (:flags (bit2 bit9 bit12 left-multiply-quat))
+   (:next-time (seconds 1))
+   (:next-launcher 4028)))
+
+(defpart 4028
+  :init-specs ((:rotvel-x (degrees 0.31666666))))
+
+(defun valley-bird-bob-func ((arg0 sparticle-system) (arg1 sparticle-cpuinfo) (arg2 vector))
+  (set! (-> arg2 y)
+        (+ (-> (the-as process-drawable (-> arg1 key proc)) root trans y)
+           (* -2048.0 (sin (* 218.45334 (the float (mod (-> *display* base-frame-counter) 300)))))))
+  0
+  (none))
+
+(defpartgroup group-valley-birds
+  :id 1056
+  :bounds (static-bspherem 0 8 0 45)
+  :parts
+  ((sp-item 4029 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 4030)
+   (sp-item 4029 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 4030)
+   (sp-item 4029 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 4030)
+   (sp-item 4030 :flags (start-dead launch-asap) :binding 4032)
+   (sp-item 4032 :flags (is-3d start-dead))
+   (sp-item 4030 :flags (start-dead launch-asap) :binding 4032)
+   (sp-item 4032 :flags (is-3d start-dead))
+   (sp-item 4030 :flags (start-dead launch-asap) :binding 4032)
+   (sp-item 4032 :flags (is-3d start-dead))))
+
+(defpart 4029
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2))
+   (:birth-func 'birth-func-random-next-time)
+   (:num 1.0)
+   (:x (meters -15) (meters 30))
+   (:y (meters 0) (meters 16))
+   (:z (meters -15) (meters 30))
+   (:scale-x (meters 1))
+   (:scale-y :copy scale-x)
+   (:r 128.0)
+   (:a 0.0)
+   (:timer (seconds -0.005))
+   (:flags (bit3))
+   (:userdata 199.98)
+   (:func 'valley-bird-bob-func)))
+
+(defpart 4030
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2))
+   (:birth-func 'birth-func-copy-omega-to-z)
+   (:num 1.0)
+   (:x (meters 0))
+   (:y (meters 0))
+   (:z (meters 30))
+   (:scale-x (meters 0))
+   (:rot-z (degrees 0))
+   (:r 255.0)
+   (:g 255.0)
+   (:b 255.0)
+   (:a 0.0)
+   (:omega 0.0 65536.0)
+   (:vel-x (meters 0.0044444446))
+   (:vel-z (meters 0))
+   (:scalevel-x (meters 0.04))
+   (:timer (seconds 2))
+   (:flags (bit3 bit7))
+   (:func 'sparticle-seagull-moon)
+   (:next-time (seconds 0.665))
+   (:next-launcher 4031)))
+
+(defpart 4031
+  :init-specs
+  ((:scale-x (meters 8))
+   (:scalevel-x (meters -0.08))
+   (:timer (seconds 2))
+   (:next-time (seconds 0.335))
+   (:next-launcher 4033)))
+
+(defpart 4033
+  :init-specs
+  ((:scale-x (meters 0))
+   (:scalevel-x (meters -0.04))
+   (:timer (seconds 2))
+   (:next-time (seconds 0.665))
+   (:next-launcher 4031)))
+
+(defpart 4032
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1c :page #x2))
+   (:birth-func 'birth-func-copy2-rot-color)
+   (:num 2.0)
+   (:scale-x (meters 4))
+   (:scale-y (meters 1.5))
+   (:a 128.0)
+   (:timer (seconds 0.017))
+   (:flags (bit2 bit9 bit12))))
+
+(defpartgroup group-valley-snowdrops1
+  :id 1057
+  :bounds (static-bspherem 0 -16 0 32)
+  :parts
+  ((sp-item 4034
+            :fade-after (meters 100)
+            :falloff-to (meters 130)
+            :period (seconds 10.0)
+            :length (seconds 0.5)
+            :offset 2100)
+   (sp-item 4034
+            :fade-after (meters 100)
+            :falloff-to (meters 130)
+            :period (seconds 10.0)
+            :length (seconds 0.335)
+            :offset 2100)
+   (sp-item 4034
+            :fade-after (meters 100)
+            :falloff-to (meters 130)
+            :period (seconds 10.0)
+            :length (seconds 0.2)
+            :offset 2100)
+   (sp-item 4034
+            :fade-after (meters 100)
+            :falloff-to (meters 130)
+            :period (seconds 10.0)
+            :length (seconds 0.1)
+            :offset 2100)
+   (sp-item 4034
+            :fade-after (meters 100)
+            :falloff-to (meters 130)
+            :period (seconds 10.0)
+            :length (seconds 0.035)
+            :offset 2100)
+   (sp-item 4035
+            :fade-after (meters 100)
+            :falloff-to (meters 100)
+            :period (seconds 10.0)
+            :length (seconds 0.667)
+            :offset 2100)
+   (sp-item 4035
+            :fade-after (meters 100)
+            :falloff-to (meters 100)
+            :period (seconds 10.0)
+            :length (seconds 0.5)
+            :offset 2100)
+   (sp-item 4035
+            :fade-after (meters 100)
+            :falloff-to (meters 100)
+            :period (seconds 10.0)
+            :length (seconds 0.335)
+            :offset 2100)
+   (sp-item 4035
+            :fade-after (meters 100)
+            :falloff-to (meters 100)
+            :period (seconds 10.0)
+            :length (seconds 0.167)
+            :offset 2100)
+   (sp-item 4035
+            :fade-after (meters 100)
+            :falloff-to (meters 100)
+            :period (seconds 10.0)
+            :length (seconds 0.067)
+            :offset 2100)
+   (sp-item 4036
+            :fade-after (meters 80)
+            :falloff-to (meters 80)
+            :period (seconds 10.0)
+            :length (seconds 0.57)
+            :offset 2100)
+   (sp-item 4036
+            :fade-after (meters 80)
+            :falloff-to (meters 80)
+            :period (seconds 10.0)
+            :length (seconds 0.385)
+            :offset 2100)
+   (sp-item 4036
+            :fade-after (meters 80)
+            :falloff-to (meters 80)
+            :period (seconds 10.0)
+            :length (seconds 0.235)
+            :offset 2100)
+   (sp-item 4036
+            :fade-after (meters 80)
+            :falloff-to (meters 80)
+            :period (seconds 10.0)
+            :length (seconds 0.117)
+            :offset 2100)
+   (sp-item 4036
+            :fade-after (meters 80)
+            :falloff-to (meters 80)
+            :period (seconds 10.0)
+            :length (seconds 0.035)
+            :offset 2100)))
+
+(defpartgroup group-valley-snowdrops2
+  :id 1058
+  :bounds (static-bspherem 0 -16 0 32)
+  :parts
+  ((sp-item 4034
+            :fade-after (meters 100)
+            :falloff-to (meters 130)
+            :period (seconds 13.0)
+            :length (seconds 0.5)
+            :offset 2100)
+   (sp-item 4034
+            :fade-after (meters 100)
+            :falloff-to (meters 130)
+            :period (seconds 13.0)
+            :length (seconds 0.335)
+            :offset 2100)
+   (sp-item 4034
+            :fade-after (meters 100)
+            :falloff-to (meters 130)
+            :period (seconds 13.0)
+            :length (seconds 0.2)
+            :offset 2100)
+   (sp-item 4034
+            :fade-after (meters 100)
+            :falloff-to (meters 130)
+            :period (seconds 13.0)
+            :length (seconds 0.1)
+            :offset 2100)
+   (sp-item 4034
+            :fade-after (meters 100)
+            :falloff-to (meters 130)
+            :period (seconds 13.0)
+            :length (seconds 0.035)
+            :offset 2100)
+   (sp-item 4035
+            :fade-after (meters 100)
+            :falloff-to (meters 100)
+            :period (seconds 13.0)
+            :length (seconds 0.667)
+            :offset 2100)
+   (sp-item 4035
+            :fade-after (meters 100)
+            :falloff-to (meters 100)
+            :period (seconds 13.0)
+            :length (seconds 0.5)
+            :offset 2100)
+   (sp-item 4035
+            :fade-after (meters 100)
+            :falloff-to (meters 100)
+            :period (seconds 13.0)
+            :length (seconds 0.335)
+            :offset 2100)
+   (sp-item 4035
+            :fade-after (meters 100)
+            :falloff-to (meters 100)
+            :period (seconds 13.0)
+            :length (seconds 0.167)
+            :offset 2100)
+   (sp-item 4035
+            :fade-after (meters 100)
+            :falloff-to (meters 100)
+            :period (seconds 13.0)
+            :length (seconds 0.067)
+            :offset 2100)
+   (sp-item 4036
+            :fade-after (meters 80)
+            :falloff-to (meters 80)
+            :period (seconds 13.0)
+            :length (seconds 0.57)
+            :offset 2100)
+   (sp-item 4036
+            :fade-after (meters 80)
+            :falloff-to (meters 80)
+            :period (seconds 13.0)
+            :length (seconds 0.385)
+            :offset 2100)
+   (sp-item 4036
+            :fade-after (meters 80)
+            :falloff-to (meters 80)
+            :period (seconds 13.0)
+            :length (seconds 0.235)
+            :offset 2100)
+   (sp-item 4036
+            :fade-after (meters 80)
+            :falloff-to (meters 80)
+            :period (seconds 13.0)
+            :length (seconds 0.117)
+            :offset 2100)
+   (sp-item 4036
+            :fade-after (meters 80)
+            :falloff-to (meters 80)
+            :period (seconds 13.0)
+            :length (seconds 0.035)
+            :offset 2100)))
+
+(defpartgroup group-valley-snowdrops3
+  :id 1059
+  :bounds (static-bspherem 0 -16 0 32)
+  :parts
+  ((sp-item 4034
+            :fade-after (meters 100)
+            :falloff-to (meters 130)
+            :period (seconds 16.0)
+            :length (seconds 0.5)
+            :offset 2100)
+   (sp-item 4034
+            :fade-after (meters 100)
+            :falloff-to (meters 130)
+            :period (seconds 16.0)
+            :length (seconds 0.335)
+            :offset 2100)
+   (sp-item 4034
+            :fade-after (meters 100)
+            :falloff-to (meters 130)
+            :period (seconds 16.0)
+            :length (seconds 0.2)
+            :offset 2100)
+   (sp-item 4034
+            :fade-after (meters 100)
+            :falloff-to (meters 130)
+            :period (seconds 16.0)
+            :length (seconds 0.1)
+            :offset 2100)
+   (sp-item 4034
+            :fade-after (meters 100)
+            :falloff-to (meters 130)
+            :period (seconds 16.0)
+            :length (seconds 0.035)
+            :offset 2100)
+   (sp-item 4035
+            :fade-after (meters 100)
+            :falloff-to (meters 100)
+            :period (seconds 16.0)
+            :length (seconds 0.667)
+            :offset 2100)
+   (sp-item 4035
+            :fade-after (meters 100)
+            :falloff-to (meters 100)
+            :period (seconds 16.0)
+            :length (seconds 0.5)
+            :offset 2100)
+   (sp-item 4035
+            :fade-after (meters 100)
+            :falloff-to (meters 100)
+            :period (seconds 16.0)
+            :length (seconds 0.335)
+            :offset 2100)
+   (sp-item 4035
+            :fade-after (meters 100)
+            :falloff-to (meters 100)
+            :period (seconds 16.0)
+            :length (seconds 0.167)
+            :offset 2100)
+   (sp-item 4035
+            :fade-after (meters 100)
+            :falloff-to (meters 100)
+            :period (seconds 16.0)
+            :length (seconds 0.067)
+            :offset 2100)
+   (sp-item 4036
+            :fade-after (meters 80)
+            :falloff-to (meters 80)
+            :period (seconds 16.0)
+            :length (seconds 0.57)
+            :offset 2100)
+   (sp-item 4036
+            :fade-after (meters 80)
+            :falloff-to (meters 80)
+            :period (seconds 16.0)
+            :length (seconds 0.385)
+            :offset 2100)
+   (sp-item 4036
+            :fade-after (meters 80)
+            :falloff-to (meters 80)
+            :period (seconds 16.0)
+            :length (seconds 0.235)
+            :offset 2100)
+   (sp-item 4036
+            :fade-after (meters 80)
+            :falloff-to (meters 80)
+            :period (seconds 16.0)
+            :length (seconds 0.117)
+            :offset 2100)
+   (sp-item 4036
+            :fade-after (meters 80)
+            :falloff-to (meters 80)
+            :period (seconds 16.0)
+            :length (seconds 0.035)
+            :offset 2100)))
+
+(defpart 4034
+  :init-specs
+  ((:texture (middot effects))
+   (:num 0.25)
+   (:x (meters -1) (meters 2))
+   (:z (meters -1) (meters 2))
+   (:scale-x (meters 0.5) (meters 0.5))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y (meters 0.5) (meters 0.25))
+   (:r 200.0)
+   (:g 200.0)
+   (:b 200.0 55.0)
+   (:a 128.0)
+   (:vel-y (meters -0.006666667))
+   (:rotvel-z (degrees -0.2) (degrees 0.4))
+   (:accel-y (meters -0.00066666666) (meters -0.00033333333))
+   (:timer (seconds 3))
+   (:flags (bit2 bit12))
+   (:next-time (seconds 2))
+   (:next-launcher 4037)))
+
+(defpart 4035
+  :init-specs
+  ((:texture (middot effects))
+   (:num 1.0)
+   (:x (meters -0.5) (meters 1))
+   (:y (meters 1))
+   (:z (meters -0.5) (meters 1))
+   (:scale-x (meters 0.25) (meters 0.25))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y (meters 0.25) (meters 0.1))
+   (:r 200.0)
+   (:g 200.0)
+   (:b 200.0 55.0)
+   (:a 96.0 32.0)
+   (:vel-y (meters -0.006666667))
+   (:rotvel-z (degrees -0.2) (degrees 0.4))
+   (:accel-y (meters -0.0005) (meters -0.00033333333))
+   (:timer (seconds 3))
+   (:flags (bit2 bit12))
+   (:next-time (seconds 2))
+   (:next-launcher 4037)))
+
+(defpart 4036
+  :init-specs
+  ((:texture (lava-part-01 effects))
+   (:num 0.25)
+   (:x (meters -0.5) (meters 1))
+   (:y (meters 1))
+   (:z (meters -0.5) (meters 1))
+   (:scale-x (meters 1) (meters 0.25))
+   (:scale-y (meters 2.5) (meters 1))
+   (:r 200.0)
+   (:g 200.0)
+   (:b 200.0 55.0)
+   (:a 32.0 96.0)
+   (:vel-y (meters -0.006666667))
+   (:fade-a -0.14222223)
+   (:accel-y (meters -0.0005) (meters -0.00033333333))
+   (:timer (seconds 3))
+   (:flags (bit2 bit12))))
+
+(defpart 4037
+  :init-specs ((:fade-a -0.42666668)))
+
+(defpartgroup group-valley-vent-smoke
+  :id 1060
+  :bounds (static-bspherem 0 -16 -32 80)
+  :parts ((sp-item 4038)))
+
+(defpart 4038
+  :init-specs
+  ((:texture (bigpuff2 effects))
+   ; (:birth-func 'birth-func-copy-quat)
+   (:num 0.1 0.3)
+   (:x (meters -3.5) (meters 7))
+   (:y (meters -3.5) (meters 7))
+   (:z (meters -3.5) (meters 7))
+   (:scale-x (meters 3.5) (meters 6.5))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 16.0 6.0)
+   (:g 16.0 4.0)
+   (:b 16.0 4.0)
+   (:a 32.0)
+   (:vel-x (meters -0.04) (meters 0.02))
+   (:vel-z (meters 0.0))
+   (:scalevel-x (meters 0.018))
+   (:rotvel-z (degrees -0.10) (degrees 0.2))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-a 0.05 0.05)
+   (:accel-y (meters 0.00016) (meters 0.0003))
+   (:friction 0.996)
+   (:timer (seconds 12))
+   (:next-time (seconds 1.0) (seconds 1.5))
+   (:next-launcher 4039)))
+
+(defpart 4039
+  :init-specs ((:fade-r 0.2) (:fade-g 0.2) (:fade-b 0.2) (:fade-a -0.12 0.02)))
+
+(defpartgroup group-valley-vent-smoke2
+  :id 1061
+  :bounds (static-bspherem 0 -16 -32 80)
+  :parts ((sp-item 4040)))
+
+(defpart 4040
+  :init-specs
+  ((:texture (bigpuff2 effects))
+   ; (:birth-func 'birth-func-copy-quat)
+   (:num 0.1 0.3)
+   (:x (meters -3.5) (meters 7))
+   (:y (meters -3.5) (meters 7))
+   (:z (meters -3.5) (meters 7))
+   (:scale-x (meters 3.5) (meters 6.5))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 16.0 6.0)
+   (:g 16.0 4.0)
+   (:b 16.0 4.0)
+   (:a 32.0)
+   (:vel-x (meters 0.02) (meters 0.02))
+   (:vel-z (meters 0.02))
+   (:scalevel-x (meters 0.018))
+   (:rotvel-z (degrees -0.10) (degrees 0.2))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-a 0.05 0.05)
+   (:accel-y (meters 0.00016) (meters 0.0003))
+   (:friction 0.996)
+   (:timer (seconds 12))
+   (:next-time (seconds 1.0) (seconds 1.5))
+   (:next-launcher 4041)))
+
+(defpart 4041
+  :init-specs ((:fade-r 0.2) (:fade-g 0.2) (:fade-b 0.2) (:fade-a -0.12 0.02)))
+
+(defpartgroup group-valley-vent-smoke3
+  :id 1062
+  :bounds (static-bspherem 0 -16 -32 80)
+  :parts ((sp-item 4042)))
+
+(defpart 4042
+  :init-specs
+  ((:texture (bigpuff2 effects))
+   ; (:birth-func 'birth-func-copy-quat)
+   (:num 0.1 0.3)
+   (:x (meters -3.5) (meters 7))
+   (:y (meters -3.5) (meters 7))
+   (:z (meters -3.5) (meters 7))
+   (:scale-x (meters 3.5) (meters 6.5))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 16.0 6.0)
+   (:g 16.0 4.0)
+   (:b 16.0 4.0)
+   (:a 32.0)
+   (:vel-x (meters 0.02) (meters 0.02))
+   (:vel-z (meters -0.008))
+   (:scalevel-x (meters 0.018))
+   (:rotvel-z (degrees -0.10) (degrees 0.2))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-a 0.05 0.05)
+   (:accel-y (meters 0.00016) (meters 0.0003))
+   (:friction 0.996)
+   (:timer (seconds 12))
+   (:next-time (seconds 1.0) (seconds 1.5))
+   (:next-launcher 4043)))
+
+(defpart 4043
+  :init-specs ((:fade-r 0.2) (:fade-g 0.2) (:fade-b 0.2) (:fade-a -0.12 0.02)))

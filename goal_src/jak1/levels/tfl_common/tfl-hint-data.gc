@@ -1,0 +1,291 @@
+;;-*-Lisp-*-
+(in-package goal)
+(deftype tfl-hint-data (structure)
+  ((file-name         string) ;; file name (with extension)
+   (alt-names         (array string)) ;; alternate files to play, picked at random
+   (text-id           text-id) ;; used to mark the hint as seen
+   (voicebox?         symbol) ;; whether to spawn the communicator for this hint
+   (interrupt?        symbol) ;; can this hint be interrupted by another one?
+   (repeat?           symbol) ;; whether to repeat the hint
+   (repeat-delay      time-frame) ;; how long to wait before repeating
+   (task              game-task) ;; only play if this task is open
+   (task-status       task-status) ;; only play if the hint's task is in this cstage (closed, need-resolution, etc.)
+   (force-playback?   symbol) ;; whether to play regardless of play-hints setting
+   (target-mode       pair) ;; only play if jak is in a specific mode (empty list to ignore)
+   (close-task        game-task) ;; if set, this task will be set to the cstage defined by close-task-status upon listening to the hint
+   (close-task-status task-status) ;; set close-task to this specific cstage after listening to the hint
+   (play-func         (function symbol)) ;; optional arbitrary condition for playing the hint
+   ))
+
+#|
+target-mode syntax:
+car can be mode, powerup, anim
+valid cadr for mode:
+racer, flut
+valid cadr for powerup:
+eco-blue, eco-red, eco-green, eco-yellow,
+super-eco-blue, super-eco-red, super-eco-green, super-eco-yellow
+valid cadr for anim:
+any eichar animation name (full list can be found in art-elts.gc), also takes a caddr of anim channel idx, #f for any channel
+
+examples:
+'(mode flut): jak is on flut flut
+'(mode racer): jak is on the zoomer
+'(powerup super-eco-red): jak is channelling super red eco
+'(anim eichar-launch-jump #f): the eichar-launch-jump animation is playing on any of his active channels
+'(anim eichar-stance-loop 0): the eichar-stance-loop animation is playing on channel 0
+|#
+
+(defmacro static-hint-data (&key file-name &key (alt-names (new 'static 'boxed-array :type string)) &key (text-id (text-id zero)) &key (voicebox? #f) &key (interrupt? #f) &key (repeat? #f) &key (repeat-delay (seconds 5)) &key (task (game-task none)) &key (task-status (task-status unknown)) &key (force-playback? #f) &key (target-mode '()) &key (close-task (game-task none)) &key (close-task-status (task-status unknown)) &key (play-func #f))
+  `(new 'static
+       'tfl-hint-data
+       :file-name ,file-name
+       :alt-names ,alt-names
+       :text-id ,text-id
+       :voicebox? ,voicebox?
+       :interrupt? ,interrupt?
+       :repeat? ,repeat?
+       :repeat-delay ,repeat-delay
+       :task ,task
+       :task-status ,task-status
+       :force-playback? ,force-playback?
+       :target-mode ,target-mode
+       :close-task ,close-task
+       :close-task-status ,close-task-status
+       :play-func ,play-func))
+
+(define *tfl-hints*
+  (new 'static
+       'boxed-array
+       :type
+       tfl-hint-data
+       (static-hint-data :file-name "crystalc-tfl-hint-01-daxPortal.wav"
+                         :text-id (text-id crystalc-tfl-hint-01-daxPortal)
+                         :force-playback? #t)
+       (static-hint-data :file-name "crystalc-tfl-hint-02-daxShip.wav"
+                         :text-id (text-id crystalc-tfl-hint-02-daxShip)
+                         :force-playback? #t)
+       (static-hint-data :file-name "crystalc-tfl-hint-03-daxSeeGreen.wav"
+                         :text-id (text-id crystalc-tfl-hint-03-daxSeeGreen)
+                         :interrupt? #t
+                         :force-playback? #t)
+       (static-hint-data :file-name "crystalc-tfl-hint-04-daxUseGreen.wav"
+                         :text-id (text-id crystalc-tfl-hint-04-daxUseGreen)
+                         :target-mode '(powerup super-eco-green)
+                         :force-playback? #t)
+       (static-hint-data :file-name "crystalc-tfl-hint-05-daxSeeGondola.wav"
+                         :text-id (text-id crystalc-tfl-hint-05-daxSeeGondola)
+                         :task (game-task crystalc-gondola)
+                         :task-status (task-status need-reminder)
+                         :force-playback? #t)
+       (static-hint-data :file-name "crystalc-tfl-hint-06-daxUseGondola.wav"
+                         :text-id (text-id crystalc-tfl-hint-06-daxUseGondola)
+                         :task (game-task crystalc-gondola)
+                         :task-status (task-status invalid)
+                         :force-playback? #t)
+       (static-hint-data :file-name "crescent-tfl-hint-01-daxStart.wav"
+                         :text-id (text-id crescent-tfl-hint-01-daxStart)
+                         :force-playback? #t)
+       (static-hint-data :file-name "crescent-tfl-hint-02-daxHouse.wav"
+                         :text-id (text-id crescent-tfl-hint-02-daxHouse)
+                         :force-playback? #t)
+       (static-hint-data :file-name "crescent-tfl-hint-03-daxPlushie.wav"
+                         :text-id (text-id crescent-tfl-hint-03-daxPlushie)
+                         :force-playback? #t)
+       (static-hint-data :file-name "crescent-tfl-hint-04-daxPad.wav"
+                         :text-id (text-id crescent-tfl-hint-04-daxPad)
+                         :force-playback? #t
+                         :interrupt? #t)
+       (static-hint-data :file-name "crescent-tfl-hint-05-daxScream.wav"
+                         :text-id (text-id crescent-tfl-hint-05-daxScream)
+                         :force-playback? #t
+                         :target-mode
+                         '(anim eichar-launch-jump #f))
+       (static-hint-data :file-name "crescent-tfl-hint-06-daxRobot.wav"
+                         :text-id (text-id crescent-tfl-hint-06-daxRobot)
+                         :force-playback? #t)
+       (static-hint-data :file-name "crescent-tfl-hint-07-SamosConnect.wav"
+                         :text-id (text-id crescent-tfl-hint-07-SamosConnect)
+                         :voicebox? #t
+                         :force-playback? #t)
+       (static-hint-data :file-name "crescent-tfl-hint-08-SamosInfused.wav"
+                         :text-id (text-id crescent-tfl-hint-08-SamosInfused)
+                         :voicebox? #t
+                         :force-playback? #t)
+       (static-hint-data :file-name "crescent-tfl-hint-09-KeiraZoomer.wav"
+                         :text-id (text-id crescent-tfl-hint-09-KeiraZoomer)
+                         :task (game-task energy-bay-turbine1)
+                         :task-status (task-status need-hint)
+                         :voicebox? #t
+                         :force-playback? #t)
+       (static-hint-data :file-name "crescent-tfl-hint-12-KeiraControl.wav"
+                         :text-id (text-id crescent-tfl-hint-12-KeiraControl)
+                         :voicebox? #t
+                         :force-playback? #t)
+       (static-hint-data :file-name "crescent-tfl-hint-13-KeiraCable.wav"
+                         :text-id (text-id crescent-tfl-hint-13-KeiraCable)
+                         :task (game-task energy-bay-turbine1)
+                         :task-status (task-status need-hint)
+                         :voicebox? #t
+                         :force-playback? #t)
+       (static-hint-data :file-name "crescent-tfl-hint-15-KeiraSignal.wav"
+                         :text-id (text-id crescent-tfl-hint-15-KeiraSignal)
+                         :task (game-task energy-bay-turbine1)
+                         :task-status (task-status need-hint)
+                         :voicebox? #t
+                         :force-playback? #t)
+       (static-hint-data :file-name "crescent-tfl-hint-16-KeiraDown.wav"
+                         :text-id (text-id crescent-tfl-hint-16-KeiraDown)
+                         :task (game-task energy-bay-turbine1)
+                         :task-status (task-status need-hint)
+                         :voicebox? #t
+                         :force-playback? #t)
+       (static-hint-data :file-name "energy-bay-tfl-hint-01-daxTurbine1.wav"
+                         :text-id (text-id energy-bay-tfl-hint-01-daxTurbine1)
+                         :task (game-task energy-bay-turbine1)
+                         :task-status (task-status invalid)
+                         :force-playback? #t)
+       (static-hint-data :file-name "energy-bay-tfl-hint-02-daxClosed.wav"
+                         :text-id (text-id energy-bay-tfl-hint-02-daxClosed)
+                         :task (game-task energy-bay-turbine4)
+                         :task-status (task-status need-hint)
+                         :force-playback? #t)
+       (static-hint-data :file-name "energy-bay-tfl-hint-03-daxTurbine4.wav"
+                         :text-id (text-id energy-bay-tfl-hint-03-daxTurbine4)
+                         :task (game-task energy-bay-turbine4)
+                         :task-status (task-status invalid)
+                         :force-playback? #t)
+       (static-hint-data :file-name "energy-bay-tfl-hint-04-SamosCrystal.wav"
+                         :text-id (text-id energy-bay-tfl-hint-04-SamosCrystal)
+                         :voicebox? #t
+                         :force-playback? #t)
+       (static-hint-data :file-name "energy-bay-tfl-hint-05-KeiraTurbine.wav"
+                         :text-id (text-id energy-bay-tfl-hint-05-KeiraTurbine)
+                         :task (game-task energy-bay-turbine1)
+                         :task-status (task-status need-hint)
+                         :force-playback? #t)
+       (static-hint-data :file-name "energy-bay-tfl-hint-06-DaxterRock.wav"
+                         :text-id (text-id energy-bay-tfl-hint-06-DaxterRock)
+                         :task (game-task energy-bay-turbine4)
+                         :task-status (task-status need-hint)
+                         ;; If the rock is alive/idle and NO red eco
+                         :play-func
+                         (lambda ()
+                           (aif (process-by-ename "energy-bay-breakable-boulder-01")
+                             (and (= (-> it next-state name) 'breakable-boulder-idle) *target* (not (target-powerup? super-eco-red))))))
+       (static-hint-data :file-name "energy-bay-tfl-hint-07-DaxterRed.wav"
+                         :text-id (text-id energy-bay-tfl-hint-07-DaxterRed)
+                         :task (game-task energy-bay-turbine4)
+                         :task-status (task-status need-hint)
+                         :interrupt? #t
+                         ;; If the rock is alive/idle and red eco
+                         :play-func
+                         (lambda ()
+                           (aif (process-by-ename "energy-bay-breakable-boulder-01")
+                             (and (= (-> it next-state name) 'breakable-boulder-idle) *target* (target-powerup? super-eco-red)))))
+       (static-hint-data :file-name "energy-bay-tfl-hint-08-DaxterBreak.wav"
+                         :text-id (text-id energy-bay-tfl-hint-08-DaxterBreak)
+                         :task (game-task energy-bay-turbine4)
+                         :task-status (task-status need-hint)
+                         :force-playback? #t
+                         ;; While the rock is exploding
+                         :play-func
+                         (lambda ()
+                           (aif (process-by-ename "energy-bay-breakable-boulder-01") (= (-> it next-state name) 'breakable-boulder-break))))
+       (static-hint-data :file-name "open-mines-tfl-hint-01-KeiraMetal.wav"
+                         :text-id (text-id open-mines-tfl-hint-01-KeiraMetal)
+                         :voicebox? #t
+                         :force-playback? #t)
+       (static-hint-data :file-name "open-mines-tfl-hint-02-DaxterDropplat.wav"
+                         :text-id (text-id open-mines-tfl-hint-02-DaxterDropplat)
+                         ;; when all drop plats have finished rising
+                         :play-func
+                         (lambda ()
+                           (aif (the process-drawable (process-by-ename "open-mines-citb-drop-plat-01"))
+                             (when (and (= (-> it next-state name) 'tfl2-drop-plat-active) (>= (process-count it) 21))
+                               (let ((child (-> it child)))
+                                 (while child
+                                   (let ((brother (the (pointer process) (-> child 0 brother))))
+                                     (when (and brother (= (-> brother 0 type symbol) 'tfl-drop-plat) (!= (-> brother 0 next-state name) 'tfl-drop-plat-idle))
+                                       (return #f))
+                                     (set! child brother))))
+                               #t))))
+       (static-hint-data :file-name "open-mines-tfl-hint-03-DaxterKeg.wav" :text-id (text-id open-mines-tfl-hint-03-DaxterKeg))
+       (static-hint-data :file-name "open-mines-tfl-hint-04-DaxterAmbush1.wav"
+                         :text-id (text-id open-mines-tfl-hint-04-DaxterAmbush1)
+                         :force-playback? #t
+                         ;; After 5 kills in the ambush
+                         :play-func
+                         (lambda ()
+                           (aif (process-by-ename "open-mines-battlecontroller-01")
+                             (when (= (-> it next-state name) 'battlecontroller-active)
+                               (let ((kill-count (-> (the (pointer int16) (&+ it 196))))) (>= kill-count 5))))))
+       (static-hint-data :file-name "open-mines-tfl-hint-05-DaxterAmbush2.wav"
+                         :text-id (text-id open-mines-tfl-hint-05-DaxterAmbush2)
+                         ;; After 20 kills in the ambush
+                         :play-func
+                         (lambda ()
+                           (aif (process-by-ename "open-mines-battlecontroller-01")
+                             (when (= (-> it next-state name) 'battlecontroller-active)
+                               (let ((kill-count (-> (the (pointer int16) (&+ it 196))))) (>= kill-count 20))))))
+       (static-hint-data :file-name "open-mines-tfl-hint-06-DaxterAmbush3.wav"
+                         :text-id (text-id open-mines-tfl-hint-06-DaxterAmbush3)
+                         ;; After 30 kills in the ambush
+                         :play-func
+                         (lambda ()
+                           (aif (process-by-ename "open-mines-battlecontroller-01")
+                             (when (= (-> it next-state name) 'battlecontroller-active)
+                               (let ((kill-count (-> (the (pointer int16) (&+ it 196))))) (>= kill-count 30))))))
+       (static-hint-data :file-name "open-mines-tfl-hint-07-DaxterAmbush4.wav"
+                         :text-id (text-id open-mines-tfl-hint-07-DaxterAmbush4)
+                         ;; After 40 kills in the ambush
+                         :play-func
+                         (lambda ()
+                           (aif (process-by-ename "open-mines-battlecontroller-01")
+                             (when (= (-> it next-state name) 'battlecontroller-active)
+                               (let ((kill-count (-> (the (pointer int16) (&+ it 196))))) (>= kill-count 40))))))
+       (static-hint-data :file-name "open-mines-tfl-hint-08-SamosDark.wav"
+                         :text-id (text-id open-mines-tfl-hint-08-SamosDark)
+                         :voicebox? #t
+                         :force-playback? #t)
+       (static-hint-data :file-name "open-mines-tfl-hint-09-KeiraExcavator.wav"
+                         :text-id (text-id open-mines-tfl-hint-09-KeiraExcavator)
+                         :voicebox? #t
+                         :force-playback? #t)
+       (static-hint-data :file-name "valley-tfl-hint-01-DaxterAvalanche.wav"
+                         :text-id (text-id valley-tfl-hint-01-DaxterAvalanche)
+                         :force-playback? #t)
+       (static-hint-data :file-name "valley-tfl-hint-02-SecretIntrusion.wav"
+                         :text-id (text-id valley-tfl-hint-02-SecretIntrusion)
+                         :voicebox? #t
+                         :force-playback? #t)
+       (static-hint-data :file-name "valley-tfl-hint-03-DaxterFlying.wav"
+                         :text-id (text-id valley-tfl-hint-03-DaxterFlying)
+                         :force-playback? #t
+                         ;; With super blue eco? maybe not needed
+                         :play-func
+                         (lambda ()
+                           (target-powerup? super-eco-blue)))
+       (static-hint-data :file-name "valley-tfl-hint-04-KeiraCrystal.wav"
+                         :text-id (text-id valley-tfl-hint-04-KeiraCrystal)
+                         :voicebox? #t
+                         :force-playback? #t)
+       (static-hint-data :file-name "valley-tfl-hint-05-SentinelDaxter.wav"
+                         ;; During/after? the waking up animation
+                         :text-id (text-id valley-tfl-hint-05-SentinelDaxter)
+                         :force-playback? #t
+                         :play-func
+                         (lambda ()
+                           (aif (process-by-ename "valley-pds-sentinel-01") (= (-> it next-state name) 'wake))))
+       (static-hint-data :file-name "valley-tfl-hint-06-DaxterGem.wav"
+                         :text-id (text-id valley-tfl-hint-06-DaxterGem)
+                         ;; During 1st parkour phase
+                         :play-func
+                         (lambda ()
+                           (aif (process-by-ename "valley-pds-sentinel-01")
+                             (let ((master (process-by-ename "valley-pds-master-01")))
+                               (and master (zero? (send-event master 'stage)) (= (-> it next-state name) 'charging))))))))
+
+(dotimes (i (length *tfl-hints*))
+  (when (not (-> *tfl-hints* i play-func))
+    (set! (-> *tfl-hints* i play-func) false-func)))

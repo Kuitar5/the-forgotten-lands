@@ -1,0 +1,199 @@
+;;-*-Lisp-*-
+(in-package goal)
+(defenum tfl-commentary-command
+  (none)
+  (grab)
+  (ungrab)
+  (pov-camera)
+  (proc-spawn)
+  (reset)
+  (done))
+
+(defenum tfl-commentary-dev
+  (kuitar)
+  (pex))
+
+(deftype tfl-commentary-spawn-func (structure)
+  ((name string)
+   (func (function handle))))
+
+(deftype tfl-commentary-data (structure)
+  ((file-name   string) ;; file name (with extension)
+   (dev-name    tfl-commentary-dev)
+   (description string) ;; short description
+   (length      time-frame) ;; length of sound clip
+   (spawn-list  (array tfl-commentary-spawn-func)) ;; list of function pointers for spawning special processes
+   (run-on-end  (function object)) ;; function to run when playback is skipped or ends normally
+   (cmd-list    pair))) ;; list of commands to do specific stuff like enabling pov cameras, spawning objects, etc.
+
+(defun tfl-commentary-dev->string ((val tfl-commentary-dev))
+  (case val
+    (((tfl-commentary-dev kuitar)) "Kuitar")
+    (((tfl-commentary-dev pex)) "Pex")
+    (else "*unknown*")))
+
+(defun reset-actor ((name string) (mode symbol))
+  (let ((e (the entity-actor (entity-by-name name))))
+    (when e
+      (let* ((status (case mode
+                       (('life 'debug 'try) (entity-perm-status bit-9 complete user-set-from-cstage bit-3 dead bit-1 bit-0))
+                       (('game) (entity-perm-status bit-10 bit-9 real-complete complete user-set-from-cstage bit-4 bit-3 dead bit-1 bit-0))
+                       (else (entity-perm-status bit-10 bit-9 complete user-set-from-cstage bit-4 bit-3 dead bit-1 bit-0))))
+             (task (-> e extra perm task))
+             (task-perm (-> *game-info* task-perm-list data task))
+             (entity-perm (lookup-entity-perm-by-aid *game-info* (the actor-id (-> e aid)))))
+        (kill! e)
+        (update-perm! (-> e extra perm) mode status)
+        (if (> task 0) (update-perm! task-perm mode status))
+        (if entity-perm (update-perm! entity-perm mode status))
+        (when (and (= mode 'game) (> task 0))
+          (reset! (-> *task-controls* task) mode #f)
+          (first-any (-> *task-controls* task) #f))))))
+
+;; custom callback for the ring part trackers
+(defun race-ring-commentary-green-part-rotation-callback ((arg0 part-tracker))
+  (let ((rot (res-lump-float (the entity-actor (-> arg0 userdata)) 'rot-y)))
+    (set! (-> *part-id-table* 3400 init-specs 15 initial-valuef) rot)
+    (set! (-> *part-id-table* 3401 init-specs 15 initial-valuef) rot)
+    (set! (-> *part-id-table* 3402 init-specs 4 initial-valuef) (+ -182.04445 rot))
+    (set! (-> *part-id-table* 3403 init-specs 4 initial-valuef) rot)
+    (set! (-> *part-id-table* 3404 init-specs 17 initial-valuef) rot)
+    (set! (-> *part-id-table* 3405 init-specs 4 initial-valuef) rot)
+    (set! (-> *part-id-table* 3406 init-specs 4 initial-valuef) rot)
+    (set! (-> *part-id-table* 3410 init-specs 17 initial-valuef) rot)
+    (set! (-> *part-id-table* 3411 init-specs 4 initial-valuef) rot))
+  (none))
+
+;; overridden to disable grabbing jak, this is handled by commands instead
+(deftype commentary-camera (pov-camera) ())
+
+(defstate pov-camera-start-playing (commentary-camera)
+  :virtual #t
+  :code
+    (behavior ()
+      (logclear! (-> self mask) (process-mask actor-pause))
+      (let ((idx 0))
+        (let ((art (lookup-art (-> self draw jgeo) "camera" (the type #f)))) (if art (set! idx (1+ (-> art number)))))
+        (let ((othercam (process-spawn othercam self idx #t #t :to self)))
+          (send-event (ppointer->process othercam) 'mask (-> self mask-to-clear))))
+      (go-virtual pov-camera-playing)))
+
+(defstate pov-camera-done-playing (commentary-camera)
+  :virtual #t
+  :code
+    (behavior ()
+      (send-event (handle->process (-> self notify-handle)) 'notify 'die)
+      (suspend)
+      (suspend)
+      (cleanup-for-death self)
+      (deactivate self)))
+
+(deftype tfl-dev-commentary-settings (structure)
+  ((enabled? symbol)
+   (playing? symbol)
+   (vol      float)))
+
+(define-perm *tfl-dev-commentary*
+             tfl-dev-commentary-settings
+             (new 'static 'tfl-dev-commentary-settings :enabled? #f :vol 1.0))
+
+(define *tfl-dev-commentary-playing?* (-> *tfl-dev-commentary* playing?))
+
+(define *tfl-commentary-stop?* #f)
+
+(define *display-tfl-commentary-marks* #f)
+
+(defun tfl-commentary-volume ()
+  (-> *tfl-dev-commentary* vol))
+
+(def-actor tfl-commentary-node
+  :bounds (0 0 0 5)
+  :texture-level 2)
+
+(def-actor tfl-commentary-node-active
+  :bounds (0 0 0 5)
+  :texture-level 2)
+
+(def-actor tfl-commentary-node-pex
+  :bounds (0 0 0 5)
+  :texture-level 2)
+
+(def-actor tfl-commentary-node-pex-active
+  :bounds (0 0 0 5)
+  :texture-level 2)
+
+(deftype tfl-commentary-keyframes (basic)
+  ((num-cmds int32)
+   (data     time-frame :dynamic))
+  (:methods
+   (new (symbol type int) _type_)))
+
+(defmethod asize-of ((this tfl-commentary-keyframes))
+  (+ (the int (-> this type size)) (* 8 (-> this num-cmds))))
+
+(defmethod new tfl-commentary-keyframes ((allocation symbol) (type-to-make type) (cmd-len int))
+  (let* ((this (object-new allocation type-to-make (the int (+ (-> type-to-make size) (* 8 cmd-len))))))
+    (set! (-> this num-cmds) cmd-len)
+    this))
+
+(defconstant TFL_COMMENTARY_MAX_HANDLES 4)
+
+(deftype tfl-commentary-node (process-drawable)
+  ((sound-to-play     string)
+   (length            float)
+   (node-idx          int16)
+   (play-time         time-frame)
+   (exit-time         time-frame)
+   (should-release?   symbol)
+   (activate-range    float)
+   (active?           symbol)
+   (inactive-look     lod-set :inline)
+   (active-look       lod-set :inline)
+   (data              tfl-commentary-data)
+   (cur-frame         time-frame)
+   (pov-cam           handle)
+   (cam-control-parms tfl-cam-control-init-params)
+   (cam-control       handle)
+   (proc              handle TFL_COMMENTARY_MAX_HANDLES)
+   (comm-proc         handle TFL_COMMENTARY_MAX_HANDLES)
+   (parts             handle TFL_COMMENTARY_MAX_HANDLES)
+   (manipy            handle TFL_COMMENTARY_MAX_HANDLES)
+   (hud               handle)
+   (cmd-frames        tfl-commentary-keyframes))
+  (:methods
+   (common-init (_type_) object)
+   (get-skel (_type_ symbol) skeleton-group)
+   (lod-setup! (_type_) object)
+   (init-keyframes! (_type_) object)
+   (get-bg-width-for-str (_type_ string) float)
+   (draw-hud (_type_) object)
+   (handle-input (_type_) object)
+   (debug-draw (_type_) object)
+   (time->string (_type_) string)
+   (debug-print (_type_ symbol) string)
+   (can-activate? (_type_) symbol)
+   (rot-speed (_type_) degrees)
+   (set-look! (_type_ symbol) object)
+   (execute-cmds (_type_ pair) object)
+   (execute-single-cmd (_type_ pair) object)
+   (execute-cmds-at-frame (_type_ time-frame) object)
+   (has-cmds-at-frame? (_type_ time-frame) symbol)
+   (get-cmds-at-frame (_type_ time-frame) pair)
+   (get-commentary-data (_type_) tfl-commentary-data)
+   (parse-cmd-vec! (_type_ vector pair) vector)
+   (parse-cam-control! (_type_ tfl-cam-control-init-params pair) tfl-cam-control-init-params)
+   (spawn-func-by-name (_type_ string) (function handle))
+   (valid-node? (_type_ int) symbol)
+   (warp-to-node (_type_ int) object)
+   (kill-all-handles! (_type_) object))
+  (:state-methods
+   hidden
+   idle
+   playing))
+
+(define-perm *tfl-commentary-semaphore* tfl-commentary-node (the tfl-commentary-node #f))
+
+(defmacro commentary-debug (&rest body)
+  `(#if TFL_COMMENTARY_DEBUG (begin   ,@body) (empty)))
+
+(define *tfl-commentary-node-string* (new 'global 'string 128 (the string #f)))

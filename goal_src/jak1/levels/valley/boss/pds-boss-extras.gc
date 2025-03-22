@@ -1,0 +1,1530 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;;;;;;;;;;;;;;;;;
+;;; projectile
+;;;;;;;;;;;;;;;;;
+
+(defbehavior tfl-arcing-shot-setup tfl-arcing-shot ((from vector) (to vector) (arg2 float))
+  (vector-copy! (-> self from) from)
+  (vector-copy! (-> self to) to)
+  (let ((v1-2 (fmax 1.0 arg2)))
+    (if (< (-> from y) (-> to y)) (set! v1-2 (+ v1-2 (- (-> to y) (-> from y)))))
+    (let ((f0-6 (* -4.0 v1-2))
+          (f3-1 (* 4.0 v1-2 (- (-> to y) (-> from y)))))
+      (set! (-> self y-vel) (* 0.5 (- (sqrtf (- (* f0-6 f0-6) (* 4.0 f3-1))) f0-6))))
+    (set! (-> self grav) (/ (- (* (-> self y-vel) (-> self y-vel))) (* 2.0 v1-2)))))
+
+(defbehavior tfl-arcing-shot-calculate tfl-arcing-shot ((arg0 vector) (arg1 float))
+  (let ((s5-0 (fmin 1.0 (fmax 0.0 arg1))))
+    (vector-lerp! arg0 (-> self from) (-> self to) s5-0)
+    (set! (-> arg0 y) (-> self from y))
+    (+! (-> arg0 y) (* (-> self y-vel) s5-0))
+    (set! (-> arg0 y) (+ (-> arg0 y) (* (/ s5-0 2) s5-0 (-> self grav))))))
+
+(defbehavior tfl-arcing-shot-draw tfl-arcing-shot ()
+  (let ((gp-0 (new-stack-vector0))
+        (s5-0 (new-stack-vector0)))
+    (vector-copy! s5-0 (-> self from))
+    (dotimes (i 30)
+      (tfl-arcing-shot-calculate gp-0 (* 0.033333335 (the float (+ i 1))))
+      (camera-line gp-0 s5-0 (new 'static 'vector4w :x #xff :y #xff :w #x80))
+      (vector-copy! s5-0 gp-0)))
+  #f)
+
+(defskelgroup *redring-sg*
+  redring
+  redring-lod0-jg
+  redring-idle-ja
+  ((redring-lod0-mg (meters 999999)))
+  :bounds (static-spherem 0 0 0 40))
+
+(defbehavior pds-shot-init-by-other pds-shot ((pos vector) (to vector) (flight-time time-frame) (stall-time time-frame) (rot-off int) (type-to-make type))
+  (set! (-> self root) (new 'process 'trsqv))
+  (vector-copy! (-> self root trans) pos)
+  (initialize-skeleton self *redring-sg* '())
+  (process-mask-clear! (-> self mask) actor-pause)
+  (tfl-arcing-shot-setup pos to (meters 10))
+  (set! (-> self flight-time) flight-time)
+  (set! (-> self stall-time) stall-time)
+  (set! (-> self rotation-offset) rot-off)
+  (set! (-> self type-to-make) type-to-make)
+  (set-part! :id 1080)
+  (logior! (-> self draw status) (draw-status hidden))
+  (go-virtual idle))
+
+(define-extern pds-nav-enemy-init (function pds-sentinel vector vector object :behavior nav-enemy))
+
+(defstate idle (pds-shot)
+  :virtual #t
+  :enter
+    (behavior ()
+      (set! (-> self state-time) (-> *display* game-frame-counter)))
+  :trans
+    (behavior ()
+      (let ((mat (new-stack-matrix0)))
+        (matrix-rotate-yx! mat
+                           (* 436.90668 (the float (+ (-> self rotation-offset) (-> *display* game-frame-counter))))
+                           (* 291.27112 (the float (+ (-> self rotation-offset) (-> *display* game-frame-counter)))))
+        (matrix->quaternion (-> self root quat) mat))
+      (tfl-arcing-shot-calculate (-> self root trans)
+                                 (/ (the float (- (-> *display* game-frame-counter) (-> self state-time))) (the float (-> self flight-time))))
+      (if (>= (- (-> *display* game-frame-counter) (-> self state-time)) (-> self flight-time)) (go-virtual explode))
+      ;; (spawn (-> self part) (-> self root trans))
+      (process-spawn part-tracker
+                     :init
+                     part-tracker-init
+                     (-> *part-group-id-table*
+                         (case (send-event *pds-master* 'stage)
+                           ((0) 1080)
+                           ((1) 1081)
+                           ((2) 1082)))
+                     -1
+                     #f
+                     #f
+                     #f
+                     (-> self root trans)
+                     :to
+                     *entity-pool*))
+  :code
+    (behavior ()
+      (loop
+        (suspend)))
+  :post ja-post)
+
+(defstate explode (pds-shot)
+  :virtual #t
+  :code
+    (behavior ()
+      (set! (-> self state-time) (-> *display* game-frame-counter))
+      (sound-play "explosion" :vol 70 :pitch 0.0)
+      (process-spawn part-tracker
+                     :init
+                     part-tracker-init
+                     (-> *part-group-id-table*
+                         (case (send-event *pds-master* 'stage)
+                           ((0) 1083)
+                           ((1) 1084)
+                           ((2) 1085)))
+                     -1
+                     #f
+                     #f
+                     #f
+                     (-> self root trans)
+                     :to
+                     *entity-pool*)
+      (logclear! (-> self draw status) (draw-status hidden))
+      (quaternion-identity! (-> self root quat))
+      (let* ((enemy (case (-> self type-to-make)
+                      ((babak) (process-spawn babak :init pds-nav-enemy-init self (-> self root trans) (target-pos 0) :to (-> self parent 0)))
+                      ((lurkerpuppy)
+                       (process-spawn lurkerpuppy :init pds-nav-enemy-init self (-> self root trans) (target-pos 0) :to (-> self parent 0)))
+                      ((swamp-rat)
+                       (process-spawn swamp-rat :init pds-nav-enemy-init self (-> self root trans) (target-pos 0) :to (-> self parent 0)))
+                      ((pds-kermit)
+                       (process-spawn pds-kermit :init pds-nav-enemy-init self (-> self root trans) (target-pos 0) :to (-> self parent 0)))
+                      ((bonelurker)
+                       (process-spawn bonelurker :init pds-nav-enemy-init self (-> self root trans) (target-pos 0) :to (-> self parent 0)))
+                      ((ice-cube)
+                       (process-spawn ice-cube :init pds-nav-enemy-init self (-> self root trans) (target-pos 0) :to (-> self parent 0)))))
+             (stage (the int (send-event *pds-master* 'stage)))
+             (ptype (case stage
+                      ((0) (pickup-type eco-green))
+                      ((1) (pickup-type eco-yellow))
+                      ((2) (pickup-type eco-red)))))
+        (when (and (rand-vu-percent? (+ (-> *pds-suck-params* pickup-chance)
+                                        (case stage
+                                          ((0) 0.10)
+                                          ((1) 0.20)
+                                          ((2) 0.25))))
+                   enemy
+                   (-> enemy 0 enemy-info))
+          (let ((info (-> enemy 0 enemy-info)))
+            (set! (-> enemy 0 fact pickup-type) ptype)
+            (set! (-> info pickup-amount) 1.0)
+            (set! (-> info pickup-spawn-amount) 0.0)
+            (logior! (-> info options) (fact-options fade))
+            (set! (-> info fade-time) (seconds 12))))
+        (logclear! (-> enemy 0 mask) (process-mask actor-pause))
+        (send-event *pds-master* 'notify 'spawned (ppointer->handle enemy))))
+  :post ja-post)
+
+;;;;;;;;;;;;;;;;;
+;;; gem
+;;;;;;;;;;;;;;;;;
+
+(deftype pds-gem (process-drawable)
+  ((root          collide-shape-moving :override)
+   (sentinel      entity-actor)
+   (color         symbol)
+   (charging-spot vector :inline)
+   (birth-time    time-frame)
+   (base          vector :inline)
+   (old-base      vector :inline)
+   (bob-offset    int64)
+   (bob-amount    float)
+   (bob-damp      float))
+  (:methods
+   (init-collision! (_type_) object)
+   (get-skel (_type_) skeleton-group)
+   (do-lighting (_type_ float float float) object))
+  (:state-methods
+   idle
+   explode))
+
+(defmethod init-collision! ((this pds-gem))
+  (let ((cshape (new 'process 'collide-shape-moving this (collide-list-enum hit-by-player))))
+    (set! (-> cshape dynam) (copy *standard-dynamics* 'process))
+    (set! (-> cshape reaction) default-collision-reaction)
+    (set! (-> cshape no-reaction) (the (function collide-shape-moving collide-shape-intersect vector vector none) nothing))
+    (let ((sphere (new 'process 'collide-shape-prim-sphere cshape (the uint 0))))
+      (set! (-> sphere prim-core collide-as) (collide-kind enemy))
+      (set! (-> sphere collide-with) (collide-kind target))
+      (set! (-> sphere prim-core action) (collide-action solid))
+      (set! (-> sphere prim-core offense) (collide-offense normal-attack))
+      (set-vector! (-> sphere local-sphere) 0.0 0.0 0.0 (meters 3.75))
+      (set-root-prim! cshape sphere))
+    (set! (-> cshape nav-radius) (* 0.75 (-> cshape root-prim local-sphere w)))
+    (backup-collide-with-as cshape)
+    (set! (-> this root) cshape)))
+
+(defmethod get-skel ((this pds-gem))
+  (case (-> this color)
+    (('green) *pds-gem-green-sg*)
+    (('yellow) *pds-gem-yellow-sg*)
+    (('blue) *pds-gem-blue-sg*)
+    (else *pds-gem-green-sg*)))
+
+(defmethod do-lighting ((this pds-gem) (speed float) (amp float) (strength float))
+  (let* ((gem-type (-> this color))
+         (min-blue (case gem-type
+                     (('green) (* 0.1 strength))
+                     (('blue) (* 0.1 strength))
+                     (('yellow) 0.0)))
+         (max-blue (case gem-type
+                     (('green) (* 0.2 strength))
+                     (('blue) (* 0.6 strength))
+                     (('yellow) 0.0)))
+         (min-red (case gem-type
+                    (('green) 0.0)
+                    (('blue) 0.0)
+                    (('yellow) (* 0.1 strength))))
+         (max-red (case gem-type
+                    (('green) (* 0.2 strength))
+                    (('blue) 0.0)
+                    (('yellow) (* 0.5 strength))))
+         (min-green (case gem-type
+                      (('green) (* 0.1 strength))
+                      (('blue) 0.0)
+                      (('yellow) (* 0.1 strength))))
+         (max-green (case gem-type
+                      (('green) (* 0.7 strength))
+                      (('blue) (* 0.2 strength))
+                      (('yellow) (* 0.5 strength))))
+         (r (case gem-type
+              (('green 'blue) 0.0)
+              (('yellow)
+               (+ 0.2
+                  (lerp-clamp min-red
+                              max-red
+                              (+ -0.1 (- 1.0 (* amp (/ (+ 1.0 (sin (* speed (degrees (-> *display* game-frame-counter))))) 1.0)))))))))
+         (g (lerp-clamp min-green
+                        max-green
+                        (+ -0.1 (- 1.0 (* amp (/ (+ 1.0 (sin (* speed (degrees (-> *display* game-frame-counter))))) 1.0))))))
+         (b (case gem-type
+              (('blue 'green)
+               (+ 0.2
+                  (lerp-clamp min-blue
+                              max-blue
+                              (+ -0.1 (- 1.0 (* amp (/ (+ 1.0 (sin (* speed (degrees (-> *display* game-frame-counter))))) 1.0)))))))
+              (('yellow) 0.0)))
+         (clr (new-stack-vector0)))
+    (set-vector! clr r g b 1.0)
+    (vector-copy! (-> this draw color-emissive) clr)))
+
+(defmethod init-from-entity! ((this pds-gem) (e entity-actor))
+  (init-collision! this)
+  (process-drawable-from-entity! this e)
+  (set! (-> this color) (aif (res-lump-struct e 'gem-type symbol) it 'green))
+  (process-mask-clear! (-> this mask) actor-pause)
+  (initialize-skeleton this (get-skel this) '())
+  (vector-copy! (-> this charging-spot) (-> e extra trans))
+  (+! (-> this charging-spot y) (meters 14.0))
+  (set! (-> this bob-amount) (meters 1.0))
+  (set! (-> this bob-offset)
+        (+ (the int (-> this root trans x)) (the int (-> this root trans y)) (the int (-> this root trans z))))
+  (set! (-> this bob-damp) 5.0)
+  (set-time! (-> this birth-time))
+  (set-part! :proc
+             this
+             :id
+             (case (-> this color)
+               (('green) 1094)
+               (('blue) 1095)
+               (('yellow) 1096)))
+  (vector-copy! (-> this base) (-> this root trans))
+  (vector-copy! (-> this old-base) (-> this root trans))
+  (transform-post)
+  (go-virtual idle :proc this)
+  (none))
+
+(defstate idle (pds-gem)
+  :virtual #t
+  :event
+    (event
+      (case message
+        (('explode) (go-virtual explode))
+        (('attack) (if (= (-> proc type) target) (go-virtual explode)))))
+  :trans
+    (behavior ()
+      (when (not (= (-> *pds-master* sentinel extra process next-state name) 'charging))
+        (do-lighting self 1.0 0.5 0.5)
+        (quaternion-slerp! (-> self root quat) (-> self root quat) (-> self entity quat) (* 5.0 (seconds-per-frame)))
+        (seek! (-> self bob-damp) 5.0 (* (seconds-per-frame) 2.0))
+        (let ((bob (/ (-> self bob-amount) (-> self bob-damp))))
+          (when (< 0.0 bob)
+            (set! (-> self root trans y)
+                  (+ (-> self base y)
+                     (* bob
+                        (sin (* 109.22667 (the float (mod (+ (- (current-time) (-> self birth-time)) (-> self bob-offset)) (seconds 2))))))))
+            (update-transforms! (-> self root)))))
+      (when (and (= (-> *pds-master* sentinel extra process next-state name) 'charging)
+                 (= (-> (the pds-sentinel (-> *pds-master* sentinel extra process)) current-gem) (-> self entity)))
+        (do-lighting self 1.0 0.5 1.5)
+        (quaternion-rotate-y! (-> self root quat) (-> self root quat) (* (degrees 45) (seconds-per-frame)))
+        (seek! (-> self bob-damp) 1.0 (* (seconds-per-frame) 2.0))
+        (let ((bob (/ (-> self bob-amount) (-> self bob-damp))))
+          (when (< 0.0 bob)
+            (set! (-> self root trans y)
+                  (+ (-> self base y)
+                     (* bob
+                        (sin (* 109.22667 (the float (mod (+ (- (current-time) (-> self birth-time)) (-> self bob-offset)) (seconds 2))))))))
+            (update-transforms! (-> self root))))
+        (spawn (-> self part) (-> self root trans))))
+  :code anim-loop
+  :post transform-post)
+
+(defstate explode (pds-gem)
+  :virtual #t
+  :enter
+    (behavior ()
+      (send-event *pds-master* 'gem-destroyed))
+  :code
+    (behavior ()
+      (clear-collide-with-as (-> self root))
+      (activate! *camera-smush-control* 409.6 37 210 1.0 0.995)
+      (sound-play "crystal-explode")
+      (process-spawn part-tracker
+                     :init
+                     part-tracker-init
+                     (-> *part-group-id-table*
+                         (case (-> self color)
+                           (('green) 1083)
+                           (('blue) 1084)
+                           (('yellow) 1085)))
+                     -1
+                     #f
+                     #f
+                     #f
+                     (-> self root trans)
+                     :to
+                     *entity-pool*)
+      (let ((j (process-spawn joint-exploder (get-skel self) 2 (new 'stack 'joint-exploder-tuning 0) *pds-gem-exploder-params* :to self)))
+        (when j
+          (logclear! (-> j 0 mask) (process-mask movie enemy))
+          (vector-copy! (-> j 0 draw color-mult) (-> self draw color-mult))
+          (vector-copy! (-> j 0 draw color-emissive) (-> self draw color-emissive))))
+      (suspend)
+      (ja-channel-set! 0)
+      (ja-post)
+      (until (not (-> self child))
+        (suspend))
+      (cleanup-for-death self)))
+
+;;;;;;;;;;;;;;;;;
+;;; traps
+;;;;;;;;;;;;;;;;;
+
+(deftype pds-trap (process-drawable)
+  ((root              collide-shape :override)
+   (disabled?         symbol)
+   (deactivation-time time-frame)
+   (activation-time   time-frame)
+   (active-time       time-frame)
+   (pre-active-part   sparticle-launch-control)
+   (active-part       sparticle-launch-control)
+   (pre-deadly-part   sparticle-launch-control)
+   (deadly-part       sparticle-launch-control)
+   (sound-active      ambient-sound)
+   (sound-deadly      ambient-sound)
+   (sound-max-dist    float))
+  (:methods
+   (init-collision! (_type_) object)
+   (get-skel (_type_) skeleton-group)
+   (target-rider? (_type_) symbol)
+   (disabled? (_type_) symbol)
+   (trigger (_type_ symbol) object))
+  (:state-methods
+   idle
+   (active symbol)
+   (deadly symbol)))
+
+(defmethod relocate ((this pds-trap) (offset int))
+  (relocate-fields active-part deadly-part pre-active-part pre-deadly-part sound-active sound-deadly)
+  (call-parent-method this offset))
+
+(defmethod deactivate ((this pds-trap))
+  (if (nonzero? (-> this active-part)) (kill-and-free-particles (-> this active-part)))
+  (if (nonzero? (-> this deadly-part)) (kill-and-free-particles (-> this deadly-part)))
+  (if (nonzero? (-> this pre-active-part)) (kill-and-free-particles (-> this pre-active-part)))
+  (if (nonzero? (-> this pre-deadly-part)) (kill-and-free-particles (-> this pre-deadly-part)))
+  (call-parent-method this))
+
+(defmethod disabled? ((this pds-trap))
+  (or (-> this disabled?) (= (the int (send-event *pds-master* 'stage)) 0)))
+
+(defmethod trigger ((this pds-trap) (toggle symbol))
+  (let ((stage (the int (send-event *pds-master* 'stage))))
+    (when (> stage 0)
+      (case stage
+        ((1) (go-virtual active toggle :proc this))
+        ((2) (go-virtual deadly toggle :proc this))))))
+
+(defmethod target-rider? ((this pds-trap))
+  (aif *target*
+    (and (nonzero? (-> this root riders num-riders)) (= it (handle->process (-> this root riders rider 0 rider-handle))))))
+
+(defmethod init-collision! ((this pds-trap))
+  (let ((cshape (new 'process 'collide-shape this (collide-list-enum hit-by-player))))
+    (alloc-riders cshape 1)
+    (let ((mesh (new 'process 'collide-shape-prim-mesh cshape (the uint 0) (the uint 0))))
+      (set! (-> mesh prim-core collide-as) (collide-kind ground-object))
+      (set! (-> mesh collide-with) (collide-kind target))
+      (set! (-> mesh prim-core action) (collide-action solid rider-plat-sticky))
+      (set! (-> mesh prim-core offense) (collide-offense indestructible))
+      (set! (-> mesh transform-index) 0)
+      (set-vector! (-> mesh local-sphere) 0.0 (meters 0) 0.0 (meters 20))
+      (set-root-prim! cshape mesh))
+    (set! (-> cshape nav-radius) (* 0.75 (-> cshape root-prim local-sphere w)))
+    (backup-collide-with-as cshape)
+    (set! (-> this root) cshape)))
+
+(defmethod init-from-entity! ((this pds-trap) (e entity-actor))
+  (init-collision! this)
+  (process-drawable-from-entity! this e)
+  (process-mask-clear! (-> this mask) actor-pause)
+  (false! (-> this disabled?))
+  (set! (-> this activation-time) (seconds 3.5))
+  (set! (-> this active-time) (seconds 3))
+  (set! (-> this deactivation-time) (seconds 0.5))
+  (set-part! :part pre-active-part :proc this :id 1090)
+  (set-part! :part active-part :proc this :id 1091)
+  (set-part! :part pre-deadly-part :proc this :id 1092)
+  (set-part! :part deadly-part :proc this :id 1093)
+  (set! (-> this sound-active) (new 'process 'ambient-sound 'electric-loop (-> this root trans)))
+  (set! (-> this sound-deadly) (new 'process 'ambient-sound 'redsage-fires (-> this root trans)))
+  (set! (-> this sound-max-dist) (meters 25))
+  (initialize-skeleton this (get-skel this) '())
+  (ja-post)
+  (go-virtual idle :proc this)
+  (none))
+
+(defbehavior pds-trap-trans pds-trap ()
+  (set! (-> self activation-time) (+ (seconds 3.5) (-> *pds-suck-params* trap-activation-time)))
+  (set! (-> self active-time) (+ (seconds 3) (-> *pds-suck-params* trap-active-time)))
+  (rider-trans))
+
+(defbehavior pds-trap-spawn-part pds-trap ((part sparticle-launch-control))
+  (dotimes (i (-> self node-list length))
+    (when (> i 3)
+      (spawn part (vector<-cspace! (new-stack-vector0) (-> self node-list data i))))))
+
+(defbehavior pds-trap-can-play-sound? pds-trap ()
+  (< (vector-vector-distance (-> self root trans) (target-pos 0)) (-> self sound-max-dist)))
+
+(defstatehandler pds-trap :trans pds-trap-trans)
+
+(defstate idle (pds-trap)
+  :virtual #t
+  :event
+    (event
+      (case message
+        (('enable) (false! (-> self disabled?)))
+        (('disable) (true! (-> self disabled?)))
+        (('activate) (go-virtual active #t))
+        (('deadly) (go-virtual deadly #t))
+        (('temp-activate) (go-virtual active #f))
+        (('temp-deadly) (go-virtual deadly #f))
+        (('ridden) (when (not (disabled? self)) (trigger self #f)))))
+  :enter
+    (behavior ()
+      (set-state-time))
+  :code
+    (behavior ()
+      (ja-channel-push! 1 (seconds 0.1))
+      (ja-no-eval :group! pds-trap-central-going-up-ja :num! min)
+      (stop! (-> self sound-active))
+      (stop! (-> self sound-deadly))
+      (until (time-passed? (-> self deactivation-time))
+        (vector-seek! (-> self draw color-mult)
+                      (static-vector 1.0 1.0 1.0 1.0)
+                      (/ (seconds-per-frame) (/ (the float (-> self deactivation-time)) TICKS_PER_SECOND)))
+        (ja :num! (seek!))
+        (suspend))
+      (ja :group! pds-trap-central-idle-ja :num! min)
+      (loop
+        (ja :num! (loop!))
+        (suspend)))
+  :post ja-post)
+
+(defstate active (pds-trap)
+  :virtual #t
+  :event
+    (event
+      (case message
+        (('enable) (false! (-> self disabled?)))
+        (('disable) (true! (-> self disabled?)) (go-virtual idle))
+        (('deactivate) (go-virtual idle))
+        (('ridden)
+         (when (and (target-rider? self)
+                    (time-passed? (-> self activation-time))
+                    (not (logtest? (-> *target* state-flags) (state-flags timed-invulnerable)))
+                    (not (logtest? (-> *target* state-flags) (state-flags dying))))
+           (send-event *target* 'attack #f (static-attack-info ((mode 'generic))))
+           (sound-play "touch-pipes")
+           (send-event (-> *pds-master* sentinel extra process) 'notify 'trap)))))
+  :enter
+    (behavior ((toggle symbol))
+      (set-state-time))
+  :code
+    (behavior ((toggle symbol))
+      (ja-channel-push! 1 (seconds 0.1))
+      (ja-no-eval :group! pds-trap-central-going-down-ja :num! min)
+      (sound-play "silo-button")
+      (set-vector! (-> self draw color-mult) 0.8 0.85 0.9 1.0)
+      (until (time-passed? (-> self activation-time))
+        (vector-seek! (-> self draw color-mult)
+                      (static-vector 0.5 0.7 1.2 1.0)
+                      (/ (seconds-per-frame) (/ (the float (-> self activation-time)) TICKS_PER_SECOND)))
+        (ja :num! (seek!))
+        (let* ((timer (- (current-time) (-> self state-time)))
+               (normal-timer (/ (the float timer) (-> self activation-time))))
+          (set! (-> (get-init-spec-by-id 4134 num) initial-valuef) (lerp-clamp 0.1 0.8 normal-timer))
+          (cond
+            ((pds-trap-can-play-sound?)
+             (update-vol! (-> self sound-active) (the int (lerp-clamp 5.0 40.0 normal-timer)))
+             (update! (-> self sound-active)))
+            (else (stop! (-> self sound-active))))
+          (pds-trap-spawn-part (-> self pre-active-part)))
+        (suspend))
+      (set-vector! (-> self draw color-mult) 0.35 0.55 2.0 1.0)
+      (cond
+        ((pds-trap-can-play-sound?) (update-vol! (-> self sound-active) 60) (update! (-> self sound-active)))
+        (else (stop! (-> self sound-active))))
+      (cond
+        (toggle
+         (ja-channel-push! 1 (seconds 0.1))
+         (ja :group! pds-trap-central-idle-down-ja :num! min)
+         (loop
+           (ja :num! (loop!))
+           (pds-trap-spawn-part (-> self active-part))
+           (suspend)))
+        (else
+         (until (time-passed? (+ (-> self active-time) (-> self activation-time)))
+           (pds-trap-spawn-part (-> self active-part))
+           (suspend))))
+      (go-virtual idle))
+  :post ja-post)
+
+(defstate deadly (pds-trap)
+  :virtual #t
+  :event
+    (event
+      (case message
+        (('enable) (false! (-> self disabled?)))
+        (('disable) (true! (-> self disabled?)) (go-virtual idle))
+        (('deactivate) (go-virtual idle))
+        (('ridden)
+         (when (and (target-rider? self) (time-passed? (-> self activation-time)))
+           (send-event *target* 'attack-invinc #f (static-attack-info ((mode 'melt))))))))
+  :enter
+    (behavior ((toggle symbol))
+      (set-state-time))
+  :code
+    (behavior ((toggle symbol))
+      (ja-channel-push! 1 (seconds 0.1))
+      (ja :group! pds-trap-central-going-down-ja :num! min)
+      (sound-play "silo-button")
+      (set-vector! (-> self draw color-mult) 0.9 0.85 0.8 1.0)
+      (until (time-passed? (-> self activation-time))
+        (vector-seek! (-> self draw color-mult)
+                      (static-vector 1.2 0.7 0.5 1.0)
+                      (/ (seconds-per-frame) (/ (the float (-> self activation-time)) TICKS_PER_SECOND)))
+        (ja :num! (seek!))
+        (let* ((timer (- (current-time) (-> self state-time)))
+               (normal-timer (/ (the float timer) (-> self activation-time))))
+          (set! (-> (get-init-spec-by-id 4137 num) initial-valuef) (lerp-clamp 0.01 0.2 normal-timer))
+          (set! (-> (get-init-spec-by-id 4139 num) initial-valuef) (lerp-clamp 0.0 0.25 normal-timer))
+          (cond
+            ((pds-trap-can-play-sound?)
+             (update-vol! (-> self sound-deadly) (the int (lerp-clamp 5.0 30.0 normal-timer)))
+             (update! (-> self sound-deadly)))
+            (else (stop! (-> self sound-deadly))))
+          (pds-trap-spawn-part (-> self pre-deadly-part)))
+        (suspend))
+      (set-vector! (-> self draw color-mult) 2.0 0.55 0.35 1.0)
+      (cond
+        ((pds-trap-can-play-sound?) (update-vol! (-> self sound-deadly) 50) (update! (-> self sound-deadly)))
+        (else (stop! (-> self sound-deadly))))
+      (cond
+        (toggle
+         (ja-channel-push! 1 (seconds 0.1))
+         (ja :group! pds-trap-central-idle-down-ja :num! min)
+         (loop
+           (ja :num! (loop!))
+           (pds-trap-spawn-part (-> self deadly-part))
+           (suspend)))
+        (else
+         (until (time-passed? (+ (-> self active-time) (-> self activation-time)))
+           (pds-trap-spawn-part (-> self deadly-part))
+           (suspend))))
+      (go-virtual idle))
+  :post ja-post)
+
+(deftype pds-trap-central (pds-trap) ())
+
+(defmethod get-skel ((this pds-trap-central))
+  *pds-trap-central-sg*)
+
+(deftype pds-trap-inner (pds-trap) ())
+
+(defmethod get-skel ((this pds-trap-inner))
+  *pds-trap-inner-sg*)
+
+(deftype pds-trap-mid-left (pds-trap) ())
+
+(defmethod get-skel ((this pds-trap-mid-left))
+  *pds-trap-mid-left-sg*)
+
+(deftype pds-trap-mid-right (pds-trap) ())
+
+(defmethod get-skel ((this pds-trap-mid-right))
+  *pds-trap-mid-right-sg*)
+
+(deftype pds-trap-out-left (pds-trap) ())
+
+(defmethod get-skel ((this pds-trap-out-left))
+  *pds-trap-out-left-sg*)
+
+(deftype pds-trap-out-right (pds-trap) ())
+
+(defmethod get-skel ((this pds-trap-out-right))
+  *pds-trap-out-right-sg*)
+
+;;;;;;;;;;;;;;;;;
+;;; plats
+;;;;;;;;;;;;;;;;;
+
+(deftype pds-plat (baseplat)
+  ((path-pos   float)
+   (sync       sync-info-eased :inline)
+   (rise-speed float)
+   (sound-id   sound-id))
+  (:methods
+   (get-skel (_type_) skeleton-group)
+   (init-collision! (_type_) object))
+  (:state-methods
+   hidden
+   come-up
+   active
+   go-down))
+
+(defmethod init-collision! ((this pds-plat))
+  (let* ((cshape (new 'process 'collide-shape-moving this (collide-list-enum hit-by-player)))
+         (plat-type (-> this type symbol))
+         (r (case plat-type
+              (('pds-plat-circle) (meters 4))
+              (('pds-plat-square) (meters 5))
+              (('pds-plat-rectangle) (meters 6.5))
+              (else (meters 10)))))
+    (set! (-> cshape dynam) (copy *standard-dynamics* 'process))
+    (set! (-> cshape reaction) default-collision-reaction)
+    (set! (-> cshape no-reaction) (the (function collide-shape-moving collide-shape-intersect vector vector none) nothing))
+    (alloc-riders cshape 1)
+    (let ((cgroup (new 'process 'collide-shape-prim-group cshape (the uint 2) 0)))
+      (set! (-> cgroup prim-core collide-as) (collide-kind ground-object))
+      (set! (-> cgroup collide-with) (collide-kind target))
+      (set! (-> cgroup prim-core action) (collide-action solid rider-plat-sticky))
+      (set! (-> cgroup transform-index) 0)
+      (set-vector! (-> cgroup local-sphere) 0.0 0.0 0.0 (+ r (meters 0.5)))
+      (set-root-prim! cshape cgroup)
+      (let ((mesh (new 'process 'collide-shape-prim-mesh cshape (the uint 0) (the uint 0))))
+        (set! (-> mesh prim-core collide-as) (collide-kind ground-object))
+        (set! (-> mesh collide-with) (collide-kind target))
+        (set! (-> mesh prim-core action) (collide-action solid rider-plat-sticky))
+        (set! (-> mesh prim-core offense) (collide-offense indestructible))
+        (set! (-> mesh transform-index) 0)
+        (set-vector! (-> mesh local-sphere) 0.0 (meters 0) 0.0 r)
+        (append-prim cgroup mesh))
+      (let ((mesh1 (new 'process 'collide-shape-prim-mesh cshape (the uint 1) (the uint 1))))
+        (set! (-> mesh1 prim-core collide-as) (collide-kind wall-object))
+        (set! (-> mesh1 collide-with) (collide-kind target))
+        (set! (-> mesh1 prim-core action) (collide-action solid rider-plat-sticky))
+        (set! (-> mesh1 prim-core offense) (collide-offense indestructible))
+        (set! (-> mesh1 transform-index) 0)
+        (set-vector! (-> mesh1 local-sphere) 0.0 (meters 0) 0.0 r)
+        (append-prim cgroup mesh1)))
+    (set! (-> cshape nav-radius) (* 0.75 (-> cshape root-prim local-sphere w)))
+    (backup-collide-with-as cshape)
+    (set! (-> this root) cshape)))
+
+(defmethod init-from-entity! ((this pds-plat) (e entity-actor))
+  (stack-size-set! (-> this main-thread) 384)
+  (init-collision! this)
+  (process-drawable-from-entity! this e)
+  (process-mask-clear! (-> this mask) actor-pause)
+  (set! (-> this fact) (new 'process 'fact-info this (pickup-type eco-pill-random) (-> *FACT-bank* default-pill-inc)))
+  (set! (-> this path) (new 'process 'curve-control this 'path DEFAULT_RES_TIME))
+  (set! (-> this path flags) DEFAULT_PATH_FLAGS)
+  (set! (-> this path-pos) 0.0)
+  (set! (-> this rise-speed) (meters 15))
+  (set! (-> this sound-id) (new-sound-id))
+  (set-part! :proc this :id 107)
+  (initialize-skeleton this (get-skel this) '())
+  (load-params! (-> this sync) this (the uint 0) 0.0 0.15 0.15)
+  (baseplat-method-21 this)
+  (go-virtual hidden :proc this)
+  (none))
+
+(defevent pds-plat
+  (case message
+    (('bonk) (baseplat-method-22 self))
+    (('activate) (go-virtual come-up))
+    (('deactivate) (go-virtual go-down))
+    (('next-stage) (when (= (-> self next-state name) 'active) (go-virtual go-down)))))
+
+(defstatehandler pds-plat :event pds-plat-event-handler :post plat-post)
+
+(defstate hidden (pds-plat)
+  :virtual #t
+  :enter
+    (behavior ()
+      (clear-collide-with-as (-> self root)))
+  :trans
+    (behavior ()
+      (set! (-> self path-pos)
+            (if (logtest? (-> self fact options) (fact-options wrap-phase))
+              (get-current-phase (-> self sync))
+              (get-current-phase-with-mirror (-> self sync))))
+      (eval-path-curve! (-> self path) (-> self basetrans) (-> self path-pos) 'interp)
+      (set! (-> self basetrans y) (- (-> *pds-master* root trans y) (meters 1)))
+      (plat-trans))
+  :code anim-loop
+  :post transform-post)
+
+(defbehavior pds-plat-trans pds-plat ()
+  (rider-trans)
+  (cond
+    ((-> self bouncing)
+     (let ((vec (new-stack-vector0)))
+       (vector-copy! vec (-> self basetrans))
+       (+! (-> vec y) (* 819.2 (update! (-> self smush)))))
+     (if (not (!= (-> self smush amp) 0.0)) (false! (-> self bouncing))))))
+
+(defstate come-up (pds-plat)
+  :virtual #t
+  :enter
+    (behavior ()
+      (restore-collide-with-as (-> self root)))
+  :trans
+    (behavior ()
+      (set! (-> self path-pos)
+            (if (logtest? (-> self fact options) (fact-options wrap-phase))
+              (get-current-phase (-> self sync))
+              (get-current-phase-with-mirror (-> self sync))))
+      (eval-path-curve! (-> self path) (-> self basetrans) (-> self path-pos) 'interp)
+      (pds-plat-trans))
+  :code
+    (behavior ()
+      (ja :group! pds-plat-circle-idle-ja :num! (identity 0.0))
+      (let ((speed-factor (case (send-event *pds-master* 'stage)
+                            ((0) 1.0)
+                            ((1 2) 1.75))))
+        (until (< (vector-vector-distance (-> self root trans) (-> self basetrans)) (meters 0.1))
+          (vector-seek! (-> self root trans) (-> self basetrans) (* (/ (-> self rise-speed) speed-factor) (seconds-per-frame)))
+          (suspend)))
+      (go-virtual active)))
+
+(defstate active (pds-plat)
+  :virtual #t
+  :trans
+    (behavior ()
+      (set! (-> self path-pos)
+            (if (logtest? (-> self fact options) (fact-options wrap-phase))
+              (get-current-phase (-> self sync))
+              (get-current-phase-with-mirror (-> self sync))))
+      (eval-path-curve! (-> self path) (-> self basetrans) (-> self path-pos) 'interp)
+      (if (< (vector-vector-distance (-> self root trans) (ear-trans)) (meters 20))
+        (sound-play "eco-plat-hover" :id (-> self sound-id) :position (the symbol (-> self root trans))))
+      (plat-trans))
+  :code anim-loop
+  :exit
+    (behavior ()
+      (sound-stop (-> self sound-id))))
+
+(defstate go-down (pds-plat)
+  :virtual #t
+  :trans
+    (behavior ()
+      (vector-copy! (-> self basetrans) (-> self root trans))
+      (plat-trans))
+  :code
+    (behavior ()
+      (until (= (-> self root trans y) (-> self entity extra trans y))
+        (seek! (-> self root trans y) (-> self entity extra trans y) (* (-> self rise-speed) (seconds-per-frame)))
+        ;; downwards collision query to disable platform collision if jak is standing below
+        (let* ((tri (new 'stack-no-clear 'collide-tri-result))
+               (ray-origin (vector+! (new-stack-vector0) (-> self root trans) (static-vectorm 0 2 0)))
+               (ray-dir (vector-z-quaternion! (new-stack-vector0) (quaternion-axis-angle! (new-stack-quaternion0) 1.0 0.0 0.0 (degrees 90))))
+               ; (ray-len (- (-> self root trans y) (-> self entity extra trans y)))
+               (ray-len (meters 9))
+               (ray-vec (vector-float*! (new-stack-vector0) ray-dir ray-len))
+               (ray-end (vector+! (new-stack-vector0) ray-origin ray-vec)))
+          (if *pds-debug?* (add-debug-line #t (bucket-id debug) ray-origin ray-end (static-rgba 0 #x70 0 #x80) #f (the rgba -1)))
+          (let ((u (fill-and-probe-using-line-sphere *collide-cache*
+                                                     ray-origin
+                                                     ray-vec
+                                                     (meters 2)
+                                                     ; (-> self root root-prim local-sphere w)
+                                                     (collide-kind target)
+                                                     self
+                                                     tri
+                                                     (new 'static 'pat-surface :noentity #x1))))
+            (cond
+              ((> u 0.0)
+               (clear-collide-with-as (-> self root))
+               (if *pds-debug?*
+                 (let ((collision-pt (vector+float*! (new-stack-vector0) ray-origin ray-vec u)))
+                   (add-debug-sphere #t (bucket-id debug) collision-pt (meters 0.2) *color-orange*)
+                   (add-debug-outline-triangle #t
+                                               (bucket-id debug)
+                                               (-> tri vertex 0)
+                                               (-> tri vertex 1)
+                                               (-> tri vertex 2)
+                                               (static-rgba 0 #x40 #x80 #x80)))))
+              (else (restore-collide-with-as (-> self root))))))
+        (when (<= (-> self root trans y) (+ (meters 0.05) (-> *pds-master* root trans y)))
+          (clear-collide-with-as (-> self root)))
+        (suspend))
+      (go-virtual hidden)))
+
+(deftype pds-plat-circle (pds-plat) ())
+
+(defmethod get-skel ((this pds-plat-circle))
+  *pds-plat-circle-sg*)
+
+(deftype pds-plat-square (pds-plat) ())
+
+(defmethod get-skel ((this pds-plat-square))
+  *pds-plat-square-sg*)
+
+(deftype pds-plat-rectangle (pds-plat) ())
+
+(defmethod get-skel ((this pds-plat-rectangle))
+  *pds-plat-rectangle-sg*)
+
+(deftype pds-plat-postfight (plat-eco)
+  ((force-dest float)
+   (targ-dest  float)
+   (dest       float)
+   (speed      float)
+   (touch-time time-frame))
+  (:state-methods
+   hidden))
+
+(defmethod baseplat-method-24 ((this pds-plat-postfight))
+  (let* ((cshape (new 'process 'collide-shape-moving this (collide-list-enum hit-by-player)))
+         (plat-type (-> this type symbol))
+         (r (case plat-type
+              (('pds-plat-circle) (meters 4))
+              (('pds-plat-square) (meters 5))
+              (('pds-plat-rectangle) (meters 6.5))
+              (else (meters 10)))))
+    (set! (-> cshape dynam) (copy *standard-dynamics* 'process))
+    (set! (-> cshape reaction) default-collision-reaction)
+    (set! (-> cshape no-reaction) (the (function collide-shape-moving collide-shape-intersect vector vector none) nothing))
+    (alloc-riders cshape 1)
+    (let ((cgroup (new 'process 'collide-shape-prim-group cshape (the uint 2) 0)))
+      (set! (-> cgroup prim-core collide-as) (collide-kind ground-object))
+      (set! (-> cgroup collide-with) (collide-kind target))
+      (set! (-> cgroup prim-core action) (collide-action solid rider-plat-sticky))
+      (set! (-> cgroup transform-index) 0)
+      (set-vector! (-> cgroup local-sphere) 0.0 0.0 0.0 (+ r (meters 0.5)))
+      (set-root-prim! cshape cgroup)
+      (let ((mesh (new 'process 'collide-shape-prim-mesh cshape (the uint 0) (the uint 0))))
+        (set! (-> mesh prim-core collide-as) (collide-kind ground-object))
+        (set! (-> mesh collide-with) (collide-kind target))
+        (set! (-> mesh prim-core action) (collide-action solid rider-plat-sticky))
+        (set! (-> mesh prim-core offense) (collide-offense indestructible))
+        (set! (-> mesh transform-index) 0)
+        (set-vector! (-> mesh local-sphere) 0.0 (meters 0) 0.0 r)
+        (append-prim cgroup mesh))
+      (let ((mesh1 (new 'process 'collide-shape-prim-mesh cshape (the uint 1) (the uint 1))))
+        (set! (-> mesh1 prim-core collide-as) (collide-kind wall-object))
+        (set! (-> mesh1 collide-with) (collide-kind target))
+        (set! (-> mesh1 prim-core action) (collide-action solid rider-plat-sticky))
+        (set! (-> mesh1 prim-core offense) (collide-offense indestructible))
+        (set! (-> mesh1 transform-index) 0)
+        (set-vector! (-> mesh1 local-sphere) 0.0 (meters 0) 0.0 r)
+        (append-prim cgroup mesh1)))
+    (set! (-> cshape nav-radius) (* 0.75 (-> cshape root-prim local-sphere w)))
+    (backup-collide-with-as cshape)
+    (set! (-> this root) cshape))
+  (none))
+
+(defmethod init-from-entity! ((this pds-plat-postfight) (e entity-actor))
+  (logior! (-> this mask) (process-mask platform))
+  (set! (-> this notice-dist) (res-lump-float e 'notice-dist :default -1.0))
+  (set! (-> this link) (new 'process 'actor-link-info this))
+  (baseplat-method-24 this)
+  (process-drawable-from-entity! this e)
+  (initialize-skeleton this (get-unlit-skel this) '())
+  (logclear! (-> this mask) (process-mask actor-pause movie))
+  (update-transforms! (-> this root))
+  (set-part! :id 107 :proc this)
+  (set! (-> this path) (new 'process 'curve-control this 'path DEFAULT_RES_TIME))
+  (set! (-> this path flags) DEFAULT_PATH_FLAGS)
+  (set! (-> this fact) (new 'process 'fact-info this (pickup-type eco-pill-random) (-> *FACT-bank* default-pill-inc)))
+  (load-params! (-> this sync) this (the uint 3000) 0.0 0.15 0.15)
+  (set! (-> this sync-offset-dest) (-> this sync offset))
+  (set! (-> this sync-linear-val) (get-phase-offset (-> this sync)))
+  (sync-now! (-> this sync) (-> this sync-linear-val))
+  (set! (-> this sync-offset-faux) (-> this sync offset))
+  (set! (-> this path-pos) (get-current-phase-with-mirror (-> this sync)))
+  (eval-path-curve! (-> this path) (-> this root trans) (-> this path-pos) 'interp)
+  (set! (-> this sound-id) (new-sound-id))
+  (baseplat-method-26 this)
+  (baseplat-method-21 this)
+  (set! (-> this speed) (res-lump-float (-> this entity) 'speed :default 0.15))
+  (cond
+    ((not (task-complete? *game-info* (-> this entity extra perm task))) (go-virtual hidden :proc this))
+    ((or (and (-> this entity) (logtest? (-> this entity extra perm status) (entity-perm-status complete)))
+         (< (-> this notice-dist) 0.0))
+     (go-virtual plat-path-active :proc this (the plat #t)))
+    (else (go-virtual plat-idle :proc this)))
+  (none))
+
+(defmethod baseplat-method-26 ((this pds-plat-postfight))
+  (set! (-> this force-dest) -1.0)
+  (set! (-> this targ-dest) -1.0)
+  (set! (-> this dest) 0.0)
+  (set! (-> this speed) 0.15)
+  (logclear! (-> this mask) (process-mask actor-pause))
+  (process-entity-status! this (entity-perm-status bit-3) #t)
+  (none))
+
+(defstate hidden (pds-plat-postfight)
+  :virtual #t
+  :enter
+    (behavior ()
+      (clear-collide-with-as (-> self root))
+      (hide! self))
+  :code
+    (behavior ()
+      (until (task-complete? *game-info* (-> self entity extra perm task))
+        (suspend))
+      (go-virtual plat-path-active (the plat #f)))
+  :post transform-post)
+
+(defstate plat-idle (pds-plat-postfight)
+  :virtual #t
+  :enter
+    (behavior ()
+      (restore-collide-with-as (-> self root))
+      (show! self))
+  :code
+    (behavior ()
+      (ja :group! pds-plat-square-idle-ja :num! (identity 0.0))
+      (ja-post)
+      (update-transforms! (-> self root))
+      (anim-loop))
+  :post ja-post)
+
+(defstate plat-path-active (pds-plat-postfight)
+  :virtual #t
+  :event
+    (event
+      (case message
+        (('target)
+         (process-entity-status! self (entity-perm-status complete) #t)
+         (set! (-> self force-dest) (the float (-> block param 0))))
+        (('ridden)
+         (if (time-elapsed? (-> self touch-time) (seconds 2))
+           (set! (-> self targ-dest)
+                 (cond
+                   ((= (-> self path-pos) 0.0) (set! (-> self force-dest) -1.0) 0.9999)
+                   ((= (-> self path-pos) 0.9999) 0.0)
+                   (else (-> self targ-dest)))))
+         (set-time! (-> self touch-time))
+         #f)
+        (else (plat-event proc argc message block))))
+  :enter
+    (behavior ((activated? plat))
+      (set-state-time)
+      (restore-collide-with-as (-> self root))
+      (show! self)
+      (process-entity-status! self (entity-perm-status complete) #t))
+  :trans
+    (behavior ()
+      (let ((path-fwd-step (eval-path-curve! (-> self path) (new-stack-vector0) 0.0 'interp))
+            (path-bwd-step (eval-path-curve! (-> self path) (new-stack-vector0) 1.0 'interp))
+            (tpos (target-pos 0)))
+        (if (time-elapsed? (-> self touch-time) (seconds 3)) (set! (-> self targ-dest) -1.0))
+        (set! (-> self dest)
+              (cond
+                ((>= (-> self force-dest) 0.0) (-> self force-dest))
+                ((>= (-> self targ-dest) 0.0) (-> self targ-dest))
+                ((< (vector-vector-xz-distance tpos path-fwd-step) (vector-vector-xz-distance tpos path-bwd-step)) 0.0)
+                (else 0.9999))))
+      (if (= (-> self state-time) (current-time)) (set! (-> self path-pos) (-> self dest)))
+      (seek! (-> self path-pos) (-> self dest) (* (-> self speed) (seconds-per-frame)))
+      (eval-path-curve! (-> self path) (-> self basetrans) (-> self path-pos) 'interp)
+      (if (< (vector-vector-distance (-> self root trans) (ear-trans)) (meters 20))
+        (sound-play "eco-plat-hover" :id (-> self sound-id) :position (the symbol (-> self root trans))))
+      (plat-trans))
+  :code
+    (behavior ()
+      (ja :group! pds-plat-square-idle-ja :num! (identity 0.0))
+      (anim-loop)))
+
+(deftype pds-plat-postfight-rectangle (pds-plat-postfight) ())
+
+(defmethod get-unlit-skel ((this pds-plat-postfight-rectangle))
+  *pds-plat-rectangle-sg*)
+
+(deftype pds-plat-postfight-square (pds-plat-postfight) ())
+
+(defmethod get-unlit-skel ((this pds-plat-postfight-square))
+  *pds-plat-square-sg*)
+
+;;;;;;;;;;;;;;;;;
+;;; swingpole
+;;;;;;;;;;;;;;;;;
+
+(defevent pds-swingpole
+  (case message
+    (('activate) (go-virtual come-up))
+    (('deactivate) (go-virtual go-down))
+    (('next-stage) (when (symbol-member? (-> self next-state name) '(idle active)) (go-virtual go-down)))))
+
+(defstatehandler pds-swingpole :post pds-swingpole-post :event pds-swingpole-event-handler)
+
+(defmethod update! ((this pds-swingpole))
+  (if (nonzero? (-> this draw)) (ja-post))
+  (cond
+    ((nonzero? (-> this path))
+     (set! (-> this path-pos)
+           (if (logtest? (-> this fact options) (fact-options wrap-phase))
+             (get-current-phase (-> this sync))
+             (get-current-phase-with-mirror (-> this sync))))
+     (let ((path-pt (new-stack-vector0)))
+       (eval-path-curve! (-> this path) path-pt (-> this path-pos) 'interp)
+       (set! (-> this speed) (* (vector-vector-distance path-pt (-> this root trans)) (-> *display* frames-per-second)))
+       (move-to-point! (-> this root) path-pt)))
+    ((>= (-> this joint-track) 0)
+     (let ((pt (new-stack-vector0))
+           (cspace (-> this parent 0 node-list data (-> this joint-track))))
+       (vector<-cspace! pt cspace)
+       (vector-normalize-copy! (-> this dir) (-> cspace bone transform vector 0) 1.0)
+       (move-to-point! (-> this root) pt))))
+  (when (nonzero? (-> this sound))
+    (vector-copy! (-> this sound trans) (-> this root trans))
+    (let ((pitch (lerp-scale -0.1 -0.05 (-> this speed) (meters 2) (meters 5)))
+          (vol (lerp-scale 0.7 1.0 (-> this speed) (meters 2) (meters 5))))
+      (set! (-> this sound pitch) (the int (* 1524.0 pitch)))
+      (set! (-> this sound volume) (the int (* 1024.0 vol))))
+    (update! (-> this sound))))
+
+(defpost pds-swingpole
+  (let* ((pole-end (vector<-cspace! (new-stack-vector0) (joint-node pds-swingpole-lod0-jg part01)))
+         (pole-mid (-> self root trans))
+         (pole-length (vector-vector-distance pole-end pole-mid))
+         (pole-dir (-> self dir))
+         (pole-start (vector+float*! (new-stack-vector0) pole-mid pole-dir (- pole-length))))
+    (spawn (-> self part) pole-end)
+    (spawn (-> self part) pole-start))
+  (ja-post))
+
+(defstate hidden (pds-swingpole)
+  :virtual #t
+  :enter
+    (behavior ()
+      (clear-collide-with-as (-> self root))
+      (hide! self))
+  :code anim-loop
+  :post transform-post)
+
+(defstate idle (pds-swingpole)
+  :virtual #t
+  :event
+    (event
+      (case message
+        (('activate) (go-virtual come-up))
+        (('deactivate) (go-virtual go-down))
+        (('next-stage) (when (= (-> self next-state name) 'active) (go-virtual go-down)))
+        (('touch 'attack)
+         (when (and *target* (logtest? (-> *target* control root-prim prim-core action) (collide-action edgegrab-possible)))
+           (send-event *target* 'pole-grab self)
+           (go-virtual active (process->handle proc)))
+         #f)))
+  :code
+    (behavior ()
+      (if (nonzero? (-> self draw)) (ja-post))
+      (update-transforms! (-> self root))
+      (cond
+        ((or (nonzero? (-> self path)) (>= (-> self joint-track) 0)) (loop (update! self) (suspend)))
+        (else (logior! (-> self mask) (process-mask sleep)) (suspend)))))
+
+(defstate come-up (pds-swingpole)
+  :virtual #t
+  :enter
+    (behavior ()
+      (restore-collide-with-as (-> self root))
+      (show! self))
+  :trans
+    (behavior ()
+      (set! (-> self path-pos)
+            (if (logtest? (-> self fact options) (fact-options wrap-phase))
+              (get-current-phase (-> self sync))
+              (get-current-phase-with-mirror (-> self sync))))
+      (eval-path-curve! (-> self path) (-> self rise-trans) (-> self path-pos) 'interp))
+  :code
+    (behavior ()
+      (ja :group! pds-swingpole-idle-ja :num! (identity 0.0))
+      (until (< (vector-vector-distance (-> self root trans) (-> self rise-trans)) (meters 0.1))
+        (vector-seek! (-> self root trans) (-> self rise-trans) (* (-> self rise-speed) (seconds-per-frame)))
+        (suspend))
+      (go-virtual idle)))
+
+(defstate active (pds-swingpole)
+  :virtual #t
+  :code
+    (behavior ((h handle))
+      (update! self)
+      (suspend)
+      (while (and *target* (= (handle->process (-> *target* control unknown-handle10)) self))
+        (update! self)
+        (suspend))
+      (suspend-for (seconds 0.5)
+        (update! self))
+      (go-virtual idle)))
+
+(defstate go-down (pds-swingpole)
+  :virtual #t
+  :trans
+    (behavior ()
+      (vector-copy! (-> self rise-trans) (-> self root trans)))
+  :code
+    (behavior ()
+      (until (= (-> self root trans y) (-> self entity extra trans y))
+        (seek! (-> self root trans y) (-> self entity extra trans y) (* (-> self rise-speed) (seconds-per-frame)))
+        (if (and (= self (handle->process (-> *target* control unknown-handle10)))
+                 (< (- (-> self root trans y) (-> self entity extra trans y)) (meters 14)))
+          (with-pp
+            (protect (pp)
+              (set! pp *target*)
+              (when (symbol-member? (-> pp next-state name) '(target-pole-cycle))
+                (let ((frame (ja-aframe-num 0)))
+                  (cond
+                    ((> frame 44.0) (go-hook pp target-falling 'target-pole-cycle))
+                    ((>= frame 14.0) (go-hook pp target-pole-flip-up 28672.0 28672.0 (* 1024.0 (- 26.0 frame))))
+                    (else (go-hook pp target-pole-flip-forward 14336.0 14336.0 57344.0))))))))
+        (suspend))
+      (go-virtual hidden)))
+
+(defmethod init-collision! ((this pds-swingpole))
+  (let ((cshape (new 'process 'collide-shape this (collide-list-enum hit-by-player))))
+    (let ((csphere (new 'process 'collide-shape-prim-sphere cshape (the uint 0))))
+      (set! (-> csphere collide-as) (collide-kind powerup))
+      (set! (-> csphere collide-with) (collide-kind target))
+      (set-vector! (-> csphere local-sphere) 0.0 0.0 0.0 (meters 3))
+      (set-root-prim! cshape csphere))
+    (set! (-> cshape nav-radius) (* 0.75 (-> cshape root-prim local-sphere w)))
+    (backup-collide-with-as cshape)
+    (set! (-> this root) cshape)))
+
+(defmethod init-from-entity! ((this pds-swingpole) (e entity-actor))
+  (stack-size-set! (-> this main-thread) 128)
+  (init-collision! this)
+  (process-mask-clear! (-> this mask) actor-pause)
+  (vector-copy! (-> this root trans) (-> e extra trans))
+  (vector-copy! (-> this rise-trans) (-> e extra trans))
+  (quaternion-copy! (-> this root quat) (-> e quat))
+  (vector-identity! (-> this root scale))
+  (vector-y-quaternion! (-> this dir) (-> this root quat))
+  (set! (-> this joint-track) -1)
+  (initialize-skeleton this *pds-swingpole-sg* '())
+  (set! (-> this dir y) 0.0)
+  (vector-normalize! (-> this dir) 1.0)
+  (set! (-> this edge-length) (meters 2))
+  (set! (-> this rise-speed) (meters 15))
+  (set! (-> this fact) (new 'process 'fact-info this (pickup-type eco-pill-random) (-> *FACT-bank* default-pill-inc)))
+  (load-params! (-> this sync) this (the uint 0) 0.0 0.2 0.2)
+  (set-part! :proc this :id 1097)
+  (when (nonzero? (-> this sync period))
+    (set! (-> this path) (new 'process 'curve-control this 'path DEFAULT_RES_TIME))
+    (set! (-> this path flags) DEFAULT_PATH_FLAGS))
+  ; (set! (-> this sound) (new 'process 'ambient-sound (-> this entity) (-> this root trans)))
+  (go-virtual hidden :proc this)
+  (none))
+
+; (defbehavior pds-swingpole-init-by-other pds-swingpole ((joint int))
+;   (stack-size-set! (-> self main-thread) 128)
+;   (init-collision! self)
+;   (vector-copy! (-> self root trans) (-> self parent 0 root trans))
+;   (quaternion-identity! (-> self root quat))
+;   (vector-identity! (-> self root scale))
+;   (set! (-> self joint-track) joint)
+;   (set-vector! (-> self dir) 0.0 0.0 1.0 1.0)
+;   (set! (-> self edge-length) (meters 2))
+;   (go-virtual idle))
+
+;;;;;;;;;;;;;;;;;
+;;; master
+;;;;;;;;;;;;;;;;;
+
+(defmethod deactivate ((this pds-master))
+  (set! *pds-master* (the pds-master #f))
+  (deactivate-handle (-> this pickup))
+  (call-parent-method this))
+
+(defmethod relocate ((this pds-master) (offset int))
+  (set! *pds-master* this)
+  (if *pds-master* (&+! *pds-master* offset))
+  (relocate-fields root
+                   link
+                   gems
+                   traps
+                   traps-outer
+                   traps-mid
+                   traps-inner
+                   plats
+                   plats-1
+                   plats-2
+                   plats-3
+                   poles
+                   poles-2
+                   poles-3)
+  (call-parent-method this offset))
+
+(defmethod fill-actor-arr ((this pds-master) (arr (array entity-actor)) (e entity-actor) (lump symbol))
+  (dotimes (i (length arr))
+    (set! (-> arr i) (entity-actor-lookup e lump i)))
+  arr)
+
+(defmethod send-to-actor ((this pds-master) (e entity-actor) (message symbol))
+  (when (and e (-> e extra process))
+    (send-event (-> e extra process) message)))
+
+(defmethod send-to-actor-group ((this pds-master) (group (array entity-actor)) (message symbol))
+  (dotimes (i (length group))
+    (send-to-actor this (-> group i) message)))
+
+(defmethod send-to-all ((this pds-master) (message symbol))
+  (send-to-actor this (-> this sentinel) message)
+  (dotimes (i 12)
+    (send-to-actor-group this (-> this actors i) message)))
+
+(defmethod target-in-arena? ((this pds-master))
+  (aif *target* (< (vector-vector-distance (-> this root trans) (target-pos 0)) (meters 70))))
+
+(defbehavior pds-master-send-to-group-delayed pds-master ((group (array entity-actor)) (message symbol) (delay time-frame))
+  (dotimes (i (length group))
+    ; (format 0 "pds-master-send-to-group-delayed ~A ~A~%" message (-> group i extra process))
+    (suspend-for delay)
+    (send-to-actor self (-> group i) message)))
+
+(defmethod you-suck-stage ((this pds-master))
+  (cond
+    ((< (-> this death-count) 3) 0)
+    ((< (-> this death-count) 6) 1)
+    (else 2)))
+
+(defevent pds-master
+  (case message
+    (('notify)
+     (case (the symbol (-> block param 0))
+       (('killed) (1+! (-> self enemies-killed)))))
+    (('stage) (-> self stage))
+    (('reset-gems)
+     (dotimes (i (length (-> self gems)))
+       (set-or-clear-status! (-> self gems i) (entity-perm-status dead) #f)
+       (entity-birth-no-kill (-> self gems i))))
+    (('gem-destroyed) (1+! (-> self stage)) (send-to-actor self (-> self sentinel) 'next-stage))
+    (('destroy-gem) (send-to-actor self (-> self gems (-> self stage)) 'explode))
+    (('num-killed) (-> self enemies-killed))
+    (('reset-kills) (set! (-> self enemies-killed) 0))
+    (('set-max-enemies) (set! (-> self max-enemies) (the int (-> block param 0))))
+    (('set-max-active) (set! (-> self max-active) (the int (-> block param 0))))
+    (('kill-pickup) (deactivate-handle (-> self pickup)))
+    (('spawn-pickup)
+     (deactivate-handle (-> self pickup))
+     (let ((fact (new 'static 'fact-info :options (fact-options respawn) :fade-time (seconds 10)))
+           (stage (-> self stage))
+           (suck (you-suck-stage self)))
+       (case suck
+         ((0 1)
+          (let ((pickup (the (pointer eco-collectable)
+                             (birth-pickup-at-point (-> self root trans)
+                                                    (case (-> self stage)
+                                                      ((0) (pickup-type eco-green))
+                                                      ((1) (pickup-type eco-yellow))
+                                                      ((2) (pickup-type eco-red)))
+                                                    (-> *FACT-bank* eco-single-inc)
+                                                    #t
+                                                    *entity-pool*
+                                                    (if (> stage 0) fact (the fact-info #f))))))
+            (when pickup
+              (if (= suck 1) (set! (-> fact fade-time) (seconds 6)))
+              (if (> stage 0) (set! (-> pickup 0 respawn-delay) (-> fact fade-time)))
+              (set! (-> self pickup) (ppointer->handle pickup)))))
+         ((2)
+          (set! (-> self pickup)
+                (ppointer->handle (process-spawn super-eco-crystal
+                                                 (vector+! (new-stack-vector0) (-> self root trans) (static-vectorm 0 2 0))
+                                                 (case stage
+                                                   ((0) 'green)
+                                                   ((1) 'yellow)
+                                                   ((2) 'red))
+                                                 999)))))))
+    (('activate-traps) (go-virtual activate-traps))
+    (('deactivate-traps) (go-virtual idle))
+    (('spawn-plats)
+     (case (-> self stage)
+       ((0) (go-virtual send-with-delay (-> self plats-1) 'activate (seconds 0.25)))
+       ((1) (send-to-actor-group self (-> self plats-2) 'activate))
+       ((2) (send-to-actor-group self (-> self plats-3) 'activate))))
+    (('deactivate-plats)
+     (case (if (and (>= argc 1) (true? (-> block param 0))) (-> self stage) (1- (-> self stage)))
+       ((0) (go-virtual send-with-delay (-> self plats-1) 'deactivate (seconds 0.25)))
+       ((1) (go-virtual send-with-delay (-> self plats-2) 'deactivate (seconds 0.25)))
+       ((2) (go-virtual send-with-delay (-> self plats-3) 'deactivate (seconds 0.25)))))))
+
+(defpost pds-master
+  (if (and *target* *pds-debug?*)
+    (format *stdcon*
+            "stage ~D~%killed ~D needed ~D remaining ~D state ~A deaths ~D~%"
+            (-> self stage)
+            (-> self enemies-killed)
+            (-> self max-enemies)
+            (- (-> self max-enemies) (-> self enemies-killed))
+            (-> self next-state name)
+            (-> self death-count))))
+
+(defbehavior pds-master-trans pds-master ()
+  (let ((suck (you-suck-stage self)))
+    (case suck
+      ((0)
+       (set! (-> *pds-suck-params* max-enemies) 0)
+       (set! (-> *pds-suck-params* max-active) 0)
+       (set! (-> *pds-suck-params* attack-window) 0.0)
+       (set! (-> *pds-suck-params* pickup-chance) 0.0)
+       (set! (-> *pds-suck-params* trap-activation-time) (seconds 0))
+       (set! (-> *pds-suck-params* trap-active-time) (seconds 0)))
+      ((1)
+       (set! (-> *pds-suck-params* max-enemies) -2)
+       (set! (-> *pds-suck-params* max-active) -1)
+       (set! (-> *pds-suck-params* attack-window) 0.15)
+       (set! (-> *pds-suck-params* pickup-chance) 0.05)
+       (set! (-> *pds-suck-params* trap-activation-time) (seconds 0.5))
+       (set! (-> *pds-suck-params* trap-active-time) (seconds -0.5)))
+      ((2)
+       (set! (-> *pds-suck-params* max-enemies) -4)
+       (set! (-> *pds-suck-params* max-active) -2)
+       (set! (-> *pds-suck-params* attack-window) 0.3)
+       (set! (-> *pds-suck-params* pickup-chance) 0.1)
+       (set! (-> *pds-suck-params* trap-activation-time) (seconds 1))
+       (set! (-> *pds-suck-params* trap-active-time) (seconds -1))))))
+
+(defstatehandler pds-master :event pds-master-event-handler :trans pds-master-trans :post pds-master-post)
+
+(defstate idle (pds-master)
+  :virtual #t
+  :code anim-loop)
+
+(defstate send-with-delay (pds-master)
+  :virtual #t
+  :code
+    (behavior ((group (array entity-actor)) (message symbol) (delay time-frame))
+      (pds-master-send-to-group-delayed group message delay)
+      (go-virtual idle)))
+
+(defstate activate-traps (pds-master)
+  :virtual #t
+  :code
+    (behavior ()
+      (send-to-actor-group self (-> self traps) 'disable)
+      (let ((msg (case (-> self stage)
+                   ((1) 'activate)
+                   ((2) 'deadly))))
+        (send-to-actor-group self (-> self traps-outer) msg)
+        (suspend-for (seconds 1))
+        (send-to-actor-group self (-> self traps-mid) msg)
+        (suspend-for (seconds 1))
+        (send-to-actor-group self (-> self traps-inner) msg)
+        (loop
+          (send-to-actor-group self (-> self traps-outer) msg)
+          (send-to-actor-group self (-> self traps-mid) msg)
+          (send-to-actor-group self (-> self traps-inner) msg)
+          (suspend)))
+      (remove-exit)
+      (go-virtual idle))
+  :exit
+    (behavior ()
+      (send-to-actor-group self (-> self traps) 'enable)
+      (send-to-actor-group self (-> self traps-outer) 'deactivate)
+      (send-to-actor-group self (-> self traps-mid) 'deactivate)
+      (send-to-actor-group self (-> self traps-inner) 'deactivate)))
+
+;;;;;;;;;;;;;;;;;
+;;; door
+;;;;;;;;;;;;;;;;;
+
+(deftype lab-door (process-drawable)
+  ((root      collide-shape-moving :override)
+   (open-dist float))
+  (:methods
+   (init-collision! (_type_) object)
+   (closest-pt-on-line (_type_ vector vector vector vector) vector)
+   (should-open? (_type_) symbol))
+  (:state-methods
+   idle
+   open
+   opened))
+
+(defmethod init-collision! ((this lab-door))
+  (let ((cshape (new 'process 'collide-shape-moving this (collide-list-enum hit-by-player))))
+    (set! (-> cshape dynam) (copy *standard-dynamics* 'process))
+    (set! (-> cshape reaction) default-collision-reaction)
+    (set! (-> cshape no-reaction) (the (function collide-shape-moving collide-shape-intersect vector vector none) nothing))
+    (let ((cgroup (new 'process 'collide-shape-prim-group cshape (the uint 2) 0)))
+      (set! (-> cgroup prim-core collide-as) (collide-kind ground-object))
+      (set! (-> cgroup collide-with) (collide-kind target))
+      (set! (-> cgroup prim-core action) (collide-action solid rider-plat-sticky))
+      (set! (-> cgroup transform-index) 0)
+      (set-vector! (-> cgroup local-sphere) 0.0 0.0 0.0 (meters 60))
+      (set-root-prim! cshape cgroup)
+      (let ((mesh (new 'process 'collide-shape-prim-mesh cshape (the uint 0) (the uint 0))))
+        (set! (-> mesh prim-core collide-as) (collide-kind ground-object))
+        (set! (-> mesh collide-with) (collide-kind target))
+        (set! (-> mesh prim-core action) (collide-action solid rider-plat-sticky))
+        (set! (-> mesh prim-core offense) (collide-offense indestructible))
+        (set! (-> mesh transform-index) (joint-node-index lab-door-lod0-jg col-left))
+        (set-vector! (-> mesh local-sphere) 0.0 (meters 0) 0.0 (meters 40))
+        (append-prim cgroup mesh))
+      (let ((mesh1 (new 'process 'collide-shape-prim-mesh cshape (the uint 1) (the uint 1))))
+        (set! (-> mesh1 prim-core collide-as) (collide-kind ground-object))
+        (set! (-> mesh1 collide-with) (collide-kind target))
+        (set! (-> mesh1 prim-core action) (collide-action solid rider-plat-sticky))
+        (set! (-> mesh1 prim-core offense) (collide-offense indestructible))
+        (set! (-> mesh1 transform-index) (joint-node-index lab-door-lod0-jg col-right))
+        (set-vector! (-> mesh1 local-sphere) 0.0 (meters 0) 0.0 (meters 40))
+        (append-prim cgroup mesh1)))
+    (set! (-> cshape nav-radius) (* 0.75 (-> cshape root-prim local-sphere w)))
+    (backup-collide-with-as cshape)
+    (set! (-> this root) cshape)))
+
+(defmethod init-from-entity! ((this lab-door) (e entity-actor))
+  (init-collision! this)
+  (process-drawable-from-entity! this e)
+  (process-mask-clear! (-> this mask) actor-pause)
+  (initialize-skeleton this *lab-door-sg* '())
+  (set! (-> this open-dist) (meters 40.0))
+  (cond
+    ((not (logtest? (-> e extra perm status) (entity-perm-status complete))) (go-virtual idle :proc this))
+    ((logtest? (-> e extra perm status) (entity-perm-status complete)) (go-virtual opened :proc this))
+    (else (go-virtual opened :proc this)))
+  (none))
+
+(defmethod closest-pt-on-line ((this lab-door) (dest vector) (pt vector) (line-pt vector) (line-dir vector))
+  (let* ((pq (vector-! (new-stack-vector0) pt line-pt))
+         (t (/ (vector-dot pq line-dir) (vector-dot line-dir line-dir))))
+    (vector+! dest line-pt (vector-float*! (new-stack-vector0) line-dir t))))
+
+(defmethod should-open? ((this lab-door))
+  (when (and *target* (task-complete? *game-info* (-> this entity extra perm task)))
+    (let* ((dir (set-vector! (new-stack-vector0) (degrees 0) (degrees -60) (degrees 0) 1.0))
+           (q (quaternion-zxy! (new-stack-quaternion0) dir))
+           (line (vector+! (new-stack-vector0)
+                           (-> this root trans)
+                           (vector-normalize! (vector-z-quaternion! (new-stack-vector0) q) (-> this open-dist))))
+           (closest (closest-pt-on-line this
+                                        (new-stack-vector0)
+                                        (target-pos 0)
+                                        (-> this root trans)
+                                        (vector-normalize! (vector-z-quaternion! (new-stack-vector0) q) (-> this open-dist))))
+           (dist (vector-vector-xz-distance closest (-> this root trans))))
+      (when *debug-segment*
+        (add-debug-line #t (bucket-id debug) (-> this root trans) line (static-rgba 0 #x70 0 #x80) #f (the rgba -1))
+        (add-debug-sphere #t (bucket-id debug-no-zbuf) closest (meters 0.1) (static-rgba 255 155 11 #x80))
+        (format *stdcon* "door dist ~,,2m~%" dist))
+      (< dist (-> this open-dist)))))
+
+(defstatehandler lab-door :post rider-post)
+
+(defstate idle (lab-door)
+  :virtual #t
+  :trans
+    (behavior ()
+      (when (should-open? self)
+        (go-virtual open)))
+  :code
+    (behavior ()
+      (ja :group! lab-door-idle-ja :num! (identity 0.0))
+      (loop
+        (ja :num! (loop!))
+        (suspend))))
+
+(defstate open (lab-door)
+  :virtual #t
+  :code
+    (behavior ()
+      (ja-channel-push! 1 (seconds 0.1))
+      (ja-no-eval :group! lab-door-opening-ja :num! min)
+      (let ((plat (the pds-plat-postfight-rectangle (process-by-ename "valley-pds-plat-rectangle-07"))))
+        (when (and plat (nonzero? (-> plat root riders num-riders)))
+          (logclear! (-> plat mask) (process-mask platform))
+          (process-spawn pov-camera (-> *pds-master* root trans) *pds-cam-sg* "lab-door" 0 self '() :to self))
+        (until (ja-done? 0)
+          (ja :num! (seek!))
+          (suspend))
+        (logior! (-> plat mask) (process-mask platform))
+        (go-virtual opened))))
+
+(defstate opened (lab-door)
+  :virtual #t
+  :code
+    (behavior ()
+      (process-entity-status! self (entity-perm-status complete) #t)
+      (ja :group! lab-door-open-idle-ja :num! min)
+      (loop
+        (ja :num! (loop!))
+        (let ((sphere (static-bspherem 2186.04 9.33 1802.57 3)))
+          (when *debug-segment*
+            (add-debug-sphere #t (bucket-id debug-no-zbuf) (the vector sphere) (-> sphere w) (static-rgba #xff #xff 0 #x80)))
+          (when (and *target* (spheres-overlap? (sphere<-vector+r! (new 'stack 'sphere) (target-pos 0) 0.0) sphere))
+            (let ((fnt (new 'stack
+                            'font-context
+                            *font-default-matrix*
+                            56
+                            (if *hint-semaphore* 140 160)
+                            0.0
+                            (font-color default)
+                            (font-flags shadow kerning))))
+              (set-width! fnt 440)
+              (set-height! fnt 80)
+              (set-scale! fnt 0.85)
+              (set-flags! fnt (font-flags shadow kerning large))
+              (print-game-text (lookup-text! *common-text* (text-id lab-door-warp-to-geyser) #f) fnt #f 128 22))
+            (if (cpad-pressed? 0 circle) (start 'play (get-continue-by-name *game-info* "training-warp")))))
+        (suspend))))

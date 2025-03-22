@@ -1,0 +1,386 @@
+;;-*-Lisp-*-
+(in-package goal)
+(deftype rolling-rock-master (process)
+  ((trans            vector :inline)
+   (distance         float)
+   (path-count       int32)
+   (path-array       curve-control 8)
+   (scale-min        float)
+   (scale-max        float)
+   (freq-min         float)
+   (freq-max         float)
+   (speed-min        float)
+   (speed-max        float)
+   (last-path-picked int32))
+  (:methods
+   (rolling-rock-master-initialize-paths (_type_) object))
+  (:states
+   rolling-rock-master-idle))
+
+(def-actor rolling-rock
+  :idle idle-ja
+  :art (rolling-ja idle-ja)
+  :joints
+  (align main
+         rotating
+         rock
+         rock.001
+         rock.002
+         rock.003
+         rock.004
+         rock.005
+         rock.006
+         rock.007
+         rock.008
+         rock.009
+         rock.010
+         rock.011
+         rock.012
+         rock.013
+         rock.014
+         rock.015
+         rock.016
+         rock.017
+         rock.018
+         rock.019
+         rock.020
+         rock.021
+         rock.022
+         rock.023
+         rock.024
+         rock.025)
+  :bounds (0 5 0 15))
+
+(static-exploder-params rolling-rock
+                        (rock rock.001
+                              rock.002
+                              rock.003
+                              rock.004
+                              rock.005
+                              rock.006
+                              rock.007
+                              rock.008
+                              rock.009
+                              rock.010
+                              rock.011
+                              rock.012
+                              rock.013
+                              rock.014
+                              rock.015
+                              rock.016
+                              rock.017
+                              rock.018
+                              rock.019
+                              rock.020
+                              rock.021
+                              rock.022
+                              rock.023
+                              rock.024
+                              rock.025))
+
+(deftype rolling-rock (process-drawable)
+  ((root          collide-shape-moving :override)
+   (speed         float)
+   (path-speed    float)
+   (smooth-speed  float)
+   (path-length   float)
+   (path-pos      float)
+   (next-path-pos float)
+   (rotate-joint  joint-mod)
+   (rotate-smooth float)
+   (gravity-accel float)
+   (old-trans     vector 3 :inline))
+  (:methods
+   (init-collision! (_type_ float) object)
+   (follow-path (_type_) object)
+   (rotate-rock (_type_) object)
+   (get-gravity-accel (_type_) object))
+  (:states
+   rolling-rock-rolling
+   rolling-rock-explode))
+
+(defskelgroup *rolling-rock-shadow-sg*
+  snow-ball
+  snow-ball-shadow-lod0-jg
+  -1
+  ((snow-ball-shadow-lod0-mg (meters 999999)))
+  :bounds (static-spherem 0 -1.5 0 2)
+  :shadow snow-ball-shadow-shadow-mg)
+
+(deftype rolling-rock-shadow (process-drawable)
+  ((parent (pointer rolling-rock) :override))
+  (:states
+   rolling-rock-shadow-idle))
+
+(define *rolling-rock-shadow-control*
+  (new 'static
+       'shadow-control
+       :settings
+       (new 'static
+            'shadow-settings
+            :flags (shadow-flags disable-fade)
+            :shadow-dir
+            (new 'static 'vector :y -1.0 :w (meters 40))
+            :bot-plane
+            (new 'static 'plane :y 1.0 :w (meters 50))
+            :top-plane
+            (new 'static 'plane :y 1.0 :w (meters -2))
+            :fade-dist (meters 1000))))
+
+(defmethod init-from-entity! ((this rolling-rock-master) (e entity-actor))
+  (set! (-> this trans quad) (-> e extra trans quad))
+  (set! (-> this distance) (res-lump-float (-> this entity) 'max-distance :default (meters 450)))
+  (logclear! (-> this mask) (process-mask actor-pause))
+  (rolling-rock-master-initialize-paths this)
+  (go rolling-rock-master-idle)
+  (none))
+
+(defbehavior rolling-rock-shadow-init-by-other rolling-rock-shadow ()
+  (stack-size-set! (-> self main-thread) 128)
+  (logclear! (-> self mask) (process-mask actor-pause movie enemy platform projectile))
+  (set! (-> self root) (new 'process 'trsqv))
+  (set! (-> self root trans quad) (-> (the-as process-drawable (-> self parent 0)) root trans quad))
+  (quaternion-identity! (-> self root quat))
+  (initialize-skeleton self *rolling-rock-shadow-sg* '())
+  (ja-channel-set! 1)
+  (ja :group! snow-ball-shadow-idle-ja :num! min)
+  (set! (-> self draw shadow-ctrl) *rolling-rock-shadow-control*)
+  (vector-copy! (-> self root scale)
+                (vector-float*! (new-stack-vector0) (-> (the-as process-drawable (-> self parent 0)) root scale) 2.0))
+  (go rolling-rock-shadow-idle)
+  (none))
+
+(defbehavior rolling-rock-init-by-other rolling-rock ((e entity-actor) (this rolling-rock) (scale float) (path-name symbol) (speed float))
+  (set! (-> self entity) e)
+  (set! (-> self path) (new 'process 'curve-control self path-name -1000000000.0))
+  (set! (-> self path-length) (path-distance (-> self path)))
+  (set! (-> self path-speed) (/ 1.0 (/ (-> self path-length) speed)))
+  (set! (-> self rotate-smooth) 0.0)
+  (set! (-> self smooth-speed) 0.0)
+  (set! (-> self speed) speed)
+  (set! (-> self gravity-accel) 1.0)
+  (init-collision! self scale)
+  (process-drawable-from-entity! self e)
+  (set-vector! (-> self root scale) scale scale scale 1.0)
+  (initialize-skeleton self *rolling-rock-sg* '())
+  (set! (-> self rotate-joint) (new 'process 'joint-mod (joint-mod-handler-mode joint-set*) self 3))
+  (vector-copy! (-> self root trans) (-> self path cverts 0))
+  (vector-copy! (-> self old-trans 0) (-> self root trans))
+  (vector-copy! (-> self old-trans 1) (-> self root trans))
+  (vector-copy! (-> self old-trans 2) (-> self root trans))
+  (logclear! (-> self mask) (process-mask actor-pause))
+  (transform-post)
+  (process-spawn rolling-rock-shadow :to self)
+  (go rolling-rock-rolling))
+
+(defmethod get-gravity-accel ((this rolling-rock))
+  (let* ((height-diff (/ (- (-> this root trans y) (-> this old-trans 2 y)) (* (seconds-per-frame) 3)))
+         (gravity (if (< height-diff 0.0)
+                    (lerp-scale 0.95 4.0 height-diff (meters 0) (meters -100))
+                    (lerp-scale 0.95 0.6 height-diff (meters 0) (meters 50)))))
+    (seek! (-> this gravity-accel) gravity (* (seconds-per-frame) 1.2))
+    ;; (format *stdcon* "~%~% height-diff: ~M ~% gravity: ~F~% gravity-accel: ~F" height-diff gravity (-> this gravity-accel))
+    ))
+
+(defmethod follow-path ((this rolling-rock))
+  (let* ((pos (-> this root trans))
+         (new-pos (vector-copy! (new-stack-vector0) pos))
+         (next-pos (new-stack-vector0))
+         (next-vel 0.0)
+         (relative-speed 0.0))
+    ;; Check velocity for the next position:
+    (set! (-> this next-path-pos) (+ (-> this path-pos) (* (-> this path-speed) (seconds-per-frame) 2.0)))
+    (eval-path-curve! (-> this path) next-pos (-> this next-path-pos) 'interp)
+    (set! next-vel (/ (/ (vector-vector-distance pos next-pos) (seconds-per-frame)) 2.0))
+    ;; (format *stdcon* "~%~% next-vel: ~M~%" next-vel)
+    ;; Use height momentum to slow down or speed up:
+    (get-gravity-accel this)
+    ;; Use that next velocity to calculate a relative speed
+    ;; This gives you a number you can multiply the path-speed with to keep the constant original speed
+    ;; Which is then multiplied by the gravity accel to speed up/slow down the rock with gravity
+    (set! relative-speed (* (/ (-> this speed) next-vel) (-> this gravity-accel)))
+    ;; (format *stdcon* "relative-speed: ~F~%" relative-speed)
+    ;; multiply the relative speed by the original path-speed to get the correct speed based on absolute velocity and gravity
+    (set! (-> this smooth-speed) (* relative-speed (-> this path-speed)))
+    ;; Use our smooth speed to set the position on the path
+    (set! (-> this path-pos) (+ (-> this path-pos) (* (-> this smooth-speed) (seconds-per-frame))))
+    ;; Use the position on the path to set the new position of the rock
+    (eval-path-curve! (-> this path) new-pos (-> this path-pos) 'interp)
+    ;; Set the rotation to follow the curve
+    (let ((axis (vector-! (new-stack-vector0) pos new-pos))
+          (angle (new-stack-quaternion0)))
+      (quaternion-zxy! angle axis)
+      (quaternion-rotate-local-y! angle angle (vector-y-angle axis))
+      (set-quaternion! (-> this root) angle))
+    ;; Copy the new position onto the actor
+    (vector-copy! (-> this root trans) new-pos)))
+
+(defmethod rotate-rock ((this rolling-rock))
+  (let* ((vel-absolute (vector-vector-xz-distance (-> this root trans) (-> this old-trans 2)))
+         (rotate (/ (/ (- (* vel-absolute 0.6)) PI) (-> this root scale y))))
+    ;; (format *stdcon* "vel-absolute: ~M~%" (/ vel-absolute (seconds-per-frame)))
+    (seek! (-> this rotate-smooth) rotate (* (seconds-per-frame) (degrees 5.0)))
+    (quaternion-rotate-local-x! (-> this rotate-joint quat) (-> this rotate-joint quat) (-> this rotate-smooth)))
+  (vector-copy! (-> this old-trans 2) (-> this old-trans 1))
+  (vector-copy! (-> this old-trans 1) (-> this old-trans 0))
+  (vector-copy! (-> this old-trans 0) (-> this root trans)))
+
+(defmethod init-collision! ((this rolling-rock) (scale float))
+  (let ((cshape (new 'process 'collide-shape-moving this (collide-list-enum usually-hit-by-player))))
+    (set! (-> cshape dynam) (copy *standard-dynamics* 'process))
+    (set! (-> cshape reaction) default-collision-reaction)
+    (set! (-> cshape no-reaction)
+          (the-as (function collide-shape-moving collide-shape-intersect vector vector none) nothing))
+    (let ((csphere (new 'process 'collide-shape-prim-sphere cshape (the-as uint 0))))
+      (set! (-> csphere prim-core collide-as) (collide-kind enemy))
+      (set! (-> csphere collide-with) (collide-kind target))
+      (set! (-> csphere prim-core action) (collide-action solid))
+      (set! (-> csphere prim-core offense) (collide-offense indestructible))
+      (set-vector! (-> csphere local-sphere) 0.0 (* scale (meters 5.0)) 0.0 (* scale (meters 5.0)))
+      (set-root-prim! cshape csphere))
+    (set! (-> cshape nav-radius) (* 0.75 (-> cshape root-prim local-sphere w)))
+    (backup-collide-with-as cshape)
+    ;; (set-root-prim-collide-with! (-> this root) (collide-kind target))
+    (set! (-> this root) cshape))
+  (set-root-prim-collide-with! (-> this root) (collide-kind target))
+  (set! (-> this root event-other) 'touch)
+  (set! (-> this root event-self) 'touched))
+
+(defmethod rolling-rock-master-initialize-paths ((this rolling-rock-master))
+  (let ((paths '(patha pathb pathc pathd pathe pathf pathg pathh))
+        (path-counter 0))
+    (dotimes (i (length paths))
+      (let* ((path-sym (the symbol (ref paths i)))
+             (res-path (res-lump-struct (-> this entity) path-sym (inline-array vector))))
+        (when res-path
+          (set! (-> this path-array i) (new 'process 'curve-control this path-sym -1000000000.0))
+          (logior! (-> this path-array path-counter flags) (path-control-flag display draw-line draw-point draw-text))
+          (+! path-counter 1))))
+    (set! (-> this path-count) path-counter))
+  (set! (-> this scale-min) (/ (res-lump-float (-> this entity) 'scale-min :default (meters 5)) (meters 5)))
+  (set! (-> this scale-max) (/ (res-lump-float (-> this entity) 'scale-max :default (meters 5)) (meters 5)))
+  (set! (-> this freq-min) (res-lump-float (-> this entity) 'freq-min :default 2.0))
+  (set! (-> this freq-max) (res-lump-float (-> this entity) 'freq-max :default 2.0))
+  (set! (-> this speed-min) (res-lump-float (-> this entity) 'speed-min :default (meters 20.0)))
+  (set! (-> this speed-max) (res-lump-float (-> this entity) 'speed-max :default (meters 25.0)))
+  (set! (-> this last-path-picked) 0))
+
+(defmethod relocate ((this rolling-rock-master) (off int))
+  (dotimes (i (-> this path-count))
+    (if (nonzero? (-> this path-array i)) (&+! (-> this path-array i) off)))
+  (call-parent-method this off))
+
+(defmethod relocate ((this rolling-rock) (off int))
+  (if (nonzero? (-> this rotate-joint)) (&+! (-> this rotate-joint) off))
+  (call-parent-method this off))
+
+(defstate rolling-rock-master-idle (rolling-rock-master)
+  :trans
+    (behavior ()
+      (when *display-path-marks*
+        (dotimes (i (-> self path-count))
+          (if (nonzero? (-> self path-array i)) (debug-draw (-> self path-array i))))))
+  :code
+    (behavior ()
+      (loop
+        (when (< (vector-vector-distance (camera-pos) (-> self trans)) (-> self distance))
+          (let ((time-rand (rand-vu-float-range (-> self freq-min) (-> self freq-max)))
+                (path-rand (if (> (-> self path-count) 1) (rand-vu-int-range-exclude 1 (-> self path-count) (-> self last-path-picked)) 1))
+                (scale-rand (rand-vu-float-range (-> self scale-min) (-> self scale-max)))
+                (speed-rand (rand-vu-float-range (-> self speed-min) (-> self speed-max))))
+            (suspend-for (seconds time-rand))
+            ;; (format 0
+            ;;         "________________________________~%time-rand: ~F path-rand: ~D~%scale-rand: ~F last-path-picked: ~D~%"
+            ;;         time-rand
+            ;;         path-rand
+            ;;         scale-rand
+            ;;         (-> self last-path-picked))
+            (process-spawn rolling-rock
+                           (-> self entity)
+                           self
+                           scale-rand
+                           (-> self path-array (- path-rand 1) name)
+                           speed-rand
+                           :to
+                           self)
+            (set! (-> self last-path-picked) path-rand)))
+        (suspend))))
+
+(defstate rolling-rock-rolling (rolling-rock)
+  :event
+    (event
+      ; (format 0 "proc type: ~A message: ~A ~%" (-> proc type) message)
+      (case message
+        (('touch 'attack 'explode 'touched)
+         ; (format 0 "inside touch proc type: ~A~%" (-> proc type))
+         (if (= (-> proc type) target) (send-event proc 'attack (-> block param 0) (static-attack-info ((mode 'deadly)))))
+         (go rolling-rock-explode))))
+  :code
+    (behavior ()
+      (loop
+        (follow-path self)
+        (rotate-rock self)
+        (if (>= (-> self path-pos) 1.0) (go rolling-rock-explode))
+        (suspend)))
+  :post
+    (behavior ()
+      (transform-post)
+      ; (format *stdcon* "path #x~X~% pos ~f~%" (-> self path) (-> self path-pos))
+      ))
+
+(defstate rolling-rock-explode (rolling-rock)
+  :code
+    (behavior ()
+      (clear-collide-with-as (-> self root))
+      (let ((jak-distance (vector-vector-distance (-> self root trans) (target-pos 0))))
+        (when (< jak-distance (meters 25))
+          (let ((smush-strength (lerp-scale 50.0 600.0 jak-distance (meters 25) (meters 0)))
+                (smush-length (lerp-scale 100.0 250.0 jak-distance (meters 25) (meters 0)))
+                (buzz-strength (lerp-scale 0.0 150.0 jak-distance (meters 25) (meters 0))))
+            ;; (format 0 "jak-distance: ~M smush-strength: ~F smush-length ~F ~%" jak-distance smush-strength smush-length)
+            (activate! *camera-smush-control* (* smush-strength (-> self root scale x)) 37 (the int smush-length) 1.0 0.99)
+            (cpad-set-buzz! (-> *cpad-list* cpads 0) 0 (the int buzz-strength) (the int smush-length))
+            (cpad-set-buzz! (-> *cpad-list* cpads 0) 1 (the int buzz-strength) (the int smush-length)))))
+      (sound-play "explosion" :vol 60)
+      (process-spawn part-tracker
+                     :init
+                     part-tracker-init
+                     (-> *part-group-id-table* 1050)
+                     -1
+                     #f
+                     #f
+                     #f
+                     (-> self root trans)
+                     :to
+                     *entity-pool*)
+      (let ((explode (process-spawn joint-exploder *rolling-rock-sg* 2 (new 'stack 'joint-exploder-tuning 0) *rolling-rock-exploder-params* :to self)))
+        (when explode
+          (logclear! (-> explode 0 mask) (process-mask movie enemy))))
+      (suspend)
+      (ja-channel-set! 0)
+      (ja-post)
+      (until (not (-> self child))
+        (suspend))
+      (cleanup-for-death self)))
+
+(defstate rolling-rock-shadow-idle (rolling-rock-shadow)
+  :trans
+    (behavior ()
+      (vector-copy! (-> self root trans) (-> self parent 0 root trans))
+      (+! (-> self root trans y) (meters 3)))
+  :code
+    (behavior ()
+      (until (= (-> self parent 0 next-state name) 'rolling-rock-explode)
+        (suspend)))
+  :post ja-post)
+
+(def-actor val-dev-cam
+  :bounds (0 0 0 25)
+  :art
+  (idle-ja valleyboulder-ja
+           ecochoice-ja
+           superblue-ja
+           valleyvisual-ja
+           snowtransition-ja
+           iceslide-ja)
+  :joints (align prejoint val-dev-cam camera))

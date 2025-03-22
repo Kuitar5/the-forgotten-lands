@@ -1,0 +1,604 @@
+;;-*-Lisp-*-
+(in-package goal)
+(deftype tfl-commentary-proc (process)
+  ((parent      (pointer tfl-commentary-node) :override)
+   (proc-idx    int8)
+   (state-time  time-frame)
+   (trans-hook0 (function none :behavior tfl-commentary-proc))
+   (code-hook0  (function object :behavior tfl-commentary-proc))
+   (post-hook0  (function none :behavior tfl-commentary-proc)))
+  (:state-methods
+   idle))
+
+(defbehavior tfl-commentary-proc-init-by-other tfl-commentary-proc ((trans (function none :behavior tfl-commentary-proc))
+              (code (function object :behavior tfl-commentary-proc))
+              (post (function none :behavior tfl-commentary-proc))
+              (idx int))
+  (set! (-> self trans-hook0) trans)
+  (set! (-> self code-hook0) code)
+  (set! (-> self post-hook0) post)
+  (set! (-> self proc-idx) idx)
+  (go-virtual idle))
+
+(defmethod deactivate ((this tfl-commentary-proc))
+  (set! (-> this parent 0 comm-proc (-> this proc-idx)) INVALID_HANDLE)
+  (call-parent-method this))
+
+(defstate idle (tfl-commentary-proc)
+  :virtual #t
+  :trans
+    (behavior ()
+      (if (-> self trans-hook0) ((-> self trans-hook0))))
+  :code
+    (behavior ()
+      (set-state-time)
+      (loop
+        (if (-> self code-hook0) ((-> self code-hook0)))
+        (suspend)))
+  :post
+    (behavior ()
+      (if (-> self post-hook0) ((-> self post-hook0)))))
+
+(def-actor valley-rock
+  :idle idle-ja
+  :art (explode-ja idle-ja)
+  :bounds (0 5 0 200))
+
+(deftype valley-rock-commentary (process-drawable)
+  ((anim-speed float))
+  (:state-methods
+   explode))
+
+(defbehavior valley-rock-commentary-init-by-other valley-rock-commentary ((e entity-actor))
+  (set! (-> self root) (new 'process 'trsqv))
+  (set! (-> self entity) e)
+  (set! (-> self anim-speed) 1.0)
+  (process-drawable-from-entity! self e)
+  (initialize-skeleton self *valley-rock-sg* '())
+  (go-virtual explode))
+
+(defstate explode (valley-rock-commentary)
+  :virtual #t
+  :event
+    (event
+      (case message
+        (('anim-speed) (set! (-> self anim-speed) (-> (the bfloat (-> block param 0)) data)))))
+  :code
+    (behavior ()
+      (loop
+        (ja :group! valley-rock-idle-ja :num! min)
+        (suspend-for (seconds 1.5))
+        (ja :group! valley-rock-explode-ja :num! min)
+        (sound-play "explosion" :vol 150 :position (the symbol (ear-trans)))
+        (activate! *camera-smush-control* 1200.0 37 (seconds 1.3) 1.0 1.0)
+        (process-spawn part-tracker
+                       :init
+                       part-tracker-init
+                       (-> *part-group-id-table* 872)
+                       -1
+                       #f
+                       #f
+                       #f
+                       (-> self root trans)
+                       :to
+                       *entity-pool*)
+        (until (ja-done? 0)
+          (ja :num! (seek! max (-> self anim-speed)))
+          (suspend))
+        (suspend-for (seconds 1.5))))
+  :post ja-post)
+
+(deftype target-commentary (process-drawable)
+  ((root         collide-shape-moving :override)
+   (charge-loop? symbol)
+   (spawn-part?  symbol)
+   (base         vector :inline)
+   (ground       vector :inline))
+  (:methods
+   (fake-gravity (_type_) object)
+   (reset-pos (_type_) object)
+   (falling-anim (_type_) object)
+   (apply-gravity (_type_) object))
+  (:state-methods
+   idle
+   running-blast-loop
+   running-blast-end
+   jumping-blast-loop
+   jumping-blast-once
+   jumping-blast-end))
+
+(defmethod deactivate ((this target-commentary))
+  (target-super-yellow-part-reset)
+  (call-parent-method this))
+
+(defmethod reset-pos ((this target-commentary))
+  (move-to-point! (-> this root) (-> this base)))
+
+(defmethod fake-gravity ((this target-commentary))
+  (let ((y-targ (- (-> this base y) (meters 1.6))))
+    (seek! (-> this root trans y) y-targ (* (seconds-per-frame) (meters 1)))))
+
+(defmethod apply-gravity ((self target-commentary))
+  (let ((acc (new-stack-vector0)))
+    (compute-acc-due-to-gravity (-> self root) acc 1.0)
+    (vector-v++! (-> self root transv) acc))
+  (let* ((s5-1 (vector-copy! (new-stack-vector0) (-> self root dynam gravity-normal)))
+         (gp-1 (new-stack-vector0))
+         (f30-0 (vector-dot s5-1 (-> self root transv))))
+    (vector-! gp-1 (-> self root transv) (vector-float*! gp-1 s5-1 f30-0))
+    (let* ((f0-4 (vector-length gp-1))
+           (f1-0 f0-4))
+      (if (< f0-4 0.00004096) (set! f0-4 0.0))
+      (if (< f30-0 (- (-> self root dynam gravity-max))) (set! f30-0 (- (-> self root dynam gravity-max))))
+      (vector+! (-> self root transv)
+                (vector-float*! (-> self root transv) s5-1 f30-0)
+                (vector-float*! gp-1 gp-1 (/ f0-4 f1-0))))))
+
+(defbehavior target-commentary-hit-ground-anim target-commentary ()
+  (cond
+    ((= (ja-group) eichar-jump-loop-ja)
+     (ja-channel-push! 1 (seconds 0.02))
+     (ja-no-eval :group! eichar-jump-land-ja :num! (seek!) :frame-num 0.0)
+     (until (ja-done? 0)
+       (suspend)
+       (ja :num! (seek!))))
+    ((and (ja-group? eichar-jump-ja) (>= (ja-aframe-num 0) 35.0))
+     (ja-channel-set! 1)
+     (ja-no-eval :group! eichar-jump-short-land-ja :num! (seek!) :frame-num 0.0)
+     (until (ja-done? 0)
+       (suspend)
+       (ja :num! (seek!)))
+     (ja-no-eval :group! eichar-jump-land-ja :num! (seek!) :frame-num (ja-aframe 50.0 0))
+     (until (ja-done? 0)
+       (suspend)
+       (ja :num! (seek!))))
+    ((= (ja-group) eichar-jump-ja)
+     (ja-channel-push! 1 (seconds 0.04))
+     (ja-no-eval :group! eichar-jump-land-ja :num! (seek!) :frame-num (ja-aframe 42.0 0))
+     (until (ja-done? 0)
+       (suspend)
+       (ja :num! (seek!))))
+    ((ja-group? eichar-jump-land-ja) (ja-no-eval :num! (seek!)) (while (not (ja-done? 0)) (suspend) (ja-eval)) #f)))
+
+(defmethod falling-anim ((self target-commentary))
+  (cond
+    ((or (= (ja-group) eichar-jump-loop-ja) (= (ja-group) eichar-jump-land-ja))
+     (cond
+       ((and (logtest? (-> self root status) (cshape-moving-flags onsurf)) (not (ja-group? eichar-jump-land-ja)))
+        (ja-channel-push! 1 (seconds 0.02))
+        (ja :group! eichar-jump-land-ja))
+       ((ja-group? eichar-jump-loop-ja) (ja :num! (loop!)))
+       ((ja-group? eichar-jump-land-ja) (ja :num! (seek!)))))
+    (else (ja-channel-push! 1 (seconds 0.33)) (ja :group! eichar-jump-loop-ja))))
+
+(defbehavior target-commentary-init-by-other target-commentary ((pos vector) (quat quaternion) (mode symbol))
+  (let ((cshape (new 'process 'collide-shape-moving self (collide-list-enum hit-by-player))))
+    (set! (-> cshape dynam) (copy *standard-dynamics* 'process))
+    (set! (-> cshape max-iteration-count) (the uint 8))
+    (set! (-> cshape reaction) default-collision-reaction)
+    (set! (-> cshape no-reaction) (the (function collide-shape-moving collide-shape-intersect vector vector none) nothing))
+    (let ((sphere (new 'process 'collide-shape-prim-sphere cshape (the uint 1))))
+      (set! (-> sphere prim-core action) (collide-action solid))
+      (set! (-> sphere prim-core collide-as) (collide-kind target))
+      (set! (-> sphere collide-with) (collide-kind background))
+      (set! (-> sphere prim-core offense) (collide-offense touch))
+      (set-root-prim! cshape sphere))
+    (set! (-> self root) cshape))
+  (vector-copy! (-> self base) pos)
+  (vector-copy! (-> self root trans) pos)
+  (quaternion-copy! (-> self root quat) quat)
+  (initialize-skeleton self *jchar-sg* '())
+  (false! (-> self charge-loop?))
+  (true! (-> self spawn-part?))
+  (set-part! :id 959)
+  (case mode
+    (('running-blast) (go-virtual running-blast-loop))
+    (('jumping-blast) (go-virtual jumping-blast-loop))
+    (else (go-virtual idle))))
+
+(defevent target-commentary
+  (case message
+    (('part) (set! (-> self spawn-part?) (the symbol (-> block param 0))))
+    (('go)
+     (case (-> block param 0)
+       (('running-blast) (go-virtual running-blast-loop))
+       (('jumping-blast) (go-virtual jumping-blast-loop))))
+    (('end)
+     (case (-> self next-state name)
+       (('running-blast-loop) (go-virtual running-blast-end))
+       (('jumping-blast-loop) (go-virtual jumping-blast-end))))))
+
+(defstatehandler target-commentary :event target-commentary-event-handler :post transform-post)
+
+(defstate idle (target-commentary)
+  :virtual #t
+  :code
+    (behavior ()
+      (while (not (logtest? (-> self root status) (cshape-moving-flags onsurf tsurf)))
+        (apply-gravity self)
+        (fill-cache-integrate-and-collide! (-> self root) (-> self root transv) (collide-kind background)) ; (-> self root root-prim collide-with))
+        (falling-anim self)
+        (suspend))
+      (target-commentary-hit-ground-anim)
+      (ja-no-eval :group! eichar-stance-loop-ja :num! min)
+      (loop
+        (ja :num! (loop!))
+        (suspend))))
+
+(defstate running-blast-end (target-commentary)
+  :virtual #t
+  :code
+    (behavior ()
+      (ja-channel-push! 1 (seconds 0.075))
+      (ja-no-eval :group! eichar-yellow-running-blast-end-ja :num! (seek!) :frame-num 0.0)
+      (until (ja-done? 0)
+        (suspend)
+        (ja :num! (seek!)))
+      (ja-channel-push! 1 (seconds 0.075))
+      (ja-no-eval :group! eichar-stance-loop-ja :num! min)
+      (loop
+        (ja :num! (loop!))
+        (suspend))))
+
+(defstate jumping-blast-end (target-commentary)
+  :virtual #t
+  :code
+    (behavior ()
+      (ja-channel-push! 1 (seconds 0.075))
+      (ja-no-eval :group! eichar-yellow-running-blast-end-ja :num! (seek!) :frame-num 0.0)
+      (set-state-time)
+      (while (not (logtest? (-> self root status) (cshape-moving-flags onsurf tsurf)))
+        (apply-gravity self)
+        (fill-cache-integrate-and-collide! (-> self root) (-> self root transv) (collide-kind background)) ; (-> self root root-prim collide-with))
+        (falling-anim self)
+        (suspend))
+      (target-commentary-hit-ground-anim)
+      (ja :group! eichar-stance-loop-ja :num! min)
+      (loop
+        (ja :num! (loop!))
+        (suspend))))
+
+(defstate running-blast-loop (target-commentary)
+  :virtual #t
+  :code
+    (behavior ()
+      (set-state-time)
+      (ja :group! eichar-stance-loop-ja)
+      (suspend)
+      (let* ((running-start-loop-frame 8.0)
+             (charge-time (seconds 1.6)))
+        (ja-channel-push! 1 (seconds 0.075))
+        (ja-no-eval :group! eichar-yellow-running-blast-ja :num! (seek! running-start-loop-frame 0.25))
+        (loop
+          (let* ((hand (vector<-cspace! (new-stack-vector0) (joint-node eichar-lod0-jg sk_rhand)))
+                 (forward-dir (vector-z-quaternion! (new-stack-vector0) (-> self root quat)))
+                 (part-dir-ground (vector-float*! (new-stack-vector0) forward-dir (meters 1.5)))
+                 (part-pos-ground (vector+! (new-stack-vector0) hand part-dir-ground)))
+            (when (time-passed? charge-time)
+              (if (-> self spawn-part?) (target-super-yellow-part-reset))
+              (set-state-time))
+            (when (-> self spawn-part?)
+              (target-super-yellow-part-lerp)
+              (spawn (-> self part) part-pos-ground))
+            (suspend)
+            (when (and (not (-> self charge-loop?)) (< (ja-aframe-num 0) running-start-loop-frame))
+              (ja :num! (seek! running-start-loop-frame 0.5)))
+            (when (and (>= (ja-aframe-num 0) running-start-loop-frame))
+              (if (and (-> self charge-loop?) (<= (ja-aframe-num 0) 10.0)) (ja :num! (seek! running-start-loop-frame 0.15)))
+              (when (and (not (-> self charge-loop?)))
+                (ja :num! (seek! max 0.15)))
+              (when (ja-max? 0)
+                (true! (-> self charge-loop?))
+                (ja :num! (-!) :frame-num max)
+                (until (<= (ja-aframe-num 0) 8.0)
+                  (ja :num! (seek! 4.0 0.15))
+                  (when (-> self spawn-part?)
+                    (target-super-yellow-part-lerp)
+                    (spawn (-> self part) part-pos-ground))
+                  (suspend)))))))))
+
+(defstate jumping-blast-loop (target-commentary)
+  :virtual #t
+  :code
+    (behavior ()
+      (set-state-time)
+      (ja :group! eichar-stance-loop-ja)
+      (suspend)
+      (let* ((running-start-loop-frame 8.0)
+             (charge-time (seconds 1.6)))
+        (ja-channel-push! 1 (seconds 0.075))
+        (ja-no-eval :group! eichar-yellow-jumping-blast-ja :num! (seek! running-start-loop-frame 0.25))
+        (loop
+          (let* ((hand (vector<-cspace! (new-stack-vector0) (joint-node eichar-lod0-jg sk_rhand)))
+                 (part-dir-jump (static-vectorm 0 -0.5 0))
+                 (part-pos-jump (vector+! (new-stack-vector0) hand part-dir-jump)))
+            (when (time-passed? charge-time)
+              (ja-channel-push! 1 (seconds 0.075))
+              (ja-no-eval :group! eichar-yellow-jumping-blast-ja :num! (seek! running-start-loop-frame 0.25))
+              (if (-> self spawn-part?) (target-super-yellow-part-reset))
+              (reset-pos self)
+              (set-state-time))
+            (when (-> self spawn-part?)
+              (target-super-yellow-part-lerp)
+              (spawn (-> self part) part-pos-jump))
+            (suspend)
+            (fake-gravity self)
+            (ja :num! (seek! max 0.21)))))))
+
+(defstate jumping-blast-once (target-commentary)
+  :virtual #t
+  :code
+    (behavior ()
+      (set-state-time)
+      (ja :group! eichar-stance-loop-ja)
+      (suspend)
+      (let* ((running-start-loop-frame 8.0)
+             (charge-time (seconds 1.6)))
+        (ja-channel-push! 1 (seconds 0.075))
+        (ja-no-eval :group! eichar-yellow-jumping-blast-ja :num! (seek! running-start-loop-frame 0.25))
+        (loop
+          (let* ((hand (vector<-cspace! (new-stack-vector0) (joint-node eichar-lod0-jg sk_rhand)))
+                 (part-dir-jump (static-vectorm 0 -0.5 0))
+                 (part-pos-jump (vector+! (new-stack-vector0) hand part-dir-jump)))
+            (when (time-passed? charge-time)
+              (go-virtual jumping-blast-end))
+            (target-super-yellow-part-lerp)
+            (if (-> self spawn-part?) (spawn (-> self part) part-pos-jump))
+            (suspend)
+            (fake-gravity self)
+            (ja :num! (seek! max 0.21)))))))
+
+(deftype crate-commentary (process-drawable)
+  ((root    collide-shape-moving :override)
+   (smush   smush-control :inline)
+   (base    vector :inline)
+   (look    symbol)
+   (defense symbol))
+  (:methods
+   (params-init (_type_ entity-actor) object)
+   (art-init (_type_) crate-commentary)
+   (smush-update! (_type_) object))
+  (:state-methods
+   wait))
+
+(defpost crate-commentary
+  (rider-trans)
+  (smush-update! self)
+  (rider-post))
+
+(defmethod params-init ((this crate-commentary) (e entity-actor))
+  (stack-size-set! (-> this main-thread) 256)
+  (process-mask-set! (-> this mask) crate)
+  (let ((s4-0 (new 'process 'collide-shape-moving this (collide-list-enum usually-hit-by-player))))
+    (set! (-> s4-0 dynam) (copy *standard-dynamics* 'process))
+    (set! (-> s4-0 reaction) default-collision-reaction)
+    (set! (-> s4-0 no-reaction) (the-as (function collide-shape-moving collide-shape-intersect vector vector none) nothing))
+    (alloc-riders s4-0 1)
+    (let ((s3-0 (new 'process 'collide-shape-prim-mesh s4-0 (the-as uint 0) (the-as uint 0))))
+      (set! (-> s3-0 prim-core collide-as) (collide-kind crate))
+      (set! (-> s3-0 collide-with) (collide-kind target))
+      (set! (-> s3-0 prim-core action) (collide-action solid rider-plat-sticky))
+      (set! (-> s3-0 prim-core offense) (collide-offense touch))
+      (set! (-> s3-0 transform-index) 3)
+      (set-vector! (-> s3-0 local-sphere) 0.0 3072.0 0.0 6963.2)
+      (set-root-prim! s4-0 s3-0))
+    (set! (-> s4-0 nav-radius) (* 0.75 (-> s4-0 root-prim local-sphere w)))
+    (backup-collide-with-as s4-0)
+    (set! (-> this root) s4-0))
+  (when e
+    (process-drawable-from-entity! this e)
+    (logclear! (-> this mask) (process-mask actor-pause))))
+
+(defmethod art-init ((this crate-commentary))
+  (case (-> this look)
+    (('iron)
+     (set! (-> this root root-prim prim-core offense) (collide-offense normal-attack))
+     (initialize-skeleton this *crate-iron-sg* '()))
+    (('steel)
+     (set! (-> this root root-prim prim-core offense) (collide-offense indestructible))
+     (initialize-skeleton this *crate-steel-sg* '()))
+    (('darkeco)
+     (initialize-skeleton this *crate-darkeco-sg* '())
+     (set-vector! (-> this draw color-mult) 0.8 0.8 0.8 1.0)
+     (set-vector! (-> this draw color-emissive) 0.2 0.2 0.2 1.0))
+    (('barrel) (initialize-skeleton this *crate-barrel-sg* '()))
+    (('bucket) (initialize-skeleton this *crate-bucket-sg* '()))
+    (('none) (initialize-skeleton this *crate-wood-sg* '()) (logior! (-> this draw status) (draw-status hidden)))
+    (else (initialize-skeleton this *crate-wood-sg* '())))
+  (vector-copy! (-> this base) (-> this root trans))
+  (crate-commentary-post)
+  this)
+
+(defmethod smush-update! ((this crate-commentary))
+  (let ((amp (update! (-> this smush))))
+    (set! (-> this root scale x) (* (+ 1.0 (/ amp -2)) (res-lump-float (-> this entity) 'scale :default 1.0)))
+    (set! (-> this root scale y) (* (+ 1.0 amp) (res-lump-float (-> this entity) 'scale :default 1.0)))
+    (set! (-> this root scale z) (* (+ 1.0 (/ amp -2)) (res-lump-float (-> this entity) 'scale :default 1.0)))))
+
+(defbehavior crate-commentary-init-by-other crate-commentary ((e entity-actor) (pos vector) (look symbol))
+  (params-init self e)
+  (vector-copy! (-> self root trans) pos)
+  (set! (-> self look) look)
+  (set! (-> self defense) look)
+  (art-init self)
+  (go-virtual wait))
+
+(defstate wait (crate-commentary)
+  :virtual #t
+  :exit #f
+  :code
+    (behavior ()
+      (suspend)
+      (update-transforms! (-> self root))
+      (logior! (-> self mask) (process-mask sleep))
+      (loop
+        (suspend)))
+  :post ja-post)
+
+(deftype crate-buzzer-commentary (crate-commentary) ())
+
+(defbehavior crate-buzzer-commentary-init-by-other crate-buzzer-commentary ((e entity-actor) (pos vector) (look symbol))
+  (params-init self e)
+  (vector-copy! (-> self root trans) pos)
+  (set! (-> self look) look)
+  (set! (-> self defense) look)
+  (art-init self)
+  (go-virtual wait))
+
+(defmethod art-init ((self crate-buzzer-commentary))
+  (call-parent-method self)
+  (set-part! :id 74)
+  (set! (-> self sound)
+        (new 'process 'ambient-sound (static-sound-spec "buzzer" :pitch-mod -762 :fo-max 40) (-> self root trans)))
+  self)
+
+(defstate wait (crate-buzzer-commentary)
+  :virtual #t
+  :trans
+    (behavior ()
+      (when (and (and *target* (>= (meters 80) (vector-vector-distance (-> self root trans) (-> *target* control trans))))
+                 (time-elapsed? (-> self state-time) (seconds 1.5))
+                 (rand-vu-percent? 0.03))
+        (spawn (-> self part) (-> self root trans))
+        (activate! (-> self smush) 0.2 90 150 1.0 1.0)
+        (logclear! (-> self mask) (process-mask sleep-code)))
+      (if (nonzero? (-> self sound)) (update! (-> self sound))))
+  :code
+    (behavior ()
+      (set-state-time)
+      (suspend)
+      (update-transforms! (-> self root))
+      (loop
+        (set-time! (-> self state-time))
+        (ja-post)
+        (logior! (-> self mask) (process-mask sleep-code))
+        (suspend)
+        (let ((f30-0 57001.605))
+          (sound-play "crate-jump")
+          (while (or (!= (-> self smush amp) 0.0) (!= f30-0 0.0))
+            (+! f30-0 (* -245760.0 (seconds-per-frame)))
+            (+! (-> self root trans y) (* f30-0 (seconds-per-frame)))
+            (when (< (-> self root trans y) (-> self base y))
+              (set! (-> self root trans y) (-> self base y))
+              (set! f30-0 (/ f30-0 -2))
+              (if (< (fabs f30-0) 16384.0) (set! f30-0 0.0)))
+            (crate-commentary-post)
+            (ja-post)
+            (suspend)))
+        (set! (-> self root trans y) (-> self base y)))))
+
+(def-actor pds-sentinel
+  :bounds (0 0 0 25)
+  :art (idle-ja sleep-ja wake-ja moving-ja charging-ja damaged-ja death-ja)
+  :joints (align main circle out-circle in-circle sphere top cover gun gun-cover1 gun-cover2 gun-cover3 gun-tip bot thruster core))
+
+(defun pds-reset-part ()
+  (set! (-> (get-init-spec-by-id 4133 scale-x) initial-valuef) (meters 4.0))
+  (set! (-> (get-init-spec-by-id 4133 scale-x) random-rangef) (meters 3.5))
+  (set! (-> (get-init-spec-by-id 4133 r) initial-valuef) 64.0)
+  (set! (-> (get-init-spec-by-id 4133 g) initial-valuef) 256.0)
+  (set! (-> (get-init-spec-by-id 4133 b) initial-valuef) 64.0)
+  (set! (-> (get-init-spec-by-id 4133 num) initial-valuef) 0.6)
+  (set! (-> (get-init-spec-by-id 4170 num) initial-valuef) 0.2))
+
+(deftype pds-sentinel-commentary (process-drawable)
+  ((thruster-part   sparticle-launch-control)
+   (core-part       sparticle-launch-control)
+   (ring-part       sparticle-launch-control)
+   (green-gun-part  sparticle-launch-control)
+   (yellow-gun-part sparticle-launch-control)
+   (red-gun-part    sparticle-launch-control)
+   (spawn-parts?    symbol)
+   (part-color-mode symbol)
+   (pause-anim?     symbol))
+  (:state-methods
+   idle
+   damaged))
+
+(defmethod deactivate ((this pds-sentinel-commentary))
+  (if (nonzero? (-> this thruster-part)) (kill-and-free-particles (-> this thruster-part)))
+  (if (nonzero? (-> this core-part)) (kill-and-free-particles (-> this core-part)))
+  (if (nonzero? (-> this ring-part)) (kill-and-free-particles (-> this ring-part)))
+  (if (nonzero? (-> this green-gun-part)) (kill-and-free-particles (-> this green-gun-part)))
+  (if (nonzero? (-> this yellow-gun-part)) (kill-and-free-particles (-> this yellow-gun-part)))
+  (if (nonzero? (-> this red-gun-part)) (kill-and-free-particles (-> this red-gun-part)))
+  (pds-reset-part)
+  (call-parent-method this))
+
+(defmethod relocate ((this pds-sentinel-commentary) (offset int))
+  (relocate-fields core-part thruster-part ring-part green-gun-part yellow-gun-part red-gun-part)
+  (call-parent-method this offset))
+
+(defbehavior pds-sentinel-commentary-init-by-other pds-sentinel-commentary ((pos vector))
+  (pds-reset-part)
+  (set! (-> self root) (new 'process 'trsqv))
+  (vector-copy! (-> self root trans) pos)
+  (initialize-skeleton self *pds-sentinel-sg* '())
+  (quaternion-identity! (-> self root quat))
+  (quaternion-rotate-y! (-> self root quat) (-> self root quat) (degrees -90))
+  (set-part! :part thruster-part :id 1098)
+  (set-part! :part core-part :id 1089)
+  (set-part! :part ring-part :id 1099)
+  (set-part! :part green-gun-part :id 1086)
+  (set-part! :part yellow-gun-part :id 1087)
+  (set-part! :part red-gun-part :id 1088)
+  (false! (-> self spawn-parts?))
+  (false! (-> self pause-anim?))
+  (set! (-> self part-color-mode) 'green)
+  (go-virtual idle))
+
+(defevent pds-sentinel-commentary
+  (case message
+    (('color-mode) (set! (-> self part-color-mode) (the symbol (-> block param 0))))
+    (('part) (set! (-> self spawn-parts?) (the symbol (-> block param 0))))
+    (('toggle-anim) (not! (-> self pause-anim?)))))
+
+(defpost pds-sentinel-commentary
+  (when (-> self spawn-parts?)
+    (spawn (-> self thruster-part) (vector<-cspace! (new-stack-vector0) (joint-node pds-sentinel-lod0-jg thruster)))
+    (spawn (-> self ring-part) (vector<-cspace! (new-stack-vector0) (joint-node pds-sentinel-lod0-jg in-circle)))
+    (case (-> self part-color-mode)
+      (('green)
+       (spawn (-> self green-gun-part) (vector<-cspace! (new-stack-vector0) (joint-node pds-sentinel-lod0-jg gun-tip)))
+       (seek! (-> (get-init-spec-by-id 4133 r) initial-valuef) 64.0 (* 192.0 (seconds-per-frame)))
+       (seek! (-> (get-init-spec-by-id 4133 g) initial-valuef) 256.0 (* 192.0 (seconds-per-frame)))
+       (seek! (-> (get-init-spec-by-id 4133 b) initial-valuef) 64.0 (* 192.0 (seconds-per-frame))))
+      (('blue)
+       (spawn (-> self yellow-gun-part) (vector<-cspace! (new-stack-vector0) (joint-node pds-sentinel-lod0-jg gun-tip)))
+       (seek! (-> (get-init-spec-by-id 4133 r) initial-valuef) 0.0 (* 192.0 (seconds-per-frame)))
+       (seek! (-> (get-init-spec-by-id 4133 g) initial-valuef) 128.0 (* 192.0 (seconds-per-frame)))
+       (seek! (-> (get-init-spec-by-id 4133 b) initial-valuef) 256.0 (* 192.0 (seconds-per-frame))))
+      (('yellow)
+       (spawn (-> self red-gun-part) (vector<-cspace! (new-stack-vector0) (joint-node pds-sentinel-lod0-jg gun-tip)))
+       (seek! (-> (get-init-spec-by-id 4133 r) initial-valuef) 256.0 (* 192.0 (seconds-per-frame)))
+       (seek! (-> (get-init-spec-by-id 4133 g) initial-valuef) 256.0 (* 192.0 (seconds-per-frame)))
+       (seek! (-> (get-init-spec-by-id 4133 b) initial-valuef) 0.0 (* 192.0 (seconds-per-frame)))))
+    (spawn (-> self core-part) (vector<-cspace! (new-stack-vector0) (joint-node pds-sentinel-lod0-jg core))))
+  (ja-post))
+
+(defstatehandler pds-sentinel-commentary
+                 :event
+                 pds-sentinel-commentary-event-handler
+                 :post
+                 pds-sentinel-commentary-post)
+
+(defstate idle (pds-sentinel-commentary)
+  :virtual #t
+  :code
+    (behavior ()
+      (if (= (ja-group) pds-sentinel-damaged-ja) (ja-channel-push! 1 (seconds 0.075)))
+      (ja-no-eval :group! pds-sentinel-moving-ja :num! min)
+      (loop
+        (ja :num! (loop! (if (-> self pause-anim?) 0.0 1.0)))
+        (suspend))))
+
+(defstate damaged (pds-sentinel-commentary)
+  :virtual #t
+  :code
+    (behavior ()
+      (ja-channel-push! 1 (seconds 0.075))
+      (ja-no-eval :group! pds-sentinel-damaged-ja :num! min)
+      (until (ja-done? 0)
+        (ja :num! (seek!))
+        (suspend))
+      (go-virtual idle)))

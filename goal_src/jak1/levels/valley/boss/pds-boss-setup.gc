@@ -1,0 +1,550 @@
+;;-*-Lisp-*-
+(in-package goal)
+(def-actor pds-gem-green
+  :bounds (0 0 0 5.5)
+  :joints
+  (align main
+         shard
+         shard.001
+         shard.002
+         shard.003
+         shard.004
+         shard.005
+         shard.006
+         shard.007
+         shard.008
+         shard.009
+         shard.010
+         shard.011
+         shard.012
+         shard.013
+         shard.014
+         shard.015
+         shard.016
+         shard.017
+         shard.018
+         shard.019))
+
+(def-actor pds-gem-yellow
+  :bounds (0 0 0 5.5)
+  :joints
+  (align main
+         shard
+         shard.001
+         shard.002
+         shard.003
+         shard.004
+         shard.005
+         shard.006
+         shard.007
+         shard.008
+         shard.009
+         shard.010
+         shard.011
+         shard.012
+         shard.013
+         shard.014
+         shard.015
+         shard.016
+         shard.017
+         shard.018
+         shard.019))
+
+(def-actor pds-gem-blue
+  :bounds (0 0 0 5.5)
+  :joints
+  (align main
+         shard
+         shard.001
+         shard.002
+         shard.003
+         shard.004
+         shard.005
+         shard.006
+         shard.007
+         shard.008
+         shard.009
+         shard.010
+         shard.011
+         shard.012
+         shard.013
+         shard.014
+         shard.015
+         shard.016
+         shard.017
+         shard.018
+         shard.019))
+
+(static-exploder-params pds-gem
+                        :jgeo
+                        pds-gem-green
+                        (shard shard.001
+                               shard.002
+                               shard.003
+                               shard.004
+                               shard.005
+                               shard.006
+                               shard.007
+                               shard.008
+                               shard.009
+                               shard.010
+                               shard.011
+                               shard.012
+                               shard.013
+                               shard.014
+                               shard.015
+                               shard.016
+                               shard.017
+                               shard.018
+                               shard.019))
+
+(def-actor pds-trap-central
+  :bounds (0 0 0 20)
+  :art (idle-ja going-down-ja idle-down-ja going-up-ja)
+  :joints (align prejoint button part01 part02 part03 part04 part05 part06 part07))
+
+(def-actor pds-trap-inner
+  :bounds (0 0 0 20)
+  :art (idle-ja going-down-ja idle-down-ja going-up-ja)
+  :joints (align prejoint button part01 part02 part03 part04 part05 part06))
+
+(def-actor pds-trap-mid-left
+  :bounds (0 0 0 20)
+  :art (idle-ja going-down-ja idle-down-ja going-up-ja)
+  :joints (align prejoint button part01 part02 part03 part04 part05 part06))
+
+(def-actor pds-trap-mid-right
+  :bounds (0 0 0 20)
+  :art (idle-ja going-down-ja idle-down-ja going-up-ja)
+  :joints (align prejoint button part01 part02 part03 part04 part05 part06))
+
+(def-actor pds-trap-out-left
+  :bounds (0 0 0 20)
+  :art (idle-ja going-down-ja idle-down-ja going-up-ja)
+  :joints (align prejoint button part01 part02 part03 part04 part05 part06 part07 part08))
+
+(def-actor pds-trap-out-right
+  :bounds (0 0 0 20)
+  :art (idle-ja going-down-ja idle-down-ja going-up-ja)
+  :joints (align prejoint button part01 part02 part03 part04 part05 part06 part07 part08))
+
+(def-actor pds-plat-circle
+  :bounds (0 0 0 20))
+
+(def-actor pds-plat-square
+  :bounds (0 0 0 20))
+
+(def-actor pds-plat-rectangle
+  :bounds (0 0 0 20))
+
+(def-actor pds-swingpole
+  :bounds (0 0 0 7.5)
+  :joints (align prejoint swing part01))
+
+(def-actor lab-door
+  :bounds (0 0 0 50)
+  :art (idle-ja opening-ja open-idle-ja)
+  :joints (align prejoint door-left lock-left col-left door-right lock-right col-right))
+
+(def-actor pds-cam
+  :bounds (0 0 0 25)
+  :art (idle-ja wake-ja death-ja lab-door-ja)
+  :joints (align prejoint pdscam camera))
+
+(deftype tfl-arcing-shot (process-drawable)
+  ((y-vel float)
+   (grav  float)
+   (from  vector :inline)
+   (to    vector :inline)))
+
+(deftype pds-shot (tfl-arcing-shot)
+  ((flight-time     time-frame)
+   (stall-time      time-frame)
+   (rotation-offset int64)
+   (part-track      handle)
+   (type-to-make    type))
+  (:state-methods
+   idle
+   explode))
+
+(deftype pds-sentinel (process-drawable)
+  ((child                  (pointer process-drawable) :override)
+   (patrol-speed           int8)
+   (path-pos               float)
+   (resume-path-pos        vector :inline)
+   (gem-path-pos           float)
+   (gem-seek-time          time-frame)
+   (patrol-backwards?      symbol)
+   (last-spawn-time        time-frame)
+   (spawn-interval         time-frame)
+   (child-count            uint8)
+   (enemy-types-1          pair)
+   (enemy-types-2          pair)
+   (enemy-types-3          pair)
+   (current-gem            entity-actor)
+   (charging-attack-window time-frame)
+   (stage-retry-count      uint8)
+   (core-part              sparticle-launch-control)
+   (thruster-part          sparticle-launch-control)
+   (ring-part              sparticle-launch-control)
+   (sound-id               sound-id))
+  (:methods
+   (random-enemy-type (_type_ int) type)
+   (random-nav-mesh-pos (_type_ vector) vector)
+   (child-count (_type_) uint)
+   (clean-up-enemies (_type_) object))
+  (:state-methods
+   dormant
+   wake
+   move-to-path
+   patrol-wait
+   spawn-enemies
+   move-to-gem
+   charging
+   damaged
+   die
+   beaten))
+
+(defmethod init-from-entity! ((this pds-sentinel) (e entity-actor))
+  (stack-size-set! (-> this main-thread) 384)
+  (set! (-> this root) (new 'process 'trsqv))
+  (process-drawable-from-entity! this e)
+  (set! (-> this path) (new 'process 'path-control this 'path DEFAULT_RES_TIME))
+  (logior! (-> this path flags) DEFAULT_PATH_FLAGS)
+  (process-mask-clear! (-> this mask) actor-pause)
+  (set! (-> this patrol-speed) 15)
+  (set! (-> this path-pos) 0.0)
+  (set! (-> this last-spawn-time) 0)
+  (set! (-> this spawn-interval) (seconds 2))
+  (set! (-> this enemy-types-1) '(babak lurkerpuppy))
+  (set! (-> this enemy-types-2) '(swamp-rat pds-kermit))
+  (set! (-> this enemy-types-3) '(bonelurker ice-cube))
+  (set! (-> this current-gem) (the entity-actor (entity-by-name "valley-pds-gem-01")))
+  (set! (-> this charging-attack-window) (seconds 30))
+  (set! (-> this stage-retry-count) 0)
+  (set! (-> this gem-seek-time) (seconds 4.5))
+  (false! (-> this patrol-backwards?))
+  (initialize-skeleton this *pds-sentinel-sg* '())
+  (set-part! :part thruster-part :proc this :id 1098)
+  (set-part! :part core-part :proc this :id 1089)
+  (set-part! :part ring-part :proc this :id 1099)
+  (set! (-> this sound-id) (new-sound-id))
+  (ja-post)
+  (cond
+    ((logtest? (-> this entity extra perm status) (entity-perm-status complete)) (go-virtual beaten :proc this))
+    ((task-closed? (-> this entity extra perm task) (task-status need-introduction)) (go-virtual patrol-wait :proc this))
+    (else (go-virtual dormant :proc this)))
+  (none))
+
+(deftype pds-suck-params (structure)
+  ((max-active           int8)
+   (max-enemies          int8)
+   (attack-window        float)
+   (pickup-chance        float)
+   (trap-activation-time int16)
+   (trap-active-time     int16)))
+
+(define *pds-suck-params* (new 'static 'pds-suck-params))
+
+(deftype pds-master (process)
+  ((root           trsqv)
+   (link           actor-link-info)
+   (pickup         handle)
+   (sentinel       entity-actor)
+   (trap-central   entity-actor)
+   (door           entity-actor)
+   (actors         (array entity-actor) 12)
+   (gems           (array entity-actor) :overlay-at (-> actors 0))
+   (traps          (array entity-actor) :overlay-at (-> actors 1))
+   (traps-outer    (array entity-actor) :overlay-at (-> actors 2))
+   (traps-mid      (array entity-actor) :overlay-at (-> actors 3))
+   (traps-inner    (array entity-actor) :overlay-at (-> actors 4))
+   (poles          (array entity-actor) :overlay-at (-> actors 5))
+   (poles-2        (array entity-actor) :overlay-at (-> actors 6))
+   (poles-3        (array entity-actor) :overlay-at (-> actors 7))
+   (plats          (array entity-actor) :overlay-at (-> actors 8))
+   (plats-1        (array entity-actor) :overlay-at (-> actors 9))
+   (plats-2        (array entity-actor) :overlay-at (-> actors 10))
+   (plats-3        (array entity-actor) :overlay-at (-> actors 11))
+   (stage          uint8)
+   (max-enemies    uint8)
+   (max-active     uint8)
+   (enemies-killed uint8)
+   (death-count    uint8))
+  (:methods
+   (fill-actor-arr (_type_ (array entity-actor) entity-actor symbol) (array entity-actor))
+   (send-to-actor (_type_ entity-actor symbol) object)
+   (send-to-actor-group (_type_ (array entity-actor) symbol) object)
+   (send-to-all (_type_ symbol) object)
+   (target-in-arena? (_type_) symbol)
+   (you-suck-stage (_type_) int))
+  (:state-methods
+   idle
+   (send-with-delay (array entity-actor) symbol time-frame)
+   activate-traps))
+
+(define *pds-debug?* #f)
+
+(define *pds-master* (the pds-master #f))
+
+(defmacro pds-master-actors (&rest lumps)
+  `(begin
+    ,@(apply (lambda (x)
+             `(begin
+               (set! (-> this ,x) (new 'process 'boxed-array entity-actor (entity-actor-count e (quote ,x))))
+               (fill-actor-arr this (-> this ,x) e (quote ,x))))
+           lumps)))
+
+(defmethod init-from-entity! ((this pds-master) (e entity-actor))
+  (set! *pds-master* this)
+  (set! (-> this root) (new 'process 'trsqv))
+  (process-mask-clear! (-> this mask) actor-pause)
+  (vector-copy! (-> this root trans) (-> e extra trans))
+  (vector-identity! (-> this root scale))
+  (quaternion-identity! (-> this root quat))
+  (set! (-> this link) (new 'process 'actor-link-info this))
+  (set! (-> this sentinel) (the entity-actor (entity-by-name "valley-pds-sentinel-01")))
+  (set! (-> this trap-central) (the entity-actor (entity-by-name "valley-pds-trap-central-01")))
+  (set! (-> this door) (the entity-actor (entity-by-name "valley-pds-lab-door-01")))
+  (set! (-> this max-enemies) (+ 18 (-> *pds-suck-params* max-enemies)))
+  (set! (-> this max-active) (+ 8 (-> *pds-suck-params* max-active)))
+  (set! (-> this enemies-killed) 0)
+  (set! (-> this death-count) (min 6 (-> *game-info* fuel-cell-deaths)))
+  (set! (-> this pickup) INVALID_HANDLE)
+  (pds-reset-part)
+  (pds-master-actors gems traps traps-outer traps-mid traps-inner poles poles-2 poles-3 plats plats-1 plats-2 plats-3)
+  (go-virtual idle :proc this)
+  (none))
+
+;; enemy hacks
+
+(deftype pds-kermit (kermit) ())
+
+;; yikes...
+(defbehavior pds-kermit-test-point-in-nav-mesh? pds-kermit ((pt vector))
+  (let ((arena (sphere<-vector+r! (new 'stack 'sphere) (-> *pds-master* root trans) (meters 40)))
+        (pos (sphere<-vector+r! (new 'stack 'sphere) pt 0.0)))
+    (and (spheres-overlap? arena pos) ; (nav-control-method-16 (-> self nav) pt)
+         (< (-> pt y) (+ (-> self collide-info trans y) (-> self enemy-info notice-top))))))
+
+;; kermit is missing two methods needed for the init...
+(defmethod initialize-collision ((this pds-kermit))
+  (let ((cshape (new 'process 'collide-shape-moving this (collide-list-enum usually-hit-by-player))))
+    (set! (-> cshape dynam) (copy *standard-dynamics* 'process))
+    (set! (-> cshape reaction) default-collision-reaction)
+    (set! (-> cshape no-reaction) (the (function collide-shape-moving collide-shape-intersect vector vector none) nothing))
+    (let ((cgroup (new 'process 'collide-shape-prim-group cshape (the uint 1) 0)))
+      (set! (-> cgroup prim-core collide-as) (collide-kind enemy))
+      (set! (-> cgroup collide-with) (collide-kind target))
+      (set! (-> cgroup prim-core action) (collide-action solid))
+      (set-vector! (-> cgroup local-sphere) 0.0 0.0 0.0 16384.0)
+      (set-root-prim! cshape cgroup)
+      (let ((sphere (new 'process 'collide-shape-prim-sphere cshape (the uint 3))))
+        (set! (-> sphere prim-core collide-as) (collide-kind enemy))
+        (set! (-> sphere collide-with) (collide-kind target))
+        (set! (-> sphere prim-core action) (collide-action solid))
+        (set! (-> sphere prim-core offense) (collide-offense touch))
+        (set! (-> sphere transform-index) 3)
+        (set-vector! (-> sphere local-sphere) 0.0 0.0 0.0 3072.0)
+        (append-prim cgroup sphere)))
+    (set! (-> cshape nav-radius) (* 0.75 (-> cshape root-prim local-sphere w)))
+    (backup-collide-with-as cshape)
+    (set! (-> this collide-info) cshape))
+  (none))
+
+(defmethod nav-enemy-method-48 ((this pds-kermit))
+  (initialize-skeleton this *kermit-sg* '())
+  (set! (-> this draw origin-joint-index) (the uint 3))
+  (false! (-> this airborne))
+  (init-defaults! this *kermit-nav-enemy-info*)
+  (set-vector! (-> this neck twist-max) 3640.889 3640.889 0.0 1.0)
+  (set! (-> this neck up) (the uint 1))
+  (set! (-> this neck nose) (the uint 2))
+  (set! (-> this neck ear) (the uint 0))
+  (set! (-> this neck max-dist) 102400.0)
+  (set! (-> this neck ignore-angle) 16384.0)
+  (set! (-> this miss-count) 0)
+  (set! (-> this tongue-control) (new 'process 'joint-mod-tracker this 24 kermit-get-tongue-target-callback 1 2))
+  (set! (-> this tongue-control inv-forward-scale-factor) (1/ 49152.0))
+  (set! (-> this tongue-control forward-scale-control) 0.0)
+  (set! (-> this tongue-control forward-scale-max) 2.0)
+  (false! (-> this tongue-control enable))
+  (true! (-> this charged-up))
+  (set! (-> this part) (create-launch-control (-> *part-group-id-table* 299) this))
+  (set! (-> this charging-part) (create-launch-control (-> *part-group-id-table* 298) this))
+  (set! (-> this sound-id) (new-sound-id))
+  (none))
+
+(define-extern pds-kermit-patrol (state pds-kermit))
+
+(defstate pds-kermit-idle (pds-kermit)
+  :event nav-enemy-default-event-handler
+  :enter
+    (-> kermit-idle
+        enter)
+  :trans
+    (behavior ()
+      (if (and *target*
+               (>= (-> self enemy-info idle-distance)
+                   (vector-vector-distance (-> self collide-info trans) (-> *target* control trans))))
+        (go pds-kermit-patrol)))
+  :code
+    (-> kermit-idle
+        code)
+  :post ja-post)
+
+(defstate pds-kermit-chase (pds-kermit)
+  :event nav-enemy-default-event-handler
+  :enter
+    (-> kermit-chase
+        enter)
+  :trans
+    (behavior ()
+      (kermit-set-nav-mesh-target (-> self collide-info trans))
+      (kermit-set-rotate-dir-to-player)
+      (if (pds-kermit-test-point-in-nav-mesh? (target-pos 0)) (set-state-time))
+      (kermit-tongue-pos self)
+      (vector-copy! (-> self tongue-control target-pos) (kermit-player-target-pos))
+      (when (not (-> self airborne))
+        (if (or (not *target*)
+                (< (-> self enemy-info idle-distance) (vector-vector-distance (-> self collide-info trans) (-> *target* control trans))))
+          (go pds-kermit-patrol))
+        (let ((gp-1 (kermit-check-to-hit-player? 3640.889))
+              (clear? (kermit-check-tongue-is-clear?)))
+          (when gp-1
+            (if clear? (go kermit-attack) (go kermit-chase-new-position))))
+        (if (time-passed? (seconds 3)) (go kermit-give-up))))
+  :code
+    (-> kermit-chase
+        code)
+  :post kermit-post)
+
+(defstate pds-kermit-notice (pds-kermit)
+  :event nav-enemy-default-event-handler
+  :enter
+    (-> kermit-notice
+        enter)
+  :trans
+    (-> kermit-notice
+        trans)
+  :code
+    (behavior ()
+      (ja-channel-push! 1 (seconds 0.1))
+      (set-mode! (-> self neck) (joint-mod-handler-mode look-at))
+      (kermit-hop 0.0)
+      (go pds-kermit-chase))
+  :post kermit-post)
+
+(defstate pds-kermit-give-up (pds-kermit)
+  :event nav-enemy-default-event-handler
+  :enter
+    (-> kermit-give-up
+        enter)
+  :code
+    (behavior ()
+      (go pds-kermit-patrol))
+  :post kermit-simple-post)
+
+(defstate pds-kermit-patrol (pds-kermit)
+  :event nav-enemy-default-event-handler
+  :enter
+    (-> kermit-patrol
+        enter)
+  :trans
+    (behavior ()
+      (if (and (or (not *target*)
+                   (< (-> self enemy-info idle-distance) (vector-vector-distance (-> self collide-info trans) (-> *target* control trans))))
+               (time-elapsed? (-> self state-time) (seconds 1)))
+        (go pds-kermit-idle))
+      (kermit-set-rotate-dir-to-nav-target)
+      (if (and (not (-> self airborne)) (pds-kermit-test-point-in-nav-mesh? (target-pos 0))) (go pds-kermit-notice))
+      (if (logtest? (nav-control-flags navcf19) (-> self nav flags)) (kermit-get-new-patrol-point)))
+  :code
+    (-> kermit-patrol
+        code)
+  :post kermit-post)
+
+(defstate pds-kermit-chase-new-position (pds-kermit)
+  :event nav-enemy-default-event-handler
+  :enter
+    (behavior ()
+      (set-state-time)
+      (set! (-> self miss-count) 0)
+      (let* ((dir (kermit-get-head-dir-xz self (new-stack-vector0)))
+             (turn-dir (vector-rotate-around-y! (new-stack-vector0) dir (degrees 90)))
+             (targ (new-stack-vector0))
+             (in-mesh? #f))
+        (let ((i 0))
+          (while (and (not in-mesh?) (< i 4))
+            (vector+*! targ (-> self collide-info trans) turn-dir (rand-vu-float-range (meters -10) (meters 10)))
+            (kermit-set-nav-mesh-target targ)
+            (set! in-mesh? (pds-kermit-test-point-in-nav-mesh? (-> self nav target-pos)))
+            (1+! i)))
+        (if (not in-mesh?) (kermit-set-nav-mesh-target (-> self collide-info trans))))
+      (nav-control-method-11 (-> self nav) (-> self nav target-pos)))
+  :trans
+    (behavior ()
+      (when (not (-> self airborne))
+        (if (or (time-passed? (seconds 3))
+                (and (logtest? (nav-control-flags navcf19) (-> self nav flags)) (time-passed? (seconds 0.5))))
+          (go pds-kermit-chase))))
+  :code
+    (-> kermit-chase-new-position
+        code)
+  :post kermit-post)
+
+(defstate pds-kermit-retract-tongue (pds-kermit)
+  :event nav-enemy-default-event-handler
+  :enter
+    (-> kermit-retract-tongue
+        enter)
+  :exit
+    (-> kermit-retract-tongue
+        exit)
+  :trans
+    (behavior ()
+      (kermit-set-nav-mesh-target (-> self collide-info trans))
+      (kermit-set-rotate-dir-to-player)
+      (when (not (-> self airborne))
+        (when (time-elapsed? (-> self state-time) (seconds 2.5))
+          (kill-and-free-particles (-> self charging-part))
+          (true! (-> self charged-up))
+          (go pds-kermit-chase))))
+  :code
+    (-> kermit-retract-tongue
+        code)
+  :post kermit-post)
+
+;; ice-cube needs a custom state to appear properly
+(defstate pds-ice-cube-appear (ice-cube)
+  :event ice-cube-default-event-handler
+  :enter
+    (behavior ()
+      (nav-enemy-method-57 self)
+      (set! (-> self ground-y) (-> self collide-info trans y))
+      (spawn (-> self part) (-> self collide-info trans))
+      (vector-copy! (-> self collide-info transv) *null-vector*)
+      (set! (-> self collide-info transv y) (rand-vu-float-range 102400.0 114688.0)))
+  :trans
+    (behavior ()
+      (when (and (< (-> self collide-info trans y) (-> self ground-y)) (< (-> self collide-info transv y) 0.0))
+        (set! (-> self collide-info trans y) (-> self ground-y))
+        (vector-copy! (-> self collide-info transv) *null-vector*)
+        (go ice-cube-appear-land))
+      (let* ((joints (-> self node-list))
+             (len (-> joints length)))
+        (spawn (-> self part2) (vector<-cspace! (new-stack-vector0) (-> joints data (nav-enemy-rnd-int-count len))))))
+  :code
+    (behavior ()
+      (ja-channel-push! 1 (seconds 0.2))
+      (ja-no-eval :group! ice-cube-appear-jump-up-ja :num! (seek!) :frame-num 0.0)
+      (until (ja-done? 0)
+        (suspend)
+        (ja :num! (seek!)))
+      (loop
+        (suspend)))
+  :post nav-enemy-falling-post)
+
+(set! (-> ice-cube-shatter enter)
+      (lambda :behavior ice-cube ()
+        (send-event (ppointer->process (-> self parent)) 'child-die)))

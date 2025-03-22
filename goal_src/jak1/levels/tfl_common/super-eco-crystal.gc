@@ -1,0 +1,506 @@
+;;-*-Lisp-*-
+(in-package goal)
+(def-actor tfl-crystal-green
+  :bounds (0 0 0 2.5)
+  :texture-level 2
+  :joints
+  (align prejoint
+         main
+         explode
+         explode.001
+         explode.002
+         explode.003
+         explode.004
+         explode.005
+         explode.006
+         explode.007
+         explode.008
+         explode.009
+         explode.010
+         explode.011
+         explode.012
+         explode.013
+         explode.014
+         explode.015
+         explode.016
+         explode.017
+         explode.018
+         explode.019
+         explode.020
+         explode.021
+         explode.022))
+
+(def-actor tfl-crystal-red
+  :bounds (0 0 0 2.5)
+  :texture-level 2
+  :joints
+  (align prejoint
+         main
+         explode
+         explode.001
+         explode.002
+         explode.003
+         explode.004
+         explode.005
+         explode.006
+         explode.007
+         explode.008
+         explode.009
+         explode.010
+         explode.011
+         explode.012
+         explode.013
+         small
+         explode.014
+         explode.015
+         explode.016
+         explode.017
+         small.001
+         explode.018
+         explode.019
+         small.002
+         small.003))
+
+(def-actor tfl-crystal-blue
+  :bounds (0 0 0 2.5)
+  :texture-level 2
+  :joints
+  (align prejoint
+         main
+         explode
+         explode.001
+         explode.002
+         explode.003
+         explode.004
+         explode.005
+         explode.006
+         explode.007
+         explode.008
+         explode.009
+         explode.010
+         explode.011
+         explode.012
+         explode.013
+         explode.014
+         explode.015
+         explode.016
+         explode.017
+         explode.018
+         explode.019
+         explode.020
+         explode.021
+         explode.022
+         explode.023
+         small
+         explode.024
+         explode.025
+         small.001
+         small.002
+         small.003
+         small.004))
+
+(def-actor tfl-crystal-yellow
+  :bounds (0 0 0 2.5)
+  :texture-level 2
+  :joints
+  (align prejoint
+         main
+         explode
+         explode.001
+         explode.002
+         explode.003
+         explode.004
+         explode.005
+         explode.006
+         explode.007
+         explode.008
+         explode.009
+         explode.010
+         explode.011
+         explode.012
+         explode.013
+         explode.014
+         explode.015
+         small
+         explode.016
+         explode.017
+         explode.018
+         small.001
+         explode.019
+         explode.020
+         small.002
+         small.003))
+
+(static-exploder-params tfl-crystal-green
+                        (explode explode.001
+                                 explode.002
+                                 explode.003
+                                 explode.004
+                                 explode.005
+                                 explode.006
+                                 explode.007
+                                 explode.008
+                                 explode.009
+                                 explode.010
+                                 explode.011
+                                 explode.012
+                                 explode.013
+                                 explode.014
+                                 explode.015
+                                 explode.016
+                                 explode.017
+                                 explode.018
+                                 explode.019
+                                 explode.020
+                                 explode.021
+                                 explode.022))
+
+(static-exploder-params tfl-crystal-red
+                        (explode explode.001
+                                 explode.002
+                                 explode.003
+                                 explode.004
+                                 explode.005
+                                 explode.006
+                                 explode.007
+                                 explode.008
+                                 explode.009
+                                 explode.010
+                                 explode.011
+                                 explode.012
+                                 explode.013
+                                 explode.014
+                                 explode.015
+                                 explode.016
+                                 explode.017
+                                 explode.018
+                                 explode.019
+                                 small.002
+                                 small.003))
+
+(static-exploder-params tfl-crystal-blue
+                        (explode explode.001
+                                 explode.002
+                                 explode.003
+                                 explode.004
+                                 explode.005
+                                 explode.006
+                                 explode.007
+                                 explode.008
+                                 explode.009
+                                 explode.010
+                                 explode.011
+                                 explode.012
+                                 explode.013
+                                 explode.014
+                                 explode.015
+                                 explode.016
+                                 explode.017
+                                 explode.018
+                                 explode.019
+                                 explode.020
+                                 explode.021
+                                 explode.022
+                                 explode.023
+                                 explode.024
+                                 explode.025
+                                 small.001
+                                 small.002
+                                 small.003
+                                 small.004))
+
+(static-exploder-params tfl-crystal-yellow
+                        (explode explode.001
+                                 explode.002
+                                 explode.003
+                                 explode.004
+                                 explode.005
+                                 explode.006
+                                 explode.007
+                                 explode.008
+                                 explode.009
+                                 explode.010
+                                 explode.011
+                                 explode.012
+                                 explode.013
+                                 explode.014
+                                 explode.015
+                                 explode.016
+                                 explode.017
+                                 explode.018
+                                 explode.019
+                                 explode.020
+                                 small.002
+                                 small.003))
+
+(deftype super-eco-crystal (process-drawable)
+  ((cshape        collide-shape :overlay-at root)
+   (eco-type      symbol)
+   (sound-name    sound-spec)
+   (ambient-part  uint16)
+   (explode-part  uint16)
+   (respawn-timer time-frame)
+   (color         rgbaf :inline))
+  (:methods
+   (get-skel (_type_) skeleton-group)
+   (should-draw? (_type_) symbol)
+   (init-collision! (_type_) object)
+   (give-powerup (_type_) object)
+   (respawn-blocked? (_type_) object)
+   (do-lighting! (_type_) object))
+  (:state-methods
+   idle
+   break
+   respawn))
+
+; (defmethod deactivate ((this super-eco-crystal))
+;   (call-parent-method this))
+
+; (defmethod relocate ((this super-eco-crystal) (off int))
+;   (call-parent-method this off))
+
+(defmethod get-skel ((this super-eco-crystal))
+  (case (-> this eco-type)
+    (('blue) *tfl-crystal-blue-sg*)
+    (('red) *tfl-crystal-red-sg*)
+    (('yellow) *tfl-crystal-yellow-sg*)
+    (('green) *tfl-crystal-green-sg*)
+    (else *tfl-crystal-blue-sg*)))
+
+(defmethod init-collision! ((this super-eco-crystal))
+  (let ((cshape (new 'process 'collide-shape this (collide-list-enum usually-hit-by-player))))
+    (let ((prim-mesh (new 'process 'collide-shape-prim-mesh cshape (the uint 0) (the uint 0))))
+      (set! (-> prim-mesh prim-core collide-as) (collide-kind wall-object))
+      (set! (-> prim-mesh collide-with) (collide-kind target))
+      (set! (-> prim-mesh prim-core action) (collide-action solid))
+      (set! (-> prim-mesh prim-core offense) (collide-offense touch))
+      (set! (-> prim-mesh transform-index) (joint-node-index tfl-crystal-blue-lod0-jg main))
+      (set-vector! (-> prim-mesh local-sphere) 0.0 (meters 1.7) 0.0 (meters 2))
+      (set-root-prim! cshape prim-mesh))
+    (set! (-> cshape nav-radius) (* 0.75 (-> cshape root-prim local-sphere w)))
+    (backup-collide-with-as cshape)
+    (set! (-> this cshape) cshape)))
+
+(defbehavior super-eco-crystal-init-by-other super-eco-crystal ((pos vector) (eco-type symbol) (respawn-time int))
+  (init-collision! self)
+  (logior! (-> self mask) (process-mask pause attackable))
+  (logclear! (-> self mask) (process-mask actor-pause))
+  (vector-copy! (-> self cshape trans) pos)
+  (quaternion-identity! (-> self cshape quat))
+  (vector-identity! (-> self cshape scale))
+  (set! (-> self eco-type) (aif eco-type it 'blue))
+  (initialize-skeleton self (get-skel self) '())
+  (set! (-> self respawn-timer) (aif respawn-time (seconds it) (seconds 20)))
+  (case (-> self eco-type)
+    (('blue)
+     (set! (-> self sound-name) (static-sound-spec "blue-eco-idle" :fo-max 15))
+     (set! (-> self ambient-part) 952)
+     (set! (-> self explode-part) 953))
+    (('yellow)
+     (set! (-> self sound-name) (static-sound-spec "yel-eco-idle" :fo-max 15))
+     (set! (-> self ambient-part) 954)
+     (set! (-> self explode-part) 955))
+    (('red)
+     (set! (-> self sound-name) (static-sound-spec "red-eco-idle" :fo-max 15))
+     (set! (-> self ambient-part) 956)
+     (set! (-> self explode-part) 957))
+    (('green)
+     (set! (-> self sound-name) (static-sound-spec "green-eco-idle" :fo-max 15))
+     (set! (-> self ambient-part) 950)
+     (set! (-> self explode-part) 951)))
+  (if (-> self sound-name) (set! (-> self sound) (new 'process 'ambient-sound (-> self sound-name) (-> self cshape trans))))
+  (if (nonzero? (-> self ambient-part))
+    (set! (-> self part) (create-launch-control (-> *part-group-id-table* (-> self ambient-part)) self)))
+  (if (-> self color) (vector-copy! (-> self draw color-mult) (-> self color)))
+  (transform-post)
+  (go-virtual idle))
+
+(defmethod init-from-entity! ((this super-eco-crystal) (entity entity-actor))
+  (init-collision! this)
+  (process-drawable-from-entity! this entity)
+  (logior! (-> this mask) (process-mask pause attackable))
+  (logclear! (-> this mask) (process-mask actor-pause))
+  ;; default to super blue eco and 20 second respawn
+  (set! (-> this eco-type) (aif (res-lump-struct (-> this entity) 'eco-type symbol) it 'blue))
+  (initialize-skeleton this (get-skel this) '())
+  (set! (-> this respawn-timer) (aif (res-lump-value (-> this entity) 'respawn-timer int32) (seconds it) (seconds 20)))
+  (case (-> this eco-type)
+    (('blue)
+     (set! (-> this sound-name) (static-sound-spec "blue-eco-idle" :fo-max 15))
+     (set! (-> this ambient-part) 952)
+     (set! (-> this explode-part) 953))
+    (('yellow)
+     (set! (-> this sound-name) (static-sound-spec "yel-eco-idle" :fo-max 15))
+     (set! (-> this ambient-part) 954)
+     (set! (-> this explode-part) 955))
+    (('red)
+     (set! (-> this sound-name) (static-sound-spec "red-eco-idle" :fo-max 15))
+     (set! (-> this ambient-part) 956)
+     (set! (-> this explode-part) 957))
+    (('green)
+     (set! (-> this sound-name) (static-sound-spec "green-eco-idle" :fo-max 15))
+     (set! (-> this ambient-part) 950)
+     (set! (-> this explode-part) 951)))
+  (if (-> this sound-name) (set! (-> this sound) (new 'process 'ambient-sound (-> this sound-name) (-> this cshape trans))))
+  (if (nonzero? (-> this ambient-part))
+    (set! (-> this part) (create-launch-control (-> *part-group-id-table* (-> this ambient-part)) this)))
+  (if (-> this color) (vector-copy! (-> this draw color-mult) (-> this color)))
+  (transform-post)
+  (go-virtual idle :proc this)
+  (none))
+
+(defmethod give-powerup ((this super-eco-crystal))
+  (let ((pickup (case (-> this eco-type)
+                  (('blue) (pickup-type super-eco-blue))
+                  (('red) (pickup-type super-eco-red))
+                  (('yellow) (pickup-type super-eco-yellow))
+                  (('green) (pickup-type super-eco-green)))))
+    (send-event *target* 'get-pickup pickup (-> *FACT-bank* eco-full-inc))))
+
+(defmethod respawn-blocked? ((this super-eco-crystal))
+  (restore-collide-with-as (-> this cshape))
+  (let ((overlap (new 'stack 'overlaps-others-params)))
+    (set! (-> overlap options) (the uint 0))
+    (set! (-> overlap tlist) *touching-list*)
+    (when (find-overlapping-shapes (-> this cshape) overlap)
+      (clear-collide-with-as (-> this cshape))
+      (return #t)))
+  #f)
+
+(defmethod do-lighting! ((this super-eco-crystal))
+  (let* ((eco-type (-> this eco-type))
+         (flicker-speed (case eco-type
+                          (('green) 0.6)
+                          (('red) 1.0)
+                          (('yellow) 0.5)
+                          (('blue) 3.0)))
+         (flicker-amp 0.5)
+         (min-blue (case eco-type
+                     (('green 'yellow 'blue) 0.1)
+                     (('red) -0.2)))
+         (max-blue (case eco-type
+                     (('green) 0.4)
+                     (('red) 0.1)
+                     (('yellow) 0.5)
+                     (('blue) 1.0)))
+         (min-red (case eco-type
+                    (('green 'yellow 'blue) 0.1)
+                    (('red) -0.2)))
+         (max-red (case eco-type
+                    (('green) 0.4)
+                    (('red) 0.3)
+                    (('yellow) 1.1)
+                    (('blue) 0.3)))
+         (min-green (case eco-type
+                      (('green 'yellow 'blue) 0.1)
+                      (('red) -0.2)))
+         (max-green (case eco-type
+                      (('green) 1.0)
+                      (('red) 0.1)
+                      (('yellow) 1.1)
+                      (('blue) 0.5)))
+         (r (case eco-type
+              (('green 'blue) 0.0)
+              (('red 'yellow)
+               (+ 0.2
+                  (lerp-clamp min-red
+                              max-red
+                              (+ -0.1 (- 1.0 (* flicker-amp (/ (+ 1.0 (sin (* flicker-speed (degrees (-> *display* game-frame-counter))))) 2.0)))))))))
+         (g (lerp-clamp min-green
+                        max-green
+                        (+ -0.1 (- 1.0 (* flicker-amp (/ (+ 1.0 (sin (* flicker-speed (degrees (-> *display* game-frame-counter))))) 2.0))))))
+         (b (case eco-type
+              (('blue 'green)
+               (+ 0.2
+                  (lerp-clamp min-blue
+                              max-blue
+                              (+ -0.1 (- 1.0 (* flicker-amp (/ (+ 1.0 (sin (* flicker-speed (degrees (-> *display* game-frame-counter))))) 2.0)))))))
+              (('red 'yellow) 0.0)))
+         (clr (new-stack-vector0)))
+    (set-vector! clr r g b 1.0)
+    (vector-copy! (-> this draw color-emissive) clr)
+    ;; (format *stdcon* "~A crystal: flicker-speed ~f flicker-amp ~f r ~f g ~f b ~f~%" (-> this eco-type) flicker-speed flicker-amp (-> clr x) (-> clr y) (-> clr z))
+    ))
+
+(defmethod should-draw? ((this super-eco-crystal))
+  (= (-> this next-state name) 'idle))
+
+(defpost super-eco-crystal
+  (if (should-draw? self) (show! self) (hide! self))
+  (ja-post))
+
+(defstatehandler super-eco-crystal :post super-eco-crystal-post)
+
+(defstate idle (super-eco-crystal)
+  :virtual #t
+  :event
+    (event
+      (case message
+        (('attack)
+         (when (symbol-member? (-> proc type symbol) '(target projectile-yellow tfl-yellow-shot))
+           (give-powerup self)
+           (go-virtual break)))))
+  :trans
+    (behavior ()
+      (do-lighting! self)
+      (spawn (-> self part) (-> self cshape trans))
+      (update! (-> self sound)))
+  :code
+    (behavior ()
+      (ja-channel-push! 1 0)
+      (ja :group! tfl-crystal-blue-idle-ja :num! (identity 0.0))
+      (loop
+        (ja :num! (loop!))
+        (suspend))))
+
+(defstate break (super-eco-crystal)
+  :virtual #t
+  :enter
+    (behavior ()
+      (stop! (-> self sound)))
+  :code
+    (behavior ()
+      (set-state-time)
+      (clear-collide-with-as (-> self cshape))
+      (let ((explode (the joint-exploder
+                          (ppointer->process (process-spawn joint-exploder
+                                                            (get-skel self)
+                                                            2
+                                                            (new 'stack 'joint-exploder-tuning 0)
+                                                            (case (-> self eco-type)
+                                                              (('blue) *tfl-crystal-blue-exploder-params*)
+                                                              (('red) *tfl-crystal-red-exploder-params*)
+                                                              (('yellow) *tfl-crystal-yellow-exploder-params*)
+                                                              (('green) *tfl-crystal-green-exploder-params*))
+                                                            :to
+                                                            self)))))
+        (vector-copy! (-> explode draw color-mult) (-> self draw color-mult))
+        (vector-copy! (-> explode draw color-emissive) (-> self draw color-emissive)))
+      (activate! *camera-smush-control* 819.2 37 210 1.0 0.995)
+      (sound-play "crystal-explode")
+      (suspend)
+      (ja-channel-set! 0)
+      (ja-post)
+      (process-spawn part-tracker
+                     :init
+                     part-tracker-init
+                     (-> *part-group-id-table* (-> self explode-part))
+                     -1
+                     #f
+                     #f
+                     #f
+                     (-> self cshape trans)
+                     :to
+                     *entity-pool*)
+      (until (not (-> self child))
+        (suspend))
+      (go-virtual respawn)))
+
+(defstate respawn (super-eco-crystal)
+  :virtual #t
+  :code
+    (behavior ()
+      (set-state-time)
+      (until (and (time-passed? (-> self respawn-timer)) (not (respawn-blocked? self)))
+        (suspend))
+      (go-virtual idle)))

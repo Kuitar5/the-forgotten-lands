@@ -1,0 +1,703 @@
+;;-*-Lisp-*-
+(in-package goal)
+(def-actor tfl-title-logo
+  :bounds (0 0 0 25)
+  :art (idle-ja burst-ja fly-ja)
+  :joints
+  (align prejoint
+         main
+         logo-main
+         jd
+         text
+         volumeBase
+         volume
+         wall-main
+         wall1
+         wall2
+         wall3
+         wall4
+         wall5
+         wall6
+         wall7
+         wall8
+         wall9
+         wall10
+         wall11
+         wall12
+         wall13
+         wall14
+         wall15
+         wall16
+         wall17
+         wall18
+         wall19
+         wall20
+         wall21
+         wall22
+         wall23
+         wall24
+         wall25
+         wall26
+         wall27
+         wall28
+         wall29
+         wall30
+         wall31
+         wall32
+         wall33
+         wall34
+         wall35
+         wall36
+         wall37
+         wall38
+         wall39))
+
+(def-actor tfl-title-cam
+  :bounds (0 0 0 25)
+  :art (idle-ja fly-ja)
+  :joints (align prejoint title-cam camera))
+
+(deftype tfl-title-logo (process-drawable)
+  ((parent (pointer process-drawable) :override)
+   (start? symbol)
+   (moved? symbol))
+  (:state-methods
+   idle
+   burst
+   fly))
+
+(defbehavior tfl-title-logo-init-by-other tfl-title-logo ((pos vector))
+  (set! (-> self root) (new 'process 'trsqv))
+  (vector-copy! (-> self root trans) pos)
+  (initialize-skeleton self *tfl-title-logo-sg* '())
+  (set! (-> self draw global-effect) (draw-effect title))
+  (process-mask-clear! (-> self mask) pause progress menu)
+  (false! (-> self start?))
+  (false! (-> self moved?))
+  (go-virtual idle))
+
+(defpost tfl-title-logo
+  (let* ((c (-> self parent 0 node-list data (joint-node-index tfl-title-cam-lod0-jg camera)))
+         (t (-> c bone transform))
+         (cc (-> self node-list data (joint-node-index tfl-title-logo-lod0-jg main)))
+         (trans (-> cc bone transform vector 3)))
+    (cspace<-cspace! cc c)
+    (matrix->quaternion (-> self root quat) t)
+    (vector-copy! (-> self root trans) trans))
+  (if *progress-process*
+    (logior! (-> self draw status) (draw-status skip-bones))
+    (logclear! (-> self draw status) (draw-status skip-bones)))
+  (ja-post))
+
+(defstatehandler tfl-title-logo :post tfl-title-logo-post)
+
+(defstate idle (tfl-title-logo)
+  :virtual #t
+  :enter
+    (behavior ()
+      (hide! self))
+  :code
+    (behavior ()
+      (ja :group! tfl-title-logo-idle-ja :num! min)
+      (go-virtual burst)))
+
+(defstate burst (tfl-title-logo)
+  :virtual #t
+  :enter
+    (behavior ()
+      (show! self))
+  :code
+    (behavior ()
+      (ja :group! tfl-title-logo-burst-ja :num! min)
+      (until (ja-done? 0)
+        (if (not (paused?)) (ja :num! (seek!)))
+        (when (and (not (-> self moved?)) (>= (ja-aframe-num 0) 100.0))
+          (true! (-> self moved?))
+          (send-event (-> self parent 0) 'move))
+        (suspend))
+      (go-virtual fly)))
+
+(defstate fly (tfl-title-logo)
+  :virtual #t
+  :code
+    (behavior ()
+      (ja :group! tfl-title-logo-fly-ja :num! min)
+      (loop
+        (ja :num! (loop!))
+        (suspend))))
+
+(deftype tfl-logo (process-drawable)
+  ((camera      handle)
+   (camera-anim handle)
+   (tfl-anim    handle)
+   (volumes     handle)
+   (black       handle)
+   (target      handle)
+   (sidekick    handle)
+   (main-joint  joint-mod)
+   (anim        spool-anim)
+   (next-anim   spool-anim)
+   (done?       symbol))
+  (:state-methods
+   idle
+   startup
+   tfl-idle
+   tfl-startup
+   hidden
+   ndi))
+
+(defmethod relocate ((this tfl-logo) (offset int))
+  (if (nonzero? (-> this main-joint)) (&+! (-> this main-joint) offset))
+  (call-parent-method this offset))
+
+(deftype tfl-logo-slave (process-drawable)
+  ((parent     (pointer tfl-logo) :override)
+   (main-joint joint-mod))
+  (:state-methods
+   idle))
+
+(defmethod relocate ((this tfl-logo-slave) (offset int))
+  (if (nonzero? (-> this main-joint)) (&+! (-> this main-joint) offset))
+  (call-parent-method this offset))
+
+(deftype tfl-title (process-drawable)
+  ((parent        (pointer tfl-logo) :override)
+   (logo          handle)
+   (should-start? symbol)
+   (moved?        symbol)
+   (cam           handle))
+  (:state-methods
+   idle))
+
+(defevent tfl-title
+  (case message
+    (('start) (true! (-> self should-start?)))
+    (('move) (vector-copy! (-> self root trans) (static-vectorm -230.29 244.05 354.34)) (true! (-> self moved?)))))
+
+(defstatehandler tfl-title :event tfl-title-event-handler)
+
+(defbehavior tfl-title-init-by-other tfl-title ()
+  (false! (-> self should-start?))
+  (set! (-> self root) (new 'process 'trsqv))
+  (vector-copy! (-> self root trans) (-> (entity-by-name "camera-start-55") extra trans))
+  (initialize-skeleton self *tfl-title-cam-sg* '())
+  (process-mask-clear! (-> self mask) progress pause)
+  (go-virtual idle))
+
+(defstate idle (tfl-title)
+  :virtual #t
+  :enter
+    (behavior ()
+      ;; othercam uses the bone scale to calculate fov
+      (set-vector! (-> self node-list data (joint-node-index tfl-title-cam-lod0-jg camera) bone scale) 1.0 1.0 1.0 1.0))
+  :code
+    (behavior ()
+      (set! (-> self logo) (ppointer->handle (process-spawn tfl-title-logo (-> self root trans) :to self)))
+      (suspend)
+      (ja-channel-set! 1)
+      (ja :group! tfl-title-cam-idle-ja :num! min)
+      (set! (-> self cam)
+            (ppointer->handle (process-spawn othercam self (joint-node-index tfl-title-cam-lod0-jg camera) #t #f :to self)))
+      (send-event (handle->process (-> self cam)) 'mask 0)
+      (until (-> self should-start?)
+        (suspend))
+      (until (-> self moved?)
+        (ja :num! (loop!))
+        (suspend))
+      (ja :group! tfl-title-cam-fly-ja :num! min)
+      (loop
+        (if (not (paused?)) (ja :num! (loop!)))
+        (suspend)))
+  :post ja-post)
+
+(defskelgroup *logo-sg*
+  logo
+  logo-english-lod0-jg
+  logo-idle-ja
+  ((logo-english-lod0-mg (meters 999999)))
+  :bounds (static-spherem 0 0 0 999999))
+
+(defskelgroup *logo-japan-sg*
+  logo
+  logo-japan-lod0-jg
+  logo-idle-ja
+  ((logo-japan-lod0-mg (meters 999999)))
+  :bounds (static-spherem 0 0 0 5))
+
+(defskelgroup *logo-volumes-sg*
+  logo-volumes
+  logo-volumes-english-lod0-jg
+  logo-volumes-idle-ja
+  ((logo-volumes-english-lod0-mg (meters 999999)))
+  :bounds (static-spherem 0 0 0 999999))
+
+(defskelgroup *logo-volumes-japan-sg*
+  logo-volumes
+  logo-volumes-japan-lod0-jg
+  logo-volumes-idle-ja
+  ((logo-volumes-japan-lod0-mg (meters 999999)))
+  :bounds (static-spherem 0 0 0 5.5))
+
+(defskelgroup *logo-black-sg*
+  logo-black
+  logo-black-lod0-jg
+  logo-black-idle-ja
+  ((logo-black-lod0-mg (meters 999999)))
+  :bounds (static-spherem 0 0 0 999999))
+
+(defskelgroup *logo-cam-sg*
+  logo-cam
+  logo-cam-lod0-jg
+  logo-cam-idle-ja
+  ((logo-cam-lod0-mg (meters 999999)))
+  :bounds (static-spherem 0 0 0 5.5))
+
+(defskelgroup *ndi-sg*
+  ndi
+  ndi-lod0-jg
+  ndi-idle-ja
+  ((ndi-lod0-mg (meters 999999)))
+  :bounds (static-spherem 0 10 0 30))
+
+(defskelgroup *ndi-volumes-sg*
+  ndi-volumes
+  ndi-volumes-lod0-jg
+  ndi-volumes-idle-ja
+  ((ndi-volumes-lod0-mg (meters 999999)))
+  :bounds (static-spherem 0 0 0 5.5))
+
+(defskelgroup *ndi-cam-sg*
+  ndi-cam
+  ndi-cam-lod0-jg
+  ndi-cam-idle-ja
+  ((ndi-cam-lod0-mg (meters 999999)))
+  :bounds (static-spherem 0 0 0 5.5))
+
+(defstate idle (tfl-logo-slave)
+  :virtual #t
+  :event
+    (event
+      (case message
+        (('blend-shape)
+         (cond
+           ((-> block param 0) (logior! (-> self skel status) (janim-status blerc eye)))
+           (else (logclear! (-> self skel status) (janim-status blerc eye))))
+         (-> self skel status))
+        (('origin-joint-index) (set! (-> self draw origin-joint-index) (-> block param 0)))))
+  :code
+    (behavior ()
+      (ja-post)
+      (loop
+        (clone-anim-once (ppointer->handle (-> self parent)) (the int (-> self draw origin-joint-index)) #t "")
+        (suspend))))
+
+(defbehavior tfl-logo-slave-init-by-other tfl-logo-slave ((e entity-actor) (skel skeleton-group))
+  (set! (-> self entity) e)
+  (set! (-> self root) (new 'process 'trsqv))
+  (initialize-skeleton self skel '())
+  (logior! (-> self skel status) (janim-status inited))
+  (set! (-> self draw origin-joint-index) (the uint 3))
+  (set! (-> self draw shadow-mask) (the uint 255))
+  (set! (-> self draw global-effect) (draw-effect title))
+  (when (or (string= (-> self draw art-group name) "logo-volumes")
+            (string= (-> self draw art-group name) "logo-volumes-japan")
+            (string= (-> self draw art-group name) "logo-black"))
+    (set! (-> self main-joint) (new 'process 'joint-mod (joint-mod-handler-mode joint-set*) self 3))
+    (set! (-> self main-joint max-dist) (the meters #t)))
+  (set! (-> self event-hook) (-> (method-of-object self idle) event))
+  (go-virtual idle))
+
+(defstate tfl-startup (tfl-logo)
+  :virtual #t
+  :event
+    (event
+      (case message
+        (('update) (remove-setting! 'process-mask))
+        (('start) (send-event (handle->process (-> self tfl-anim)) 'start))))
+  :exit
+    (behavior ()
+      (let ((spool (-> self anim)))
+        (when (nonzero? spool)
+          (ja-abort-spooled-anim spool (the art-joint-anim #f) -1)
+          (ja-channel-set! 0)
+          (ja-post)
+          (let ((cam (handle->process (-> self camera)))) (if cam (deactivate cam))))))
+  :trans
+    (behavior ()
+      (if (not (none-reserved? *art-control*)) (go-virtual hidden))
+      (if (nonzero? (-> self next-anim)) (spool-push *art-control* (-> self next-anim name) 0 self -1.0)))
+  :code
+    (behavior ()
+      (while (!= (file-status *art-control* (-> self next-anim name) 0) 'active)
+        (set-blackout-frames (seconds 0.05))
+        (suspend))
+      (set! (-> *setting-control* current bg-a) 1.0)
+      (set-setting! 'bg-a 'abs 0.0 0)
+      (set! (-> self tfl-anim) (ppointer->handle (process-spawn tfl-title :to self)))
+      (suspend)
+      (set! (-> self anim) (-> self next-anim))
+      (set! (-> self next-anim)
+            (new 'static
+                 'spool-anim
+                 :name "logo-intro-2"
+                 :index 7
+                 :parts 15
+                 :command-list
+                 '((260 want-force-inside crescent-t #t)
+                  (261 kill "crescent-lurkerpuppy-001")
+                  (261 kill "crescent-lurkerpuppy-002")
+                  (261 kill "crescent-lurkerpuppy-003")
+                  (261.5 kill "crescent-lurkerpuppy-004")
+                  (261.5 kill "crescent-lurkerpuppy-005")
+                  (400 want-force-inside crescent-t #f)
+                  (400 display-level crescent-t display)
+                  (400 save)
+                  (500 set! *spawn-actors* #t))))
+      (ja-play-spooled-anim (-> self anim)
+                            (the art-joint-anim #f)
+                            (the art-joint-anim #f)
+                            (the (function process-drawable symbol) false-func))
+      (false! *spawn-actors*)
+      (add-setting! 'process-mask 'set 0.0 (process-mask progress))
+      (apply-settings *setting-control*)
+      (send-event (ppointer->process (-> self parent)) 'wait)
+      (send-event self 'update)
+      (ja-channel-set! 1)
+      (ja-no-eval :group! logo-logo-intro-2-pre-ja :num! (seek!) :frame-num 0.0)
+      (until (ja-done? 0)
+        (logior! (-> self skel status) (janim-status spool))
+        (suspend)
+        (if (not (paused?)) (ja :num! (seek!))))
+      (remove-exit)
+      (go-virtual tfl-idle))
+  :post
+    (behavior ()
+      (if *progress-process*
+        (logior! (-> self draw status) (draw-status skip-bones))
+        (logclear! (-> self draw status) (draw-status skip-bones)))
+      (let ((a3-0 (new-stack-vector0))
+            (a1-0 (new-stack-vector0)))
+        (let ((f0-0 (if (= (-> *setting-control* current aspect-ratio) 'aspect16x9) 0.87 1.0)))
+          (set-vector! a3-0 f0-0 f0-0 1.0 1.0))
+        (set-vector! a1-0
+                     (if (= (-> *setting-control* current aspect-ratio) 'aspect16x9) 2048.0 0.0)
+                     (if (= (-> *setting-control* current aspect-ratio) 'aspect16x9) -1228.8 0.0)
+                     0.0
+                     1.0)
+        (set-trs! (-> self main-joint) a1-0 (the quaternion #f) a3-0))
+      (ja-post)))
+
+(defstate tfl-idle (tfl-logo)
+  :virtual #t
+  :exit
+    (-> (method-of-type tfl-logo tfl-startup)
+        exit)
+  :trans
+    (-> (method-of-type tfl-logo tfl-startup)
+        trans)
+  :code
+    (behavior ()
+      (loop
+        (set! (-> self anim) (-> self next-anim))
+        (false! *spawn-actors*)
+        (ja-channel-set! 1)
+        (ja-no-eval :group! logo-logo-loop-pre-ja :num! (identity (ja-aframe 0.0 0)))
+        (until (ja-done? 0)
+          (logior! (-> self skel status) (janim-status spool))
+          (suspend)
+          (if (not (paused?)) (ja :num! (identity (ja-aframe 0.0 0)))))
+        (true! *spawn-actors*)))
+  :post
+    (-> (method-of-type tfl-logo tfl-startup)
+        post))
+
+(defstate hidden (tfl-logo)
+  :virtual #t
+  :trans
+    (behavior ()
+      (if (nonzero? (-> self next-anim)) (spool-push *art-control* (-> self next-anim name) 0 self -1.0)))
+  :code
+    (behavior ()
+      (ja-channel-set! 0)
+      (ja-post)
+      (let ((gp-0 *master-mode*)) (set! *master-mode* 'game) (clear-rec *art-control*) (set! *master-mode* gp-0))
+      (loop
+        (when (and (none-reserved? *art-control*) (not (paused?)))
+          (suspend-for (seconds 0.1)
+            (set! *camera-look-through-other* 2))
+          (go-virtual idle))
+        (set! *camera-look-through-other* 2)
+        (suspend))))
+
+(defstate ndi (tfl-logo)
+  :virtual #t
+  :event
+    (event
+      (case message
+        (('blackout) (set-setting! 'bg-a 'abs 1.0 0))))
+  :enter
+    (behavior ()
+      (set-setting! 'bg-a 'abs 0.0 0)
+      (apply-settings *setting-control*)
+      (set-time! (-> self state-time))
+      (if *time-of-day-proc* (set! (-> *time-of-day-proc* 0 hour) 12))
+      (false! (-> self done?)))
+  :exit
+    (behavior ()
+      ((-> (method-of-type tfl-logo tfl-startup) exit))
+      (set-blackout-frames (seconds 0.035)))
+  :trans
+    (behavior ()
+      ((-> (method-of-type tfl-logo tfl-startup) trans))
+      (when (and (nonzero? (-> self camera-anim)) (handle->process (-> self camera-anim)))
+        (let* ((cam (the tfl-logo-slave (handle->process (-> self camera-anim))))
+               (cspace (-> cam node-list data 3))
+               (q (new-stack-quaternion0))
+               (t (vector<-cspace! (new-stack-vector0) cspace)))
+          (matrix->quaternion q (-> cspace bone transform))
+          (quaternion-rotate-x! q q (degrees -90))
+          (quaternion->matrix (-> cspace bone transform) q)
+          (vector-copy! (-> cspace bone transform vector 3) t)))
+      (if (and (or *debug-segment* PC_PORT)
+               (cpad-pressed? 0 start circle x)
+               (member (level-status *level* 'crescent-t) '(loaded active)))
+        (set-setting! 'bg-a 'abs 1.0 0))
+      (when (= (-> *setting-control* current bg-a) 1.0)
+        (if (not (-> self done?)) (ja-abort-spooled-anim (-> self anim) (the art-joint-anim #f) -1))
+        (true! (-> self done?))
+        (deactivate self))
+      (if *time-of-day-proc* (set! (-> *time-of-day-proc* 0 hour) 12)))
+  :code
+    (behavior ()
+      (while (!= (file-status *art-control* (-> self next-anim name) 0) 'active)
+        (set-blackout-frames (seconds 0.05))
+        (suspend))
+      (set! (-> *setting-control* current bg-a) 1.0)
+      (set! (-> self camera-anim) (ppointer->handle (process-spawn tfl-logo-slave (-> self entity) *ndi-cam-sg* :to self)))
+      (set! (-> self camera)
+            (ppointer->handle (process-spawn othercam (handle->process (-> self camera-anim)) 3 #t 'logo :to (handle->process (-> self camera-anim)))))
+      (send-event (handle->process (-> self camera)) 'mask 0)
+      (set! (-> self volumes) (ppointer->handle (process-spawn tfl-logo-slave (-> self entity) *ndi-volumes-sg* :to self)))
+      (send-event (handle->process (-> self volumes)) 'origin-joint-index 3)
+      (set! (-> self target) (ppointer->handle (process-spawn tfl-logo-slave #f *jchar-sg* :to self)))
+      (send-event (handle->process (-> self target)) 'blend-shape #t)
+      (send-event (handle->process (-> self target)) 'origin-joint-index 33)
+      (set! (-> self sidekick) (ppointer->handle (process-spawn tfl-logo-slave #f *sidekick-sg* :to self)))
+      (send-event (handle->process (-> self sidekick)) 'blend-shape #t)
+      (send-event (handle->process (-> self sidekick)) 'origin-joint-index 6)
+      (set! (-> self black) (ppointer->handle (process-spawn tfl-logo-slave (-> self entity) *logo-black-sg* :to self)))
+      (send-event (handle->process (-> self black)) 'origin-joint-index 3)
+      (set! (-> self anim) (-> self next-anim))
+      (set! (-> self next-anim) (new 'static 'spool-anim :name "logo-intro" :index 5 :parts 3 :command-list '()))
+      (cond
+        (*quit-to-title* (false! *quit-to-title*))
+        (else
+         (ja-play-spooled-anim (-> self anim)
+                               (the art-joint-anim #f)
+                               (the art-joint-anim #f)
+                               (the (function process-drawable symbol) false-func))))
+      (true! (-> self done?))
+      (set-setting! 'bg-a 'abs 1.0 0)
+      (anim-loop))
+  :post ja-post)
+
+(defbehavior tfl-logo-init-by-other tfl-logo ((ent entity-actor) (pos vector) (mode symbol))
+  (stack-size-set! (-> self main-thread) 512)
+  (logclear! (-> self mask) (process-mask progress))
+  (set! (-> self entity) ent)
+  (set! (-> self root) (new 'process 'trsqv))
+  (vector-copy! (-> self root trans) pos)
+  (case mode
+    (('logo)
+     (set! (-> *time-of-day-context* title-light-group dir1 levels x) 0.0)
+     (set! (-> *time-of-day-context* title-light-group ambi levels x) 0.444)
+     (if (= (-> *setting-control* default language) (language-enum japanese))
+       (initialize-skeleton self *logo-japan-sg* '())
+       (initialize-skeleton self *logo-sg* '()))
+     (set! (-> self main-joint) (new 'process 'joint-mod (joint-mod-handler-mode joint-set*) self 3))
+     (set! (-> self main-joint max-dist) (the meters #t))
+     (set! (-> self next-anim)
+           (new 'static
+                'spool-anim
+                :name "logo-intro"
+                :index 5
+                :parts 3
+                :command-list
+                '((0 want-levels crystal-ca crescent-t)
+                 (5 display-level crescent-t special)
+                 (5 want-vis cst)
+                 (5 want-force-inside crescent-t #t)
+                 (100 kill "crescent-lurkerpuppy-001")
+                 (100 kill "crescent-lurkerpuppy-002")
+                 (100 kill "crescent-lurkerpuppy-003")
+                 (100 kill "crescent-lurkerpuppy-004")
+                 (100 kill "crescent-lurkerpuppy-005")
+                 (100 display-level crescent-t display-self)
+                 (100 send-event self start)
+                 (100 save))))
+     (set! (-> self draw origin-joint-index) (the uint 3)))
+    (('ndi)
+     (set! (-> *time-of-day-context* title-light-group dir1 levels x) 1.0)
+     (set! (-> *time-of-day-context* title-light-group ambi levels x) 1.0)
+     (initialize-skeleton self *ndi-sg* '())
+     (set! (-> self draw origin-joint-index) (the uint 3))
+     (set! (-> self next-anim)
+           (new 'static
+                'spool-anim
+                :name "ndi-intro"
+                :index 3
+                :parts 4
+                :command-list
+                '((0 want-levels crystal-ca crescent-t)
+                 (5 want-vis cst)
+                 (5 want-force-inside crescent-t #t)
+                 (6 save)
+                 (453 send-event self blackout))))))
+  (logior! (-> self skel status) (janim-status inited))
+  (set! (-> self draw global-effect) (draw-effect title))
+  (set! (-> self draw shadow-mask) (the uint 255))
+  (set! (-> self camera) INVALID_HANDLE)
+  (set! (-> self volumes) INVALID_HANDLE)
+  (set! (-> self black) INVALID_HANDLE)
+  (cond
+    ((= mode 'logo) (go-virtual tfl-startup))
+    ((= mode 'ndi) (go-virtual ndi))))
+
+(defstate target-title (target)
+  :event target-generic-event-handler
+  :enter
+    (behavior ()
+      (set-setting! 'music-volume 'abs 0.0 0)
+      (set-setting! 'sfx-volume 'abs 0.0 0)
+      (set-setting! 'ambient-volume 'abs 0.0 0)
+      (set-setting! 'allow-pause #f 0.0 0)
+      (set-setting! 'allow-progress #f 0.0 0)
+      ; (set-setting! 'border-mode #f 0.0 0)
+      (send-event *tfl-music-player* 'pause)
+      (apply-settings *setting-control*)
+      (set-time! (-> self state-time))
+      (set! (-> self manipy) (the (pointer manipy) #f))
+      (ja-channel-set! 0)
+      (ja-post)
+      (send-event *camera* 'change-state cam-fixed 0))
+  :exit
+    (behavior ()
+      (when (not (symbol-member? (-> self next-state name) '(target-title-play target-title-wait)))
+        (if (-> self manipy) (deactivate (-> self manipy 0)))))
+  :trans
+    (behavior ()
+      (hide-hud-quick)
+      (spool-push *art-control* "ndi-intro" 0 self -1.0)
+      (if *sound-player-enable* (sound-group-pause (sound-group music))))
+  :code
+    (behavior ()
+      (let ((jsplash-handle (the handle #f)))
+        (cond
+          ((and (= (scf-get-territory) GAME_TERRITORY_SCEI) *first-boot*)
+           (set! *first-boot* #f)
+           (set! jsplash-handle
+                 (ppointer->handle (static-screen-spawn 5 demo5aj-demo5j demo5bj-demo5j demo5cj-demo5j (seconds 3) #f self))))
+          (else
+           (while (!= (file-status *art-control* "ndi-intro" 0) 'active)
+             (set-blackout-frames (seconds 0.05))
+             (suspend))
+           (suspend-for (seconds 0.25)
+             (set-blackout-frames (seconds 0.05)))))
+        (label cfg-8)
+        (let ((slot-info (new 'stack-no-clear 'mc-slot-info)))
+          (mc-get-slot-info 0 slot-info)
+          (when (or (zero? (-> slot-info known)) (handle->process jsplash-handle))
+            (if (not (handle->process jsplash-handle)) (set-blackout-frames (seconds 0.05)))
+            (suspend)
+            (goto cfg-8))
+          (set! (-> *setting-control* default bg-a) 0.0)
+          (when (or (zero? (-> slot-info handle))
+                    (and (nonzero? (-> slot-info formatted))
+                         (zero? (-> slot-info inited))
+                         (< (-> slot-info mem-actual) (-> slot-info mem-required))))
+            (mem-copy! (the pointer *auto-save-info*) (the pointer slot-info) 300)
+            (set-blackout-frames 0)
+            (let ((screen (progress-screen memcard-no-space)))
+              (if (zero? (-> slot-info handle)) (set! screen (progress-screen memcard-not-inserted)))
+              (set-setting! 'allow-progress #t 0.0 0)
+              (set-blackout-frames 0)
+              (set! (-> *setting-control* default bg-a-force) 0.0)
+              (apply-settings *setting-control*)
+              (set! (-> *setting-control* current bg-a) 0.0)
+              (set! (-> *setting-control* current bg-a-force) 0.0)
+              (activate-progress *dproc* screen))
+            (set-setting! 'allow-progress #f 0.0 0)
+            (apply-settings *setting-control*)
+            (while *progress-process*
+              (suspend))
+            (suspend-for (seconds 0.01))
+            (goto cfg-41))))
+      (label cfg-41)
+      (let* ((logo-ent (entity-by-name "tfl-logo-1"))
+             (logo-manipy (the (pointer manipy) (process-spawn tfl-logo logo-ent (-> logo-ent extra trans) 'ndi :to self))))
+        (set! (-> self manipy) logo-manipy)
+        (let ((manipy-hand (ppointer->handle logo-manipy))) (while (handle->process manipy-hand) (suspend)))
+        (set! (-> self manipy) (the (pointer manipy) (process-spawn tfl-logo logo-ent (-> logo-ent extra trans) 'logo :to self))))
+      (go target-title-play))
+  :post target-no-move-post)
+
+(defstate target-title-play (target)
+  :event
+    (behavior ((proc process) (argc int) (message symbol) (block event-message-block))
+      (case message
+        (('wait) (go target-title-wait))
+        (('reset) (deactivate (-> self manipy 0)))
+        (else (target-generic-event-handler proc argc message block))))
+  :enter
+    (behavior ()
+      (set-setting! 'allow-pause #f 0.0 0)
+      (set-setting! 'allow-progress #f 0.0 0))
+  :exit
+    (-> target-title
+        exit)
+  :trans hide-hud-quick
+  :code anim-loop
+  :post target-no-move-post)
+
+(defstate target-title-wait (target)
+  :event
+    (event
+      (case message
+        (('play) (go target-title-play))
+        (('reset) (deactivate (-> self manipy 0)))
+        (else (target-generic-event-handler proc argc message block))))
+  :enter
+    (behavior ()
+      (remove-setting! 'ambient-volume)
+      (remove-setting! 'sfx-volume)
+      (remove-setting! 'music-volume)
+      (sound-group-continue (sound-group music))
+      (send-event *tfl-music-player* 'unpause)
+      (when *time-of-day-proc*
+        (set! (-> *time-of-day-proc* 0 time-ratio) 18000.0)
+        (set! *time-of-day-fast* #t)))
+  :exit
+    (behavior ()
+      (when *time-of-day-proc*
+        (set! (-> *time-of-day-proc* 0 time-ratio) 300.0)
+        (set! *time-of-day-fast* #f))
+      (remove-setting! 'allow-pause)
+      (remove-setting! 'allow-progress)
+      ((-> target-title exit)))
+  :trans
+    (behavior ()
+      (hide-hud-quick)
+      (when (cpad-pressed? 0 start)
+        (set-setting! 'allow-progress #t 0.0 0)
+        (apply-settings *setting-control*)
+        (activate-progress *dproc* (progress-screen title))
+        (set-setting! 'allow-progress #f 0.0 0)
+        (apply-settings *setting-control*))
+      (when (and (< (mod (-> *display* real-frame-counter) 300) 270) (not *progress-process*))
+        (let ((fnt (new 'stack 'font-context *font-default-matrix* 80 170 0.0 (font-color default) (font-flags shadow kerning))))
+          (set! (-> fnt width) 352.0)
+          (set! (-> fnt height) 40.0)
+          (set! (-> fnt flags) (font-flags shadow kerning middle middle-vert large))
+          (print-game-text (lookup-text! *common-text* (text-id press-start) #f) fnt #f 128 22))))
+  :code anim-loop
+  :post target-no-move-post)

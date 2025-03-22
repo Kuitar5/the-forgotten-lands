@@ -1,0 +1,156 @@
+;;-*-Lisp-*-
+(in-package goal)
+(defconstant SUPER_RED_BOMB_FUSE_TIME (seconds 3))
+
+(defconstant SUPER_RED_BOMB_EXPLODE_RADIUS (meters 5))
+
+(deftype super-red-bomb (process-drawable)
+  ((root         collide-shape :override)
+   (fuse-time    time-frame)
+   (explode-part sparticle-launch-control))
+  (:methods
+   (init-collision! (_type_) none))
+  (:state-methods
+   fuse
+   explode))
+
+(defmethod relocate ((this super-red-bomb) (off int))
+  (if (nonzero? (-> this explode-part)) (&+! (-> this explode-part) off))
+  (call-parent-method this off))
+
+(defmethod deactivate ((this super-red-bomb))
+  (if (nonzero? (-> this explode-part)) (kill-and-free-particles (-> this explode-part)))
+  (call-parent-method this))
+
+(defmethod init-collision! ((this super-red-bomb))
+  (let ((cshape (new 'process 'collide-shape this (collide-list-enum hit-by-player))))
+    (let ((sphere (new 'process 'collide-shape-prim-sphere cshape (the uint 0))))
+      (set! (-> sphere prim-core collide-as) (collide-kind powerup))
+      (set! (-> sphere collide-with) (collide-kind target))
+      (set-vector! (-> sphere local-sphere) 0.0 (meters 1.0) 0.0 (meters 1.5))
+      (set-root-prim! cshape sphere))
+    (set! (-> cshape event-self) 'touched)
+    (set! (-> cshape nav-radius) (* 0.75 (-> cshape root-prim local-sphere w)))
+    (backup-collide-with-as cshape)
+    (set! (-> this root) cshape))
+  (none))
+
+(defbehavior super-red-bomb-init-by-other super-red-bomb ((pos vector))
+  (init-collision! self)
+  (vector-copy! (-> self root trans) pos)
+  (quaternion-identity! (-> self root quat))
+  (vector-identity! (-> self root scale))
+  (set-part! :id 963)
+  (set-part! :part explode-part :id 964)
+  (set! (-> self sound)
+        (new 'process 'ambient-sound (static-sound-spec "red-fireball" :fo-min 10 :fo-max 100 :volume 150) (-> self root trans)))
+  (update! (-> self sound))
+  (update-vol! (-> self sound) 1)
+  (go-virtual fuse))
+
+(defbehavior super-red-bomb-post super-red-bomb ()
+  ; (if (< (- (current-time) (-> self fuse-time)) SUPER_RED_BOMB_FUSE_TIME)
+  ;   (format *stdcon* "red-bomb fuse time ~,,2es~%" (- SUPER_RED_BOMB_FUSE_TIME (- (current-time) (-> self fuse-time)))))
+  (transform-post)
+  (none))
+
+(defstatehandler super-red-bomb :post super-red-bomb-post)
+
+(defstate fuse (super-red-bomb)
+  :virtual #t
+  :event
+    (event (case message
+             (('attack) (if (and (time-elapsed? (-> self fuse-time) (seconds 0.5)) (= (-> proc type) target)) (go-virtual explode)))))
+  :trans
+    (behavior ()
+      (spawn (-> self part) (-> self root trans)))
+  :code
+    (behavior ()
+      (set-time! (-> self fuse-time))
+      (until (time-elapsed? (-> self fuse-time) SUPER_RED_BOMB_FUSE_TIME)
+        (let ((dist (vector-vector-distance (target-pos 0) (-> self root trans))))
+          (when (< dist (meters 12))
+            (cpad-set-buzz! (-> *cpad-list* cpads 0) 0 (- 40 (/ (* dist 4.0) (meters 1))) (seconds 0.05))
+            (cpad-set-buzz! (-> *cpad-list* cpads 0) 1 (- 40 (/ (* dist 4.0) (meters 1))) (seconds 0.05))))
+        (update! (-> self sound))
+        (update-vol! (-> self sound)
+                     (+ 40 (the int (* (/ (the float (- (current-time) (-> self fuse-time))) TICKS_PER_SECOND) 40.0))))
+        (suspend))
+      (go-virtual explode)))
+
+(defstate explode (super-red-bomb)
+  :virtual #t
+  :event
+    (event (case message
+             (('touched)
+              (let ((pdraw (if (and (nonzero? proc) (type-type? (-> proc type) process-drawable)) (the process-drawable proc))))
+                (when pdraw
+                  (let* ((proc-root (the collide-shape (-> pdraw root)))
+                         (bomb-core (-> self root root-prim prim-core))
+                         (proc-core (-> proc-root root-prim prim-core))
+                         (probe (new 'stack-no-clear 'vector))
+                         (tri (new 'stack-no-clear 'collide-tri-result)))
+                    (vector-! probe (the vector proc-core) (the vector bomb-core))
+                    (when (< (fill-and-probe-using-line-sphere *collide-cache*
+                                                               (the vector bomb-core)
+                                                               probe
+                                                               40.96
+                                                               (collide-kind background)
+                                                               self
+                                                               tri
+                                                               (new 'static 'pat-surface :noentity #x1))
+                             0.0)
+                      (if (!= (-> proc type) target) (send-event proc 'attack (-> block param 0) 'explode (1+! *global-attack-id*) 0)))))))))
+  :code
+    (behavior ()
+      (when *target*
+        (let ((dist (vector-vector-distance (target-pos 0) (-> self root trans)))
+              (dir (vector-! (new-stack-vector0) (-> *target* control trans) (-> self root trans))))
+          (vector-normalize! dir (meters 70.0))
+          (when (< dist (meters 15))
+            (activate! *camera-smush-control* (- 1500.0 (/ (* dist 100) (meters 1))) 30 150 1.0 0.995)
+            (cpad-set-buzz! (-> *cpad-list* cpads 0) 0 (- 250 (/ (* dist 16) (meters 1))) (seconds 0.5))
+            (cpad-set-buzz! (-> *cpad-list* cpads 0) 1 (- 250 (/ (* dist 16) (meters 1))) (seconds 0.5)))
+          (sound-play "explosion" :vol 90 :pitch 0.0)
+          (when (< dist SUPER_RED_BOMB_EXPLODE_RADIUS)
+            (let ((xz-dist (fmin (meters 3.5) (vector-vector-xz-distance (-> *target* control trans) (-> self root trans)))))
+              (if (or (= (-> *target* control unknown-surface00 mode) 'air)
+                      (>= (+ (-> *display* base-frame-counter) (seconds -0.2)) (-> *target* control unknown-dword11))
+                      (< 0.75 (-> *target* control poly-normal y)))
+                (if (> xz-dist (meters 0.6))
+                  (send-event *target*
+                              'shove
+                              #f
+                              (static-attack-info ((dist (+ (meters 10) (* (meters 20) (/ xz-dist (meters 1)))))
+                                                   (shove-up (- (meters 8) (* xz-dist 0.8)))
+                                                   (angle 'up-forward)
+                                                   (vector dir)
+                                                   (control 0.2))))
+                  (send-event *target* 'shove #f (static-attack-info ((shove-up (meters 8)) (angle 'jump) (vector dir) (control 1.0)))))
+                (send-event *target*
+                            'shove
+                            #f
+                            (static-attack-info ((shove-up (meters 13))
+                                                 (shove-back (meters 13))
+                                                 (vector (-> *target* control poly-normal))
+                                                 (angle 'up-forward)
+                                                 (vector dir)
+                                                 (control 1.0)))))))))
+      (update! (-> self sound))
+      (update-vol! (-> self sound) 1)
+      (let ((prim (-> self root root-prim)))
+        (set! (-> prim local-sphere w) SUPER_RED_BOMB_EXPLODE_RADIUS)
+        (set! (-> prim prim-core world-sphere w) SUPER_RED_BOMB_EXPLODE_RADIUS)
+        (set! (-> prim collide-with) (collide-kind cak-2 cak-3 target crate enemy wall-object))
+        (set! (-> prim prim-core collide-as) (collide-kind enemy)))
+      (update-transforms! (-> self root))
+      (let ((overlap-parms (new 'stack-no-clear 'overlaps-others-params)))
+        (set! (-> overlap-parms options) (the uint 0))
+        (set! (-> overlap-parms tlist) *touching-list*)
+        (find-overlapping-shapes (-> self root) overlap-parms))
+      (suspend)
+      (clear-collide-with-as (-> self root))
+      (suspend-for (seconds 3.0)
+        (spawn (-> self explode-part) (-> self root trans)))
+      (kill-and-free-particles (-> self explode-part))
+      (cleanup-for-death self)))

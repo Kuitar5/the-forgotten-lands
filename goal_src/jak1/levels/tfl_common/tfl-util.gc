@@ -1,0 +1,509 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+#| @file General utility functions and overrides used in TFL. |#
+
+(defconstant TFL_LEVELS '(crystal-ca crescent-t energy-bay open-mines valley))
+
+(defconstant TFL_NO_CELL_TASKS '(crystalc-gondola tfl-lowreskui))
+
+(deftype tfl-counts (structure)
+  ((cell   int32)
+   (money  int32)
+   (buzzer int32)))
+
+(define *tfl-counts* (new 'static 'tfl-counts))
+
+;; count tfl buzzers and money
+(dotimes (i (length TFL_LEVELS))
+  (let* ((lvl (the level-load-info (-> (the symbol (ref TFL_LEVELS i)) value))))
+    (+! (-> *tfl-counts* money) (-> lvl custom-orb-count))
+    (+! (-> *tfl-counts* buzzer) (-> lvl custom-buzzer-count))))
+
+;; count tfl cells
+(let ((tfl-task-start (game-task crystalc-middle))
+      (tfl-task-end (game-task max))
+      (cell? (lambda ((task game-task)) (not (nmember (string->symbol (game-task->string task)) TFL_NO_CELL_TASKS)))))
+  (dotimes (i (- tfl-task-end tfl-task-start))
+    (let ((task (+ tfl-task-start (the game-task i)))) (when (cell? task) (1+! (-> *tfl-counts* cell))))))
+
+(defun tfl-total-cell-count ()
+  (-> *tfl-counts* cell))
+
+(defun tfl-collected-cell-count ()
+  (let ((tfl-task-start (game-task crystalc-middle))
+        (tfl-task-end (game-task max))
+        (cell? (lambda ((task game-task)) (not (nmember (string->symbol (game-task->string task)) TFL_NO_CELL_TASKS))))
+        (cnt 0))
+    (dotimes (i (- tfl-task-end tfl-task-start))
+      (let ((task (+ tfl-task-start (the game-task i))))
+        (when (and (cell? task) (task-complete? *game-info* task))
+          (1+! cnt))))
+    cnt))
+
+(defun tfl-give-all-cells ()
+  (let ((tfl-task-start (game-task crystalc-middle))
+        (tfl-task-end (game-task max))
+        (cell? (lambda ((task game-task)) (not (nmember (string->symbol (game-task->string task)) TFL_NO_CELL_TASKS)))))
+    (dotimes (i (- tfl-task-end tfl-task-start))
+      (let ((task (+ tfl-task-start (the game-task i))))
+        (when (cell? task)
+          (close-specific-task! task (task-status need-resolution))
+          (send-event *target* 'get-pickup (pickup-type fuel-cell) (the float task)))))))
+
+(defun tfl-collected-money-count ()
+  (let ((cnt 0))
+    (dotimes (i (length TFL_LEVELS))
+      (let* ((lvl (the level-load-info (-> (the symbol (ref TFL_LEVELS i)) value)))
+             (idx (-> *level-task-data-remap* (1- (-> lvl index)))))
+        (+! cnt (-> *game-info* money-per-level idx))))
+    cnt))
+
+(defun tfl-collected-buzzer-count ()
+  (let ((cnt 0))
+    (dotimes (i (length TFL_LEVELS))
+      (let* ((lvl (the level-load-info (-> (the symbol (ref TFL_LEVELS i)) value)))
+             (idx (-> *level-task-data-remap* (1- (-> lvl index)))))
+        (+! cnt
+            (buzzer-count *game-info* (-> *level-task-data* idx task-info (-> *level-task-data* idx buzzer-task-index) task-id)))))
+    cnt))
+
+(defun is-tfl-level? ((lev symbol))
+  (nmember lev TFL_LEVELS))
+
+(defun in-tfl-level? ()
+  (aif (level-get-target-inside *level*) (nmember (-> it name) TFL_LEVELS)))
+
+;; overwrite draw-hud to display TFL cell count when inside a TFL level
+(defmethod draw-hud ((this hud-fuel-cell))
+  (call-parent-method this)
+  (with-dma-buffer-add-bucket ((buf (-> (current-frame) global-buf)) (bucket-id debug))
+    (let* ((string-x (+ (-> this text-x) (* (-> this x-sgn) (-> this offset))))
+           (string-y (/ (* (+ (-> this text-y) (* (-> this y-sgn) (-> this offset)) (-> this y-offset))
+                           (the int (-> *video-parms* relative-y-scale)))
+                        2)))
+      (if (in-tfl-level?)
+        (case *hud-collectable-view*
+          (((hud-collectable-view game-totals))
+           ;; show cells collected/total across all tfl levels
+           (draw-string-xy-scaled (string-format "~D~%/~D" (tfl-collected-cell-count) (-> *tfl-counts* cell))
+                                  buf
+                                  string-x
+                                  (- string-y 5)
+                                  (font-color yellow)
+                                  (font-flags shadow kerning large)
+                                  0.8))
+          (((hud-collectable-view level-totals))
+           (let ((lvl-idx (-> *level-task-data-remap* (1- (-> *target* current-level info index))))
+                 (completed-task-count 0))
+             ;; determine number of cells collected in this level
+             (dotimes (task-idx (-> *level-task-data* lvl-idx nb-of-tasks))
+               (if (= (get-task-status (-> *level-task-data* lvl-idx task-info task-idx task-id)) (task-status invalid))
+                 (+! completed-task-count 1)))
+             ;; show cells/total collected this level
+             (draw-string-xy-scaled (string-format "~D~%/~D" completed-task-count (-> *level-task-data* lvl-idx nb-of-tasks))
+                                    buf
+                                    string-x
+                                    (- string-y 5)
+                                    (font-color yellow)
+                                    (font-flags shadow kerning large)
+                                    0.8)))
+          (((hud-collectable-view original))
+           ;; show original (cells collected across all tfl levels)
+           (draw-string-xy (string-format "~D" (tfl-collected-cell-count))
+                           buf
+                           string-x
+                           string-y
+                           (font-color yellow)
+                           (font-flags shadow kerning large))))
+        (case *hud-collectable-view*
+          (((hud-collectable-view game-totals))
+           ;; show cells collected/total across entire game
+           (draw-string-xy-scaled (string-format "~D~%/~D"
+                                                 (the int (-> *game-info* fuel))
+                                                 101 ;;(-> (the progress (-> *progress-process* 0)) total-nb-of-power-cells)
+                                                 )
+                                  buf
+                                  string-x
+                                  (- string-y 5)
+                                  (font-color yellow)
+                                  (font-flags shadow kerning large)
+                                  0.8))
+          (((hud-collectable-view level-totals))
+           (let ((lvl-idx (-> *level-task-data-remap* (1- (-> *target* current-level info index))))
+                 (completed-task-count 0))
+             ;; determine number of cells collected in this level
+             (dotimes (task-idx (-> *level-task-data* lvl-idx nb-of-tasks))
+               (if (= (get-task-status (-> *level-task-data* lvl-idx task-info task-idx task-id)) (task-status invalid))
+                 (+! completed-task-count 1)))
+             ;; show cells/total collected this level
+             (draw-string-xy-scaled (string-format "~D~%/~D" completed-task-count (-> *level-task-data* lvl-idx nb-of-tasks))
+                                    buf
+                                    string-x
+                                    (- string-y 5)
+                                    (font-color yellow)
+                                    (font-flags shadow kerning large)
+                                    0.8)))
+          (((hud-collectable-view original))
+           ;; show original (cells collected across entire game)
+           (draw-string-xy (string-format "~D" (-> this value))
+                           buf
+                           string-x
+                           string-y
+                           (font-color yellow)
+                           (font-flags shadow kerning large)))))))
+  (none))
+
+;; overwrite draw-hud to display TFL money count when inside a TFL level
+(defmethod draw-hud ((this hud-money))
+  (call-parent-method this)
+  (with-dma-buffer-add-bucket ((buf (-> (current-frame) global-buf)) (bucket-id debug))
+    (let* ((string-x (+ (-> this text-x) (* (-> this x-sgn) (-> this offset))))
+           (string-y (/ (* (+ (-> this text-y) (* (-> this y-sgn) (-> this offset)) (-> this y-offset))
+                           (the int (-> *video-parms* relative-y-scale)))
+                        2)))
+      (if (in-tfl-level?)
+        (case *hud-collectable-view*
+          (((hud-collectable-view game-totals))
+           ;; show orbs collected/total across entire game
+           (draw-string-xy-scaled (string-format "~D~%/~D" (tfl-collected-money-count) (-> *tfl-counts* money))
+                                  buf
+                                  string-x
+                                  (- string-y 5)
+                                  (font-color yellow)
+                                  (font-flags shadow kerning large)
+                                  0.8))
+          (((hud-collectable-view level-totals))
+           (let ((lvl-idx (-> *level-task-data-remap* (1- (-> *target* current-level info index)))))
+             ;; show orbs collected/total this level
+             (draw-string-xy-scaled (string-format "~D~%/~D" (-> *game-info* money-per-level lvl-idx) (-> *game-counts* data lvl-idx money-count))
+                                    buf
+                                    string-x
+                                    (- string-y 5)
+                                    (font-color yellow)
+                                    (font-flags shadow kerning large)
+                                    0.8)))
+          (((hud-collectable-view original))
+           ;; show original (total collected, unspent orbs)
+           (draw-string-xy (string-format "~D" (-> this value))
+                           buf
+                           string-x
+                           string-y
+                           (font-color yellow)
+                           (font-flags shadow kerning large))))
+        (case *hud-collectable-view*
+          (((hud-collectable-view game-totals))
+           ;; show orbs collected/total across entire game
+           (draw-string-xy-scaled (string-format "~D~%/~D"
+                                                 (the int (-> *game-info* money-total))
+                                                 2000 ;;(-> (the progress (-> *progress-process* 0)) total-nb-of-orbs)
+                                                 )
+                                  buf
+                                  string-x
+                                  (- string-y 5)
+                                  (font-color yellow)
+                                  (font-flags shadow kerning large)
+                                  0.8))
+          (((hud-collectable-view level-totals))
+           (let ((lvl-idx (-> *level-task-data-remap* (1- (-> *target* current-level info index)))))
+             ;; show orbs collected/total this level
+             (draw-string-xy-scaled (string-format "~D~%/~D" (-> *game-info* money-per-level lvl-idx) (-> *game-counts* data lvl-idx money-count))
+                                    buf
+                                    string-x
+                                    (- string-y 5)
+                                    (font-color yellow)
+                                    (font-flags shadow kerning large)
+                                    0.8)))
+          (((hud-collectable-view original))
+           ;; show original (total collected, unspent orbs)
+           (draw-string-xy (string-format "~D" (-> this value))
+                           buf
+                           string-x
+                           string-y
+                           (font-color yellow)
+                           (font-flags shadow kerning large)))))))
+  (none))
+
+;; overwrite draw-hud to display TFL buzzer count when inside a TFL level
+(defmethod draw-hud ((this hud-buzzers))
+  (call-parent-method this)
+  (set! (-> this text-y) (+ (if (nonzero? (-> this next-y-offset)) (-> this text-y-offset) 0) 362))
+  (with-dma-buffer-add-bucket ((buf (-> (current-frame) global-buf)) (bucket-id debug))
+    (let* ((string-x (+ (-> this text-x) (* (-> this x-sgn) (-> this offset))))
+           (string-y (/ (* (+ (-> this text-y) (* (-> this y-sgn) (-> this offset)) (-> this y-offset))
+                           (the int (-> *video-parms* relative-y-scale)))
+                        2)))
+      (if (in-tfl-level?)
+        (case *hud-collectable-view*
+          (((hud-collectable-view game-totals))
+           ;; show flies collected/total across entire game
+           (draw-string-xy-scaled (string-format " ~D~% /~D" (tfl-collected-buzzer-count) (-> *tfl-counts* buzzer))
+                                  buf
+                                  string-x
+                                  (- string-y 5)
+                                  (font-color yellow)
+                                  (font-flags shadow kerning large)
+                                  0.8))
+          (((hud-collectable-view level-totals))
+           (let ((lvl-idx (-> *level-task-data-remap* (+ (-> *target* current-level info index) -1))))
+             ;; show flies collected/total this level
+             (draw-string-xy-scaled (string-format " ~D~% /~D"
+                                                   (buzzer-count *game-info*
+                                                                 (-> *level-task-data* lvl-idx task-info (-> *level-task-data* lvl-idx buzzer-task-index) task-id))
+                                                   (-> *game-counts* data lvl-idx buzzer-count))
+                                    buf
+                                    string-x
+                                    (- string-y 5)
+                                    (font-color yellow)
+                                    (font-flags shadow kerning large)
+                                    0.8)))
+          (((hud-collectable-view original))
+           ;; show original (flies collected this level)
+           (draw-string-xy (string-format " ~D" (-> this value))
+                           buf
+                           string-x
+                           string-y
+                           (font-color yellow)
+                           (font-flags shadow kerning large))))
+        (case *hud-collectable-view*
+          (((hud-collectable-view game-totals))
+           ;; show flies collected/total across entire game
+           (draw-string-xy-scaled (string-format " ~D~% /~D"
+                                                 (the int (-> *game-info* buzzer-total))
+                                                 112 ;; (-> (the progress (-> *progress-process* 0)) total-nb-of-buzzers)
+                                                 )
+                                  buf
+                                  string-x
+                                  (- string-y 5)
+                                  (font-color yellow)
+                                  (font-flags shadow kerning large)
+                                  0.8))
+          (((hud-collectable-view level-totals))
+           (let ((lvl-idx (-> *level-task-data-remap* (+ (-> *target* current-level info index) -1))))
+             ;; show flies collected/total this level
+             (draw-string-xy-scaled (string-format " ~D~% /~D"
+                                                   (buzzer-count *game-info*
+                                                                 (-> *level-task-data* lvl-idx task-info (-> *level-task-data* lvl-idx buzzer-task-index) task-id))
+                                                   (-> *game-counts* data lvl-idx buzzer-count))
+                                    buf
+                                    string-x
+                                    (- string-y 5)
+                                    (font-color yellow)
+                                    (font-flags shadow kerning large)
+                                    0.8)))
+          (((hud-collectable-view original))
+           ;; show original (flies collected this level)
+           (draw-string-xy (string-format " ~D" (-> this value))
+                           buf
+                           string-x
+                           string-y
+                           (font-color yellow)
+                           (font-flags shadow kerning large)))))))
+  (none))
+
+(deftype pds-swingpole (process-drawable)
+  ((parent      (pointer process-drawable) :override)
+   (root        collide-shape :override)
+   (dir         vector :inline)
+   (rise-trans  vector :inline)
+   (rise-speed  float)
+   (path-pos    float)
+   (joint-track int32)
+   (speed       float)
+   (edge-length float)
+   (sync        sync-info-eased :inline))
+  (:state-methods
+   hidden
+   come-up
+   idle
+   (active handle)
+   go-down)
+  (:methods
+   (update! (_type_) object)
+   (init-collision! (_type_) object)))
+
+;; overwrite target-compute-pole for pds-swingpoles
+(defbehavior target-compute-pole target ()
+  (let* ((pole (handle->process (-> self control unknown-handle10)))
+         (pole-type (-> pole type))
+         (edge-len (case pole-type
+                     ((swingpole) (-> (the swingpole pole) edge-length))
+                     ((pds-swingpole) (-> (the pds-swingpole pole) edge-length))))
+         (pole-dir (case pole-type
+                     ((swingpole) (-> (the swingpole pole) dir))
+                     ((pds-swingpole) (-> (the pds-swingpole pole) dir))))
+         (trans (case pole-type
+                  ((swingpole) (-> (the swingpole pole) root trans))
+                  ((pds-swingpole) (-> (the pds-swingpole pole) root trans))))
+         (range (case pole-type
+                  ((swingpole) (-> (the swingpole pole) range))
+                  ((pds-swingpole) (-> (the pds-swingpole pole) root root-prim local-sphere w)))))
+    (vector-copy! (-> self control unknown-vector100) pole-dir)
+    (let ((midpoint (new-stack-vector0))
+          (edge-start (vector+float*! (new-stack-vector0) trans pole-dir edge-len))
+          (edge-end (vector+float*! (new-stack-vector0) trans pole-dir (- edge-len)))
+          (ease-vec (new-stack-vector0)))
+      (vector+! ease-vec edge-start edge-end)
+      (vector-float*! ease-vec ease-vec 0.5)
+      (-! (-> ease-vec y) 6144.0)
+      (send-event *camera* 'ease-in 0.5 ease-vec)
+      (vector-segment-distance-point! (-> self control unknown-vector90) edge-start edge-end midpoint)
+      (if (not (time-passed? (seconds 0.05)))
+        (set! (-> self control unknown-float110)
+              (fmax 0.0 (fmin 1.0 (/ (vector-vector-distance edge-start midpoint) (* 2.0 edge-len)))))
+        (vector-lerp! midpoint edge-start edge-end (-> self control unknown-float110)))
+      (when *display-edge-collision-marks*
+        (add-debug-vector #t (bucket-id debug-no-zbuf) trans pole-dir (meters 3) (static-rgba 255 0 255 #x80))
+        (add-debug-sphere #t (bucket-id debug-no-zbuf) trans range (static-rgba 255 255 0 #x80))
+        (add-debug-sphere #t (bucket-id debug) (-> self control unknown-vector90) (meters 0.2) (static-rgba 255 0 0 #x80))
+        (add-debug-sphere #t (bucket-id debug-no-zbuf) edge-start (meters 0.2) (static-rgba 0 255 0 #x80))
+        (add-debug-sphere #t (bucket-id debug-no-zbuf) edge-end (meters 0.2) (static-rgba 0 255 #x40 #x80))
+        (add-debug-sphere #t (bucket-id debug-no-zbuf) midpoint (meters 0.2) (static-rgba 0 255 0 #x80)))
+      (let ((s4-2 (vector-! (new-stack-vector0) midpoint (-> self control unknown-vector90))))
+        (cond
+          ((and (< 2457.6 (vector-length s4-2)) (not (-> self control unknown-int21)))
+           (move-by-vector! (-> self control) (vector-normalize! s4-2 2457.6)))
+          (else
+           (set! (-> self control unknown-int21) (the int #t))
+           (move-to-point! (-> self control) (vector-! (new-stack-vector0) midpoint (-> self control unknown-vector91)))
+           (vector-copy! (-> self control unknown-vector52) (-> self control trans))))))
+    (let ((s5-3 (vector-cross! (-> self control unknown-vector101) pole-dir (-> self control dynam gravity-normal))))
+      (if (>= 0.0 (vector-dot s5-3 (vector-z-quaternion! (new-stack-vector0) (-> self control unknown-quaternion00))))
+        (vector-negate! s5-3 s5-3))
+      (forward-up-nopitch->quaternion (-> self control dir-targ) s5-3 (-> self control dynam gravity-normal))))
+  (set-quaternion! (-> self control) (-> self control dir-targ))
+  (do-joint-math! self)
+  (update-transforms! (-> self control))
+  (none))
+
+;; overwrite hide-bottom-hud to hide hud-bike-red-boost
+(defun hide-bottom-hud ()
+  (when *target*
+    (dotimes (i 4)
+      (if (-> *hud-parts* parts (+ i 4)) (send-event (ppointer->process (-> *hud-parts* parts (+ i 4))) 'hide)))
+    (send-event (ppointer->process (-> *hud-parts-pc* bike-red-boost)) 'hide))
+  (none))
+
+(defbehavior warp-to-crystalc-init-by-other warp-to-crystalc ()
+  (set! (-> self state-time) 0)
+  (set! (-> self last-activate-time) 0)
+  (set! (-> self timer) (seconds 10))
+  (set! (-> self cooldown) (seconds 15))
+  (go-virtual idle))
+
+(defmethod print-text ((this warp-to-crystalc))
+  (let ((fnt (new 'stack
+                  'font-context
+                  *font-default-matrix*
+                  56
+                  (if *hint-semaphore* 140 160)
+                  0.0
+                  (font-color default)
+                  (font-flags shadow kerning))))
+    (set-width! fnt 400)
+    (set-height! fnt 96)
+    (set-scale! fnt 0.75)
+    (set-flags! fnt (font-flags shadow kerning middle large))
+    (print-game-text (string-format "~S (~D)"
+                                    (lookup-text! *common-text* (text-id skip-training-hint) #f)
+                                    (/ (- (-> this timer) (- (current-time) (-> this state-time))) TICKS_PER_SECOND))
+                     fnt
+                     #f
+                     128
+                     22)))
+
+(defstate idle (warp-to-crystalc)
+  :virtual #t
+  :code
+    (behavior ()
+      (if (and *target* (-> *game-info* current-continue) (string= (-> *game-info* current-continue name) "crystal-cave-start"))
+        (deactivate self))
+      (until (and *target*
+                  (-> *game-info* current-continue)
+                  (string= (-> *game-info* current-continue name) "training-start")
+                  (or (logtest? (-> *target* control status) (cshape-moving-flags onground onsurf on-water))
+                      (= (-> *target* next-state name) 'target-hit-ground)))
+        (suspend))
+      (set-state-time)
+      (suspend-for (-> self timer)
+        (print-text self)
+        (when (cpad-pressed? 0 start)
+          (send-event *target* 'continue (get-continue-by-name *game-info* "crystal-cave-warp"))
+          (kill-current-level-hint '() '() 'die)
+          (deactivate self)))
+      ; (suspend-for (-> self cooldown))
+      ))
+
+(defbehavior tfl-dev-commentary-available-proc process ()
+  (if (>= (tfl-collected-cell-count) (tfl-total-cell-count)) (deactivate self))
+  (until (and (aif (process-by-ename "valley-lab-door-01") (= (-> it next-state name) 'opened) #t)
+              (not (movie?))
+              (>= (tfl-collected-cell-count) (tfl-total-cell-count)))
+    (suspend))
+  (let ((time (current-time)))
+    (until (or *progress-process* (time-elapsed? time (seconds 7.5)))
+      (let ((fnt (new 'stack 'font-context *font-default-matrix* 56 55 0.0 (font-color default) (font-flags shadow kerning))))
+        (set-width! fnt 400)
+        (set-height! fnt 96)
+        (set-scale! fnt 1.0)
+        (set-flags! fnt (font-flags shadow kerning middle large))
+        (print-game-text (lookup-text! *common-text* (text-id tfl-dev-commentary-unlocked-0) #f) fnt #f 128 22)
+        (+! (-> fnt origin y) 75.0)
+        (print-game-text (lookup-text! *common-text* (text-id tfl-dev-commentary-unlocked-1) #f) fnt #f 128 22))
+      (suspend))))
+
+(deftype tfl-part-spawner (part-spawner) ()
+  (:states
+   tfl-part-spawner-active))
+
+(defstate tfl-part-spawner-active (tfl-part-spawner)
+  :event
+    (event
+      (case message
+        (('stop) (process-entity-status! self (entity-perm-status complete) #t) (false! (-> self enable)) #t)
+        (('start) (process-entity-status! self (entity-perm-status complete) #f) (true! (-> self enable)) #t)
+        (('trans) (vector-copy! (-> self root trans) (the vector (-> block param 0))))))
+  :code
+    (behavior ()
+      (loop
+        (when (-> self enable)
+          (spawn (-> self part) (-> self root trans))
+          (if (nonzero? (-> self sound)) (update! (-> self sound))))
+        (suspend))))
+
+(defmethod init-from-entity! ((this tfl-part-spawner) (e entity-actor))
+  (stack-size-set! (-> this main-thread) 256)
+  (process-mask-set! (-> this mask) ambient)
+  (set! (-> this root) (new 'process 'trsqv))
+  (process-drawable-from-entity! this e)
+  (process-mask-clear! (-> this mask) actor-pause)
+  (set! (-> this radius) 12288.0)
+  (set! (-> this enable)
+        (not (and (-> this entity) (logtest? (-> this entity extra perm status) (entity-perm-status complete)))))
+  (set! (-> this sound) (new 'process 'ambient-sound (-> this entity) (-> this root trans)))
+  (let ((group-name (the object "#f")))
+    (let ((group-ptr (the (pointer sparticle-launch-group) #f))
+          (tag (new 'static 'res-tag)))
+      (let* ((art-ptr-ptr (res-lump-data e 'art-name (pointer (pointer sparticle-launch-group)) :tag-ptr (& tag)))
+             (art-ptr (-> art-ptr-ptr 0)))
+        (cond
+          ((part-group-pointer? art-ptr) (set! group-ptr (-> art-ptr-ptr 0)))
+          ((= (-> art-ptr -1) string)
+           (set! group-name art-ptr)
+           (set! group-ptr (lookup-part-group-pointer-by-name (the string group-name)))
+           (if group-ptr (set! (-> art-ptr-ptr 0) group-ptr)))
+          ((= (-> art-ptr -1) symbol)
+           ;; og:preserve-this
+           (set! group-name (symbol->string (the symbol art-ptr)))
+           (set! group-ptr (lookup-part-group-pointer-by-name (the string group-name)))
+           (if group-ptr (set! (-> art-ptr-ptr 0) group-ptr)))
+          (else (go process-drawable-art-error (the string art-ptr)))))
+      (set! (-> this mode) group-ptr)
+      (when group-ptr
+        (let ((group (-> group-ptr 0)))
+          (when (and (nonzero? group) (= (-> group type) sparticle-launch-group))
+            (set! (-> this part) (create-launch-control group this))
+            (go tfl-part-spawner-active)))))
+    ; (if (res-lump-struct (-> this entity) 'copy-quat symbol) (quaternion-copy! *particle-quat* (-> this root quat)))
+    (go process-drawable-art-error (the string group-name)))
+  (none))

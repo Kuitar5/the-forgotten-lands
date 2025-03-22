@@ -1,0 +1,2114 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+;; name: crescent-part.gc
+
+(deftype crescent-part (part-spawner) ())
+
+;; group-id range for crescent top : 850-899
+;; part-id range for crescent top : 3200-3399
+
+(defpartgroup group-crescent-butterflies
+  :id 850
+  :bounds (static-bspherem 0 0 0 30)
+  :parts
+  ((sp-item 3200
+            :fade-after (meters 120)
+            :period (seconds 16.345)
+            :length (seconds 0.017)
+            :hour-mask #b111111100000000000111111
+            :binding 3201)
+   (sp-item 3200
+            :fade-after (meters 120)
+            :period (seconds 22.125)
+            :length (seconds 0.017)
+            :hour-mask #b111111100000000000111111
+            :binding 3201)
+   (sp-item 3200
+            :fade-after (meters 120)
+            :period (seconds 32.82)
+            :length (seconds 0.017)
+            :hour-mask #b111111100000000000111111
+            :binding 3201)
+   (sp-item 3201 :flags (start-dead launch-asap) :binding 3202)
+   (sp-item 3202 :flags (is-3d start-dead))
+   (sp-item 3201 :flags (start-dead launch-asap) :binding 3202)
+   (sp-item 3202 :flags (is-3d start-dead))
+   (sp-item 3201 :flags (start-dead launch-asap) :binding 3202)
+   (sp-item 3202 :flags (is-3d start-dead))
+   (sp-item 3201 :flags (start-dead launch-asap) :binding 3202)
+   (sp-item 3202 :flags (is-3d start-dead))
+   (sp-item 3201 :flags (start-dead launch-asap) :binding 3202)
+   (sp-item 3202 :flags (is-3d start-dead))))
+
+(defpart 3200
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2))
+   (:num 1.0)
+   (:x (meters 0) (meters 7.5))
+   (:y (meters 14) (meters 3))
+   (:scale-x (meters 1))
+   (:scale-y :copy scale-x)
+   (:r 128.0)
+   (:a 0.0)
+   (:vel-y (meters -0.036666665))
+   (:accel-y (meters 0.00033333333))
+   (:timer (seconds 20))
+   (:flags (bit3))
+   (:next-time (seconds 1.85))
+   (:next-launcher 3203)
+   (:rotate-y (degrees 0) (degrees 360))))
+
+(defpart 3203
+  :init-specs ((:accel-y (meters 0)) (:next-time (seconds 9) (seconds 4.997)) (:next-launcher 3204)))
+
+(defpart 3204
+  :init-specs ((:accel-y (meters 0.00033333333))))
+
+(defpart 3201
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2))
+   (:num 1.0)
+   (:x (meters 0) (meters 16))
+   (:y (meters 0) (meters 16))
+   (:z (meters 3) (meters 1))
+   (:scale-x (meters 0.1))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:g 0.0 256.0)
+   (:b 128.0 1 128.0)
+   (:a 0.0)
+   (:omega 0.0 65536.0)
+   (:vel-x (meters -0.017777778) (meters 0.035555556))
+   (:vel-y (meters -0.0074074077) (meters 0.0148148155))
+   (:vel-z (meters 0))
+   (:timer (seconds 20))
+   (:flags (bit3 bit7))
+   (:next-time (seconds 0.5) (seconds 1.497))
+   (:next-launcher 3205)))
+
+(defpart 3205
+  :init-specs
+  ((:vel-x (meters -0.017777778) (meters 0.035555556))
+   (:vel-y (meters -0.0074074077) (meters 0.0148148155))
+   (:rotvel-z (degrees -0.2) (degrees 0.4))
+   (:next-time (seconds 0.5) (seconds 1.497))
+   (:next-launcher 3205)))
+
+(defpart 3202
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x22 :page #x2))
+   (:birth-func 'birth-func-copy-rot-color)
+   (:num 2.0)
+   (:scale-x (meters 0.9))
+   (:rot-x (degrees -60) (degrees 300))
+   (:scale-y (meters 1.3))
+   (:r 255.0)
+   (:g 255.0)
+   (:b 255.0)
+   (:a 128.0)
+   (:fade-a -8.0)
+   (:timer (seconds 0.035))
+   (:flags (bit2 bit9 bit12))))
+
+(defpartgroup group-crescent-hummingbird
+  :id 851
+  :bounds (static-bspherem 0 3 0 4)
+  :parts
+  ((sp-item 3206
+            :fade-after (meters 20)
+            :flags (is-3d bit1)
+            :period (seconds 20)
+            :length (seconds 0.017)
+            :hour-mask #b111111100000000000111111)
+   (sp-item 3207 :fade-after (meters 20) :flags (is-3d bit1) :period (seconds 20) :length (seconds 0.017))
+   (sp-item 3208 :fade-after (meters 20) :flags (is-3d bit1) :period (seconds 20) :length (seconds 0.017))
+   (sp-item 3209 :fade-after (meters 20) :flags (is-3d bit1) :period (seconds 20) :length (seconds 0.017))
+   (sp-item 3210 :fade-after (meters 20) :flags (is-3d bit1) :period (seconds 20) :length (seconds 0.017))
+   (sp-item 3211 :fade-after (meters 20) :flags (is-3d bit1) :period (seconds 20) :length (seconds 0.017))))
+
+(defpart 3206
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1b :page #x2))
+   (:num 1.0)
+   (:scale-x (meters 0.5))
+   (:rot-x (degrees 90))
+   (:scale-y (meters 0.5) (meters 0.1))
+   (:r 128.0)
+   (:g 128.0)
+   (:b 128.0)
+   (:a 96.0 1 16.0)
+   (:vel-x (meters 0.0024242424))
+   (:vel-y (meters 0.02))
+   (:accel-y (meters -0.00016666666))
+   (:timer (seconds 2.75))
+   (:flags (bit2 bit9 bit12 left-multiply-quat))
+   (:next-time (seconds 0.017))
+   (:next-launcher 3212)))
+
+(defpart 3212
+  :init-specs ((:scale-y (meters 0.5) (meters 0.1)) (:a 96.0 1 16.0) (:next-time (seconds 0.017)) (:next-launcher 3212)))
+
+(defpart 3207
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1b :page #x2))
+   (:num 1.0)
+   (:scale-x (meters 0.5))
+   (:rot-x (degrees 90))
+   (:scale-y (meters 0.5) (meters 0.1))
+   (:r 128.0)
+   (:g 128.0)
+   (:b 128.0)
+   (:a 0.0)
+   (:vel-x (meters 0.0024242424))
+   (:vel-y (meters 0.02))
+   (:accel-y (meters -0.00016666666))
+   (:timer (seconds 6))
+   (:flags (bit9 bit12 left-multiply-quat))
+   (:next-time (seconds 2.75))
+   (:next-launcher 3213)))
+
+(defpart 3213
+  :init-specs
+  ((:scale-y (meters 0.5) (meters 0.1))
+   (:a 96.0 1 16.0)
+   (:accel-x (meters 0.00066666666))
+   (:accel-y (meters 0.00033333333))
+   (:next-time (seconds 0.017))
+   (:next-launcher 3214)))
+
+(defpart 3214
+  :init-specs ((:scale-y (meters 0.5) (meters 0.1)) (:a 96.0 1 16.0) (:next-time (seconds 0.017)) (:next-launcher 3214)))
+
+(defpart 3208
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1c :page #x2))
+   (:num 2.0)
+   (:scale-x (meters 1))
+   (:rot-x (degrees 135))
+   (:rot-y (degrees 90))
+   (:rot-z (degrees 60))
+   (:scale-y (meters 0.5))
+   (:r 128.0)
+   (:g 128.0)
+   (:b 128.0)
+   (:a 32.0 1 32.0)
+   (:vel-x (meters 0.0024242424))
+   (:vel-y (meters 0.02))
+   (:accel-y (meters -0.00016666666))
+   (:timer (seconds 2.75))
+   (:flags (bit2 bit9 bit12))
+   (:next-time (seconds 0.017))
+   (:next-launcher 3215)))
+
+(defpart 3215
+  :init-specs
+  ((:rot-x (degrees 135))
+   (:rot-y (degrees 90))
+   (:rot-z (degrees -70) (degrees 140))
+   (:a 32.0 1 32.0)
+   (:next-time (seconds 0.017))
+   (:next-launcher 3215)))
+
+(defpart 3209
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1c :page #x2))
+   (:num 2.0)
+   (:scale-x (meters 1))
+   (:rot-x (degrees 135))
+   (:rot-y (degrees 90))
+   (:rot-z (degrees 60))
+   (:scale-y (meters 0.5))
+   (:r 128.0)
+   (:g 128.0)
+   (:b 128.0)
+   (:a 0.0)
+   (:vel-x (meters 0.0024242424))
+   (:vel-y (meters 0.02))
+   (:accel-y (meters -0.00016666666))
+   (:timer (seconds 6))
+   (:flags (bit9 bit12))
+   (:next-time (seconds 2.75))
+   (:next-launcher 3216)))
+
+(defpart 3216
+  :init-specs
+  ((:rot-x (degrees 135))
+   (:rot-y (degrees 90))
+   (:rot-z (degrees -70) (degrees 140))
+   (:a 32.0 1 32.0)
+   (:accel-x (meters 0.00066666666))
+   (:accel-y (meters 0.00033333333))
+   (:next-time (seconds 0.017))
+   (:next-launcher 3217)))
+
+(defpart 3217
+  :init-specs
+  ((:rot-x (degrees 135))
+   (:rot-y (degrees 90))
+   (:rot-z (degrees -70) (degrees 140))
+   (:a 32.0 1 32.0)
+   (:next-time (seconds 0.017))
+   (:next-launcher 3217)))
+
+(defpart 3210
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1c :page #x2))
+   (:num 2.0)
+   (:scale-x (meters 1))
+   (:rot-x (degrees 45))
+   (:rot-y (degrees -90))
+   (:scale-y (meters 0.5))
+   (:r 128.0)
+   (:g 128.0)
+   (:b 128.0)
+   (:a 32.0 1 32.0)
+   (:vel-x (meters 0.0024242424))
+   (:vel-y (meters 0.02))
+   (:accel-y (meters -0.00016666666))
+   (:timer (seconds 2.75))
+   (:flags (bit2 bit9 bit12))
+   (:next-time (seconds 0.017))
+   (:next-launcher 3218)))
+
+(defpart 3218
+  :init-specs
+  ((:rot-x (degrees 45))
+   (:rot-y (degrees -90))
+   (:rot-z (degrees -70) (degrees 140))
+   (:a 32.0 1 32.0)
+   (:next-time (seconds 0.017))
+   (:next-launcher 3218)))
+
+(defpart 3211
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1c :page #x2))
+   (:num 2.0)
+   (:scale-x (meters 1))
+   (:rot-x (degrees 45))
+   (:rot-y (degrees -90))
+   (:rot-z (degrees 60))
+   (:scale-y (meters 0.5))
+   (:r 128.0)
+   (:g 128.0)
+   (:b 128.0)
+   (:a 0.0)
+   (:vel-x (meters 0.0024242424))
+   (:vel-y (meters 0.02))
+   (:accel-y (meters -0.00016666666))
+   (:timer (seconds 6))
+   (:flags (bit9 bit12))
+   (:next-time (seconds 2.75))
+   (:next-launcher 3219)))
+
+(defpart 3219
+  :init-specs
+  ((:rot-x (degrees 45))
+   (:rot-y (degrees -90))
+   (:rot-z (degrees -70) (degrees 140))
+   (:a 32.0 1 32.0)
+   (:accel-x (meters 0.00066666666))
+   (:accel-y (meters 0.00033333333))
+   (:next-time (seconds 0.017))
+   (:next-launcher 3220)))
+
+(defpart 3220
+  :init-specs
+  ((:rot-x (degrees 45))
+   (:rot-y (degrees -90))
+   (:rot-z (degrees -70) (degrees 140))
+   (:a 32.0 1 32.0)
+   (:next-time (seconds 0.017))
+   (:next-launcher 3220)))
+
+(defpartgroup group-crescent-seagulls
+  :id 852
+  :bounds (static-bspherem 0 8 0 45)
+  :parts
+  ((sp-item 3221 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3222)
+   (sp-item 3221 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3222)
+   (sp-item 3221 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3222)
+   (sp-item 3221 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3222)
+   (sp-item 3221 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3222)
+   (sp-item 3221 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3222)
+   (sp-item 3221 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3222)
+   (sp-item 3221 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3222)
+   (sp-item 3221 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3222)
+   (sp-item 3221 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3222)
+   (sp-item 3221 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3222)
+   (sp-item 3221 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3222)
+   (sp-item 3221 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3222)
+   (sp-item 3221 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3222)
+   (sp-item 3221 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3222)
+   (sp-item 3221 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3222)
+   (sp-item 3222 :flags (start-dead launch-asap) :binding 3223)
+   (sp-item 3223 :flags (is-3d start-dead))
+   (sp-item 3222 :flags (start-dead launch-asap) :binding 3223)
+   (sp-item 3223 :flags (is-3d start-dead))
+   (sp-item 3222 :flags (start-dead launch-asap) :binding 3223)
+   (sp-item 3223 :flags (is-3d start-dead))
+   (sp-item 3222 :flags (start-dead launch-asap) :binding 3223)
+   (sp-item 3223 :flags (is-3d start-dead))
+   (sp-item 3222 :flags (start-dead launch-asap) :binding 3223)
+   (sp-item 3223 :flags (is-3d start-dead))
+   (sp-item 3222 :flags (start-dead launch-asap) :binding 3223)
+   (sp-item 3223 :flags (is-3d start-dead))
+   (sp-item 3222 :flags (start-dead launch-asap) :binding 3223)
+   (sp-item 3223 :flags (is-3d start-dead))
+   (sp-item 3222 :flags (start-dead launch-asap) :binding 3223)
+   (sp-item 3223 :flags (is-3d start-dead))
+   (sp-item 3222 :flags (start-dead launch-asap) :binding 3223)
+   (sp-item 3223 :flags (is-3d start-dead))
+   (sp-item 3222 :flags (start-dead launch-asap) :binding 3223)
+   (sp-item 3223 :flags (is-3d start-dead))
+   (sp-item 3222 :flags (start-dead launch-asap) :binding 3223)
+   (sp-item 3223 :flags (is-3d start-dead))
+   (sp-item 3222 :flags (start-dead launch-asap) :binding 3223)
+   (sp-item 3223 :flags (is-3d start-dead))
+   (sp-item 3222 :flags (start-dead launch-asap) :binding 3223)
+   (sp-item 3223 :flags (is-3d start-dead))
+   (sp-item 3222 :flags (start-dead launch-asap) :binding 3223)
+   (sp-item 3223 :flags (is-3d start-dead))
+   (sp-item 3222 :flags (start-dead launch-asap) :binding 3223)
+   (sp-item 3223 :flags (is-3d start-dead))
+   (sp-item 3222 :flags (start-dead launch-asap) :binding 3223)
+   (sp-item 3223 :flags (is-3d start-dead))
+   (sp-item 3222 :flags (start-dead launch-asap) :binding 3223)
+   (sp-item 3223 :flags (is-3d start-dead))))
+
+(defun bird-bob-func ((arg0 sparticle-system) (arg1 sparticle-cpuinfo) (arg2 vector))
+  (set! (-> arg2 y)
+        (+ (-> (the-as process-drawable (-> arg1 key proc)) root trans y)
+           (* -2048.0 (sin (* 218.45334 (the float (mod (-> *display* base-frame-counter) 300)))))))
+  0
+  (none))
+
+(defpart 3221
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2))
+   (:birth-func 'birth-func-random-next-time)
+   (:num 1.0)
+   (:x (meters -15) (meters 30))
+   (:y (meters 0) (meters 16))
+   (:z (meters -15) (meters 30))
+   (:scale-x (meters 1))
+   (:scale-y :copy scale-x)
+   (:r 128.0)
+   (:a 0.0)
+   (:timer (seconds -0.005))
+   (:flags (bit3))
+   (:userdata 199.98)
+   (:func 'bird-bob-func)))
+
+(defun sparticle-seagull-moon ((arg0 sparticle-system) (arg1 sparticle-cpuinfo) (arg2 matrix))
+  (set! (-> arg2 vector 1 z) (the float (sar (shl (the int (+ -16384.0 (-> arg1 omega))) 48) 48)))
+  0
+  (none))
+
+(defpart 3222
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2))
+   (:birth-func 'birth-func-copy-omega-to-z)
+   (:num 1.0)
+   (:x (meters 0))
+   (:y (meters 0))
+   (:z (meters 30))
+   (:scale-x (meters 0))
+   (:rot-z (degrees 0))
+   (:r 32.0)
+   (:g 32.0)
+   (:b 32.0)
+   (:a 0.0)
+   (:omega 0.0 65536.0)
+   (:vel-x (meters 0.0044444446))
+   (:vel-z (meters 0))
+   (:scalevel-x (meters 0.04))
+   (:timer (seconds 2))
+   (:flags (bit3 bit7))
+   (:func 'sparticle-seagull-moon)
+   (:next-time (seconds 0.665))
+   (:next-launcher 3224)))
+
+(defpart 3224
+  :init-specs
+  ((:scale-x (meters 8))
+   (:scalevel-x (meters -0.08))
+   (:timer (seconds 2))
+   (:next-time (seconds 0.335))
+   (:next-launcher 3225)))
+
+(defpart 3225
+  :init-specs
+  ((:scale-x (meters 0))
+   (:scalevel-x (meters -0.04))
+   (:timer (seconds 2))
+   (:next-time (seconds 0.665))
+   (:next-launcher 3224)))
+
+(defpart 3223
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1c :page #x2))
+   (:birth-func 'birth-func-copy2-rot-color)
+   (:num 2.0)
+   (:scale-x (meters 4))
+   (:scale-y (meters 1.5))
+   (:a 128.0)
+   (:timer (seconds 0.017))
+   (:flags (bit2 bit9 bit12))))
+
+(defpartgroup group-crescent-butterfly-sitting
+  :id 853
+  :bounds (static-bspherem 0 0.2 0 0.5)
+  :parts
+  ((sp-item 3226 :fade-after (meters 60) :flags (is-3d bit1) :period (seconds 2) :length (seconds 0.017))
+   (sp-item 3227 :fade-after (meters 60) :flags (is-3d bit1) :period (seconds 2) :length (seconds 0.017))))
+
+(defpart 3226
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x22 :page #x2))
+   (:num 1.0)
+   (:y (meters 0.05))
+   (:scale-x (meters 0.9))
+   (:rot-x (degrees 100.00001))
+   (:rot-y (degrees 72.5))
+   (:scale-y (meters 1.3))
+   (:r 0.0)
+   (:g 128.0)
+   (:b 255.0)
+   (:a 128.0)
+   (:rotvel-x (degrees 0.33333334))
+   (:timer (seconds 2))
+   (:flags (bit2 bit9 bit12 left-multiply-quat))
+   (:next-time (seconds 1))
+   (:next-launcher 3228)))
+
+(defpart 3228
+  :init-specs ((:rotvel-x (degrees -0.31666666))))
+
+(defpart 3227
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x22 :page #x2))
+   (:num 1.0)
+   (:y (meters 0.05))
+   (:scale-x (meters 0.9))
+   (:rot-x (degrees 80))
+   (:rot-y (degrees 72.5))
+   (:scale-y (meters 1.3))
+   (:r 0.0)
+   (:g 128.0)
+   (:b 255.0)
+   (:a 128.0)
+   (:rotvel-x (degrees -0.33333334))
+   (:timer (seconds 2))
+   (:flags (bit2 bit9 bit12 left-multiply-quat))
+   (:next-time (seconds 1))
+   (:next-launcher 3229)))
+
+(defpart 3229
+  :init-specs ((:rotvel-x (degrees 0.31666666))))
+
+;; custom orange race ring color
+
+(defpartgroup group-rolling-ring-orange
+  :id 854
+  :linger-duration (seconds 0)
+  :bounds (static-bspherem 0 0 0 8)
+  :parts
+  ((sp-item 3230 :fade-after (meters 100) :falloff-to (meters 100))
+   (sp-item 3231 :fade-after (meters 80))
+   (sp-item 3232 :flags (is-3d))
+   (sp-item 3233 :flags (is-3d))))
+
+(defpart 3230
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x12 :page #x2))
+   (:num 2.0 2.0)
+   (:scale-x (meters 1) (meters 1))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 180.0 1 64.0)
+   (:g 64.0 1 32.0)
+   (:b 0.0)
+   (:a 64.0)
+   (:rotvel-z (degrees -0.2) (degrees 0.4))
+   (:fade-a -1.4222221)
+   (:timer (seconds 0.14))
+   (:flags (bit2 bit3))
+   (:conerot-x (degrees 0) (degrees 360))
+   (:conerot-radius (meters 4.5))
+   (:rotate-y (degrees 0))))
+
+(defpart 3231
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x12 :page #x2))
+   (:num 1.0)
+   (:scale-x (meters 1) (meters 4))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 180.0 1 64.0)
+   (:g 64.0 1 32.0)
+   (:b 0.0)
+   (:a 64.0)
+   (:rotvel-z (degrees -0.2) (degrees 0.4))
+   (:fade-a -1.4222221)
+   (:timer (seconds 0.14))
+   (:flags (bit2 bit3))
+   (:conerot-x (degrees 0) (degrees 360))
+   (:conerot-radius (meters 4.5))
+   (:rotate-y (degrees 0))))
+
+(defpart 3232
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1e :page #x2))
+   (:num 1.0)
+   (:scale-x (meters 10))
+   (:rot-x (degrees 0) (degrees 360))
+   (:rot-y (degrees -1) (degrees 2))
+   (:rot-z (degrees 90))
+   (:scale-y :copy scale-x)
+   (:r 250.0 1 127.0)
+   (:g 64.0 1 64.0)
+   (:b 0.0)
+   (:a 96.0 32.0)
+   (:fade-a -8.533334)
+   (:timer (seconds 0.035))
+   (:flags (bit2 bit3))))
+
+(defpart 3233
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x4 :page #x2))
+   (:num 1.0)
+   (:scale-x (meters 12))
+   (:rot-x (degrees 0) (degrees 360))
+   (:rot-y (degrees 0))
+   (:rot-z (degrees 90))
+   (:scale-y :copy scale-x)
+   (:r 250.0 1 127.0)
+   (:g 64.0 1 32.0)
+   (:b 0.0)
+   (:a 32.0 32.0)
+   (:timer (seconds 0.017))
+   (:flags (bit2 bit3))))
+
+(defpartgroup group-rolling-spawn-ring-orange
+  :id 855
+  :duration (seconds 0.017)
+  :linger-duration (seconds 0.47)
+  :bounds (static-bspherem 0 0 0 8)
+  :parts
+  ((sp-item 3234 :fade-after (meters 100) :falloff-to (meters 100))
+   (sp-item 3235 :flags (is-3d))
+   (sp-item 3236 :flags (is-3d))))
+
+(defpart 3234
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x12 :page #x2))
+   (:num 32.0)
+   (:scale-x (meters 1) (meters 3))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 180.0 1 64.0)
+   (:g 64.0 1 32.0)
+   (:b 0.0)
+   (:a 0.0 63 1.0)
+   (:vel-y (meters 0.03))
+   (:rotvel-z (degrees -0.2) (degrees 0.4))
+   (:timer (seconds 0.5))
+   (:flags (bit3))
+   (:next-time (seconds 0.067) (seconds 0.065))
+   (:next-launcher 3237)
+   (:conerot-x (degrees 0) (degrees 360))
+   (:conerot-radius (meters 0))
+   (:rotate-y (degrees 0))))
+
+(defpart 3237
+  :init-specs
+  ((:r 180.0 1 64.0)
+   (:g 64.0 1 32.0)
+   (:b 0.0)
+   (:a 0.0 63 1.0)
+   (:next-time (seconds 0.067) (seconds 0.065))
+   (:next-launcher 3237)))
+
+(defpart 3235
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1e :page #x2))
+   (:num 1.0)
+   (:scale-x (meters 0))
+   (:rot-x (degrees 0) (degrees 360))
+   (:rot-y (degrees -1) (degrees 2))
+   (:rot-z (degrees 90))
+   (:scale-y :copy scale-x)
+   (:r 250.0 1 127.0)
+   (:g 64.0 1 32.0)
+   (:b 0.0)
+   (:a 96.0 32.0)
+   (:scalevel-x (meters 0.06666667))
+   (:scalevel-y :copy scalevel-x)
+   (:timer (seconds 0.5))
+   (:flags (bit2 bit3 left-multiply-quat))
+   (:next-time (seconds 0.017))
+   (:next-launcher 3238)))
+
+(defpart 3238
+  :init-specs ((:r 250.0 1 127.0) (:g 64.0 1 32.0) (:b 0.0) (:a 32.0 32.0) (:next-time (seconds 0.017)) (:next-launcher 3238)))
+
+(defpart 3236
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x4 :page #x2))
+   (:num 1.0)
+   (:scale-x (meters 0))
+   (:rot-x (degrees 0) (degrees 360))
+   (:rot-y (degrees 0))
+   (:rot-z (degrees 90))
+   (:scale-y :copy scale-x)
+   (:r 250.0 1 127.0)
+   (:g 64.0 1 32.0)
+   (:b 0.0)
+   (:a 32.0 32.0)
+   (:scalevel-x (meters 0.08))
+   (:scalevel-y :copy scalevel-x)
+   (:timer (seconds 0.5))
+   (:flags (bit2 bit3 left-multiply-quat))
+   (:next-time (seconds 0.017))
+   (:next-launcher 3239)))
+
+(defpart 3239
+  :init-specs ((:r 250.0 1 127.0) (:g 64.0 1 32.0) (:b 0.0) (:a 32.0 32.0) (:next-time (seconds 0.017)) (:next-launcher 3239)))
+
+(defpartgroup group-rolling-explode-ring-orange
+  :id 856
+  :duration (seconds 0.017)
+  :linger-duration (seconds 0.5)
+  :bounds (static-bspherem 0 0 0 8)
+  :parts ((sp-item 3240 :fade-after (meters 100) :falloff-to (meters 100)) (sp-item 3241 :flags (is-3d))))
+
+(defpart 3240
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x12 :page #x2))
+   (:num 64.0)
+   (:scale-x (meters 1) (meters 1))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 180.0 1 64.0)
+   (:g 64.0 1 32.0)
+   (:b 0.0)
+   (:a 32.0 96.0)
+   (:vel-y (meters 0.1) (meters 0.033333335))
+   (:rotvel-z (degrees -0.2) (degrees 0.4))
+   (:fade-a -0.85333335)
+   (:friction 0.9)
+   (:timer (seconds 0.5))
+   (:flags (bit2 bit3))
+   (:conerot-x (degrees 0) (degrees 360))
+   (:conerot-radius (meters 4.5))
+   (:rotate-y (degrees 0))))
+
+(defpart 3241
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1e :page #x2))
+   (:num 2.0)
+   (:scale-x (meters 10))
+   (:rot-x (degrees 0) (degrees 360))
+   (:rot-y (degrees -1) (degrees 2))
+   (:rot-z (degrees 90))
+   (:scale-y :copy scale-x)
+   (:r 250.0 1 127.0)
+   (:g 64.0 1 32.0)
+   (:b 0.0)
+   (:a 128.0)
+   (:scalevel-x (meters 0.06666667))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-a -0.85333335)
+   (:timer (seconds 0.5))
+   (:flags (bit2 bit3))))
+
+(defpartgroup group-crescent-birds
+  :id 857
+  :bounds (static-bspherem 0 8 0 45)
+  :parts
+  ((sp-item 3242 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3243)
+   (sp-item 3242 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3243)
+   (sp-item 3242 :fade-after (meters 120) :flags (bit1 launch-asap) :binding 3243)
+   (sp-item 3243 :flags (start-dead launch-asap) :binding 3245)
+   (sp-item 3245 :flags (is-3d start-dead))
+   (sp-item 3243 :flags (start-dead launch-asap) :binding 3245)
+   (sp-item 3245 :flags (is-3d start-dead))
+   (sp-item 3243 :flags (start-dead launch-asap) :binding 3245)
+   (sp-item 3245 :flags (is-3d start-dead))))
+
+(defpart 3242
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2))
+   (:birth-func 'birth-func-random-next-time)
+   (:num 1.0)
+   (:x (meters -15) (meters 30))
+   (:y (meters 0) (meters 16))
+   (:z (meters -15) (meters 30))
+   (:scale-x (meters 1))
+   (:scale-y :copy scale-x)
+   (:r 128.0)
+   (:a 0.0)
+   (:timer (seconds -0.005))
+   (:flags (bit3))
+   (:userdata 199.98)
+   (:func 'bird-bob-func)))
+
+(defpart 3243
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2))
+   (:birth-func 'birth-func-copy-omega-to-z)
+   (:num 1.0)
+   (:x (meters 0))
+   (:y (meters 0))
+   (:z (meters 30))
+   (:scale-x (meters 0))
+   (:rot-z (degrees 0))
+   (:r 255.0)
+   (:g 255.0)
+   (:b 255.0)
+   (:a 0.0)
+   (:omega 0.0 65536.0)
+   (:vel-x (meters 0.0044444446))
+   (:vel-z (meters 0))
+   (:scalevel-x (meters 0.04))
+   (:timer (seconds 2))
+   (:flags (bit3 bit7))
+   (:func 'sparticle-seagull-moon)
+   (:next-time (seconds 0.665))
+   (:next-launcher 3244)))
+
+(defpart 3244
+  :init-specs
+  ((:scale-x (meters 8))
+   (:scalevel-x (meters -0.08))
+   (:timer (seconds 2))
+   (:next-time (seconds 0.335))
+   (:next-launcher 3246)))
+
+(defpart 3246
+  :init-specs
+  ((:scale-x (meters 0))
+   (:scalevel-x (meters -0.04))
+   (:timer (seconds 2))
+   (:next-time (seconds 0.665))
+   (:next-launcher 3244)))
+
+(defpart 3245
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1c :page #x2))
+   (:birth-func 'birth-func-copy2-rot-color)
+   (:num 2.0)
+   (:scale-x (meters 4))
+   (:scale-y (meters 1.5))
+   (:a 128.0)
+   (:timer (seconds 0.017))
+   (:flags (bit2 bit9 bit12))))
+
+(defpartgroup group-crescent-downtubeA
+  :id 858
+  :flags (use-local-clock)
+  :bounds (static-bspherem 0 23 0 34)
+  :parts
+  ((sp-item 3247 :fade-after (meters 220) :falloff-to (meters 250) :flags (is-3d))
+   (sp-item 3250 :fade-after (meters 220) :falloff-to (meters 250) :flags (is-3d))
+   (sp-item 3251 :fade-after (meters 220) :falloff-to (meters 250) :flags (is-3d))))
+
+(defpart 3247
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xc :page #x2))
+   (:birth-func 'birth-func-random-rot)
+   (:num 0.5 0.2)
+   (:y (meters 0.0))
+   (:scale-x (meters 3) (meters 1))
+   (:rot-x (degrees 80))
+   (:rot-y (degrees 90))
+   (:rot-z (degrees 0) (degrees 180))
+   (:scale-y (meters 30))
+   (:r 0.0)
+   (:g 16.0 16.0)
+   (:b 128.0 64.0)
+   (:a 0.0)
+   (:fade-a 0.2)
+   (:timer (seconds 3))
+   (:flags (bit2 bit3 bit14 left-multiply-quat))
+   (:userdata 0.0)
+   (:next-time (seconds 1.5))
+   (:next-launcher 3248)
+   (:conerot-x (degrees 90))
+   (:conerot-y (degrees 0) (degrees 180))
+   (:conerot-radius (meters 6.8) (meters 0.5))))
+
+(defpart 3250
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xc :page #x2))
+   (:birth-func 'birth-func-random-rot)
+   (:num 0.2 0.2)
+   (:x (meters -8.0) (meters 8.0))
+   (:y (meters -2.0))
+   (:z (meters 6.5))
+   (:scale-x (meters 3) (meters 1))
+   (:rot-x (degrees 80))
+   (:rot-y (degrees 90))
+   (:rot-z (degrees 0) (degrees 180))
+   (:scale-y (meters 30))
+   (:r 0.0)
+   (:g 16.0 16.0)
+   (:b 128.0 64.0)
+   (:a 0.0)
+   (:fade-a 0.2)
+   (:timer (seconds 3))
+   (:flags (bit2 bit3 bit14 left-multiply-quat))
+   (:userdata 0.0)
+   (:next-time (seconds 1.5))
+   (:next-launcher 3248)))
+
+(defpart 3251
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xc :page #x2))
+   (:birth-func 'birth-func-random-rot)
+   (:num 0.2 0.2)
+   (:x (meters -8.0) (meters 8.0))
+   (:y (meters -2.0))
+   (:z (meters -6.5))
+   (:scale-x (meters 3) (meters 1))
+   (:rot-x (degrees 80))
+   (:rot-y (degrees 90))
+   (:rot-z (degrees 0) (degrees 180))
+   (:scale-y (meters 30))
+   (:r 0.0)
+   (:g 16.0 16.0)
+   (:b 128.0 64.0)
+   (:a 0.0)
+   (:fade-a 0.2)
+   (:timer (seconds 3))
+   (:flags (bit2 bit3 bit14 left-multiply-quat))
+   (:userdata 0.0)
+   (:next-time (seconds 1.5))
+   (:next-launcher 3248)))
+
+(defpart 3248
+  :init-specs ((:g 32.0 32.0) (:a 96.0) (:fade-a 0.0) (:next-time (seconds 0.017)) (:next-launcher 3249)))
+
+(defpart 3249
+  :init-specs ((:g 0.0 32.0) (:a 64.0) (:fade-a -0.1)))
+
+(defpartgroup group-crescent-downtubeB
+  :id 859
+  :flags (use-local-clock)
+  :bounds (static-bspherem 0 23 0 34)
+  :parts
+  ((sp-item 3252 :fade-after (meters 220) :falloff-to (meters 250) :flags (is-3d))
+   (sp-item 3253 :fade-after (meters 220) :falloff-to (meters 250) :flags (is-3d))
+   (sp-item 3254 :fade-after (meters 220) :falloff-to (meters 250) :flags (is-3d))))
+
+(defpart 3252
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xc :page #x2))
+   (:birth-func 'birth-func-random-rot)
+   (:num 0.5 0.2)
+   (:y (meters 1.0))
+   (:scale-x (meters 3) (meters 1))
+   (:rot-x (degrees 85))
+   (:rot-y (degrees 90))
+   (:rot-z (degrees 0) (degrees 180))
+   (:scale-y (meters 30))
+   (:r 0.0)
+   (:g 16.0 16.0)
+   (:b 128.0 64.0)
+   (:a 0.0)
+   (:fade-a 0.2)
+   (:timer (seconds 3))
+   (:flags (bit2 bit3 bit14 left-multiply-quat))
+   (:userdata 0.0)
+   (:next-time (seconds 1.5))
+   (:next-launcher 3248)
+   (:conerot-x (degrees 90))
+   (:conerot-y (degrees 0) (degrees 180))
+   (:conerot-z (degrees 0))
+   (:conerot-radius (meters 6.8) (meters 0.5))))
+
+(defpart 3253
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xc :page #x2))
+   (:birth-func 'birth-func-random-rot)
+   (:num 0.2 0.2)
+   (:x (meters -8.0) (meters 8.0))
+   (:y (meters -0.5))
+   (:z (meters 6.5))
+   (:scale-x (meters 3) (meters 1))
+   (:rot-x (degrees 85))
+   (:rot-y (degrees 90))
+   (:rot-z (degrees 0) (degrees 180))
+   (:scale-y (meters 30))
+   (:r 0.0)
+   (:g 16.0 16.0)
+   (:b 128.0 64.0)
+   (:a 0.0)
+   (:fade-a 0.2)
+   (:timer (seconds 3))
+   (:flags (bit2 bit3 bit14 left-multiply-quat))
+   (:userdata 0.0)
+   (:next-time (seconds 1.5))
+   (:next-launcher 3248)))
+
+(defpart 3254
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xc :page #x2))
+   (:birth-func 'birth-func-random-rot)
+   (:num 0.2 0.2)
+   (:x (meters -8.0) (meters 8.0))
+   (:y (meters -0.5))
+   (:z (meters -6.5))
+   (:scale-x (meters 3) (meters 1))
+   (:rot-x (degrees 80))
+   (:rot-y (degrees 90))
+   (:rot-z (degrees 0) (degrees 180))
+   (:scale-y (meters 30))
+   (:r 0.0)
+   (:g 16.0 16.0)
+   (:b 128.0 64.0)
+   (:a 0.0)
+   (:fade-a 0.2)
+   (:timer (seconds 3))
+   (:flags (bit2 bit3 bit14 left-multiply-quat))
+   (:userdata 0.0)
+   (:next-time (seconds 1.5))
+   (:next-launcher 3248)))
+
+(defpartgroup group-crescent-downtubeC
+  :id 860
+  :flags (use-local-clock)
+  :bounds (static-bspherem 0 23 0 34)
+  :parts
+  ((sp-item 3255 :fade-after (meters 220) :falloff-to (meters 250) :flags (is-3d))
+   (sp-item 3256 :fade-after (meters 220) :falloff-to (meters 250) :flags (is-3d))
+   (sp-item 3257 :fade-after (meters 220) :falloff-to (meters 250) :flags (is-3d))))
+
+(defpart 3255
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xc :page #x2))
+   (:birth-func 'birth-func-random-rot)
+   (:num 0.5 0.2)
+   (:y (meters 0))
+   (:scale-x (meters 3) (meters 1))
+   (:rot-x (degrees 67))
+   (:rot-y (degrees 90))
+   (:rot-z (degrees 0) (degrees 180))
+   (:scale-y (meters 34))
+   (:r 0.0)
+   (:g 16.0 16.0)
+   (:b 128.0 64.0)
+   (:a 0.0)
+   (:fade-a 0.2)
+   (:timer (seconds 3))
+   (:flags (bit2 bit3 bit14 left-multiply-quat))
+   (:userdata 0.0)
+   (:next-time (seconds 1.5))
+   (:next-launcher 3248)
+   (:conerot-x (degrees 90))
+   (:conerot-y (degrees 0) (degrees 180))
+   (:conerot-z (degrees 20))
+   (:conerot-radius (meters 6.8) (meters 0.5))))
+
+(defpart 3256
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xc :page #x2))
+   (:birth-func 'birth-func-random-rot)
+   (:num 0.2 0.2)
+   (:x (meters -8.0) (meters 8.0))
+   (:y (meters -0.5))
+   (:z (meters 6.5))
+   (:scale-x (meters 3) (meters 1))
+   (:rot-x (degrees 65))
+   (:rot-y (degrees 90))
+   (:rot-z (degrees 0) (degrees 180))
+   (:scale-y (meters 33))
+   (:r 0.0)
+   (:g 16.0 16.0)
+   (:b 128.0 64.0)
+   (:a 0.0)
+   (:fade-a 0.2)
+   (:timer (seconds 3))
+   (:flags (bit2 bit3 bit14 left-multiply-quat))
+   (:userdata 0.0)
+   (:next-time (seconds 1.5))
+   (:next-launcher 3248)))
+
+(defpart 3257
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xc :page #x2))
+   (:birth-func 'birth-func-random-rot)
+   (:num 0.2 0.2)
+   (:x (meters -8.0) (meters 8.0))
+   (:y (meters -0.5))
+   (:z (meters -6.5))
+   (:scale-x (meters 3) (meters 1))
+   (:rot-x (degrees 65))
+   (:rot-y (degrees 90))
+   (:rot-z (degrees 0) (degrees 180))
+   (:scale-y (meters 33))
+   (:r 0.0)
+   (:g 16.0 16.0)
+   (:b 128.0 64.0)
+   (:a 0.0)
+   (:fade-a 0.2)
+   (:timer (seconds 3))
+   (:flags (bit2 bit3 bit14 left-multiply-quat))
+   (:userdata 0.0)
+   (:next-time (seconds 1.5))
+   (:next-launcher 3248)))
+
+(defpartgroup group-crescent-downtubeD
+  :id 861
+  :flags (use-local-clock)
+  :bounds (static-bspherem 0 23 0 34)
+  :parts
+  ((sp-item 3258 :fade-after (meters 220) :falloff-to (meters 250) :flags (is-3d))
+   (sp-item 3259 :fade-after (meters 220) :falloff-to (meters 250) :flags (is-3d))
+   (sp-item 3260 :fade-after (meters 220) :falloff-to (meters 250) :flags (is-3d))))
+
+(defpart 3258
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xc :page #x2))
+   (:birth-func 'birth-func-random-rot)
+   (:num 0.5 0.2)
+   (:y (meters 0))
+   (:scale-x (meters 3) (meters 1))
+   (:rot-x (degrees 58))
+   (:rot-y (degrees 90))
+   (:rot-z (degrees 0) (degrees 180))
+   (:scale-y (meters 30))
+   (:r 0.0)
+   (:g 16.0 16.0)
+   (:b 128.0 64.0)
+   (:a 0.0)
+   (:fade-a 0.2)
+   (:timer (seconds 3))
+   (:flags (bit2 bit3 bit14 left-multiply-quat))
+   (:userdata 0.0)
+   (:next-time (seconds 1.5))
+   (:next-launcher 3248)
+   (:conerot-x (degrees 90))
+   (:conerot-y (degrees 0) (degrees 180))
+   (:conerot-z (degrees 43))
+   (:conerot-radius (meters 6.8) (meters 0.5))))
+
+(defpart 3259
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xc :page #x2))
+   (:birth-func 'birth-func-random-rot)
+   (:num 0.2 0.2)
+   (:x (meters -8.0) (meters 10.5))
+   (:y (meters -4.5) (meters 1.5))
+   (:z (meters -13.6))
+   (:scale-x (meters 3) (meters 1))
+   (:rot-x (degrees 58))
+   (:rot-y (degrees 90))
+   (:rot-z (degrees 0) (degrees 180))
+   (:scale-y (meters 30))
+   (:r 0.0)
+   (:g 16.0 16.0)
+   (:b 128.0 64.0)
+   (:a 0.0)
+   (:fade-a 0.2)
+   (:timer (seconds 3))
+   (:flags (bit2 bit3 bit14 left-multiply-quat))
+   (:userdata 0.0)
+   (:next-time (seconds 1.5))
+   (:next-launcher 3248)
+   (:conerot-x (degrees 90))
+   (:conerot-y (degrees 0))
+   (:conerot-z (degrees 140))
+   (:conerot-radius (meters 6.8) (meters 0.5))))
+
+(defpart 3260
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xc :page #x2))
+   (:birth-func 'birth-func-random-rot)
+   (:num 0.2 0.2)
+   (:x (meters -8.0) (meters 10.5))
+   (:y (meters -4.5) (meters 1.5))
+   (:z (meters 0))
+   (:scale-x (meters 3) (meters 1))
+   (:rot-x (degrees 58))
+   (:rot-y (degrees 90))
+   (:rot-z (degrees 0) (degrees 180))
+   (:scale-y (meters 30))
+   (:r 0.0)
+   (:g 16.0 16.0)
+   (:b 128.0 64.0)
+   (:a 0.0)
+   (:fade-a 0.2)
+   (:timer (seconds 3))
+   (:flags (bit2 bit3 bit14 left-multiply-quat))
+   (:userdata 0.0)
+   (:next-time (seconds 1.5))
+   (:next-launcher 3248)
+   (:conerot-x (degrees 90))
+   (:conerot-y (degrees 0))
+   (:conerot-z (degrees 140))
+   (:conerot-radius (meters 6.8) (meters 0.5))))
+
+(defpartgroup group-crescent-lava-20x20
+  :id 862
+  :bounds (static-bspherem 0 0 0 14)
+  :parts
+  ((sp-item 3261 :fade-after (meters 40) :falloff-to (meters 40))
+   (sp-item 3262 :fade-after (meters 100) :falloff-to (meters 100))
+   (sp-item 3263 :fade-after (meters 80) :falloff-to (meters 80) :binding 3269)
+   (sp-item 3269 :flags (start-dead))
+   (sp-item 3269 :flags (start-dead))
+   (sp-item 3269 :flags (start-dead))
+   (sp-item 3269 :flags (start-dead))
+   (sp-item 3269 :flags (start-dead))
+   (sp-item 3269 :flags (start-dead))
+   (sp-item 3269 :flags (start-dead))
+   (sp-item 3269 :flags (start-dead))
+   (sp-item 3264
+            :fade-after (meters 40)
+            :falloff-to (meters 40)
+            :period (seconds 0.457)
+            :length (seconds 0.017)
+            :binding 3270)
+   (sp-item 3264
+            :fade-after (meters 60)
+            :falloff-to (meters 60)
+            :period (seconds 0.78)
+            :length (seconds 0.017)
+            :binding 3270)
+   (sp-item 3264
+            :fade-after (meters 80)
+            :falloff-to (meters 80)
+            :period (seconds 0.307)
+            :length (seconds 0.017)
+            :binding 3270)
+   (sp-item 3270 :flags (start-dead))))
+
+(defpart 3262 ;; smoke
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 0.05 0.15) ;; 0.2
+   (:x (meters -10) (meters 20))
+   (:y (meters 0.5))
+   (:z (meters -10) (meters 20))
+   (:scale-x (meters 6) (meters 4))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 256.0)
+   (:g 164.0)
+   (:b 100.0)
+   (:a 0.0)
+   (:vel-y (meters 0.002) (meters 0.003))
+   (:scalevel-x (meters 0.0033333334))
+   (:rotvel-z (degrees -0.2) (degrees 0.4))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-a 0.4)
+   (:timer (seconds 4.5))
+   (:flags (bit2))
+   (:next-time (seconds 0.2) (seconds 0.3))
+   (:next-launcher 3265)
+   (:rotate-y (degrees 0))))
+
+(defpart 3264 ;; some heat waves?
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x12 :page #x2))
+   (:num 1.5) ;; 1.5
+   (:x (meters -10) (meters 20))
+   (:y (meters 0))
+   (:z (meters -10) (meters 20))
+   (:scale-x (meters 2.5) (meters 1.5))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 255.0)
+   (:g 0.0 128.0)
+   (:a 255.0)
+   (:rotvel-z (degrees -0.8) (degrees 6.8))
+   (:fade-a -12.0)
+   (:timer (seconds 0.067))
+   (:flags (bit2 bit3))
+   (:rotate-y (degrees 0))))
+
+(defpart 3263 ;; jumping drops
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x4 :page #x2))
+   (:num 0.02 0.02) ;; 0.02 0.02
+   (:x (meters -10) (meters 20))
+   (:y (meters 0))
+   (:z (meters -10) (meters 20))
+   (:scale-x (meters 0.75) (meters 0.25))
+   (:scale-y :copy scale-x)
+   (:r 256.0)
+   (:g 0.0 128.0)
+   (:a 255.0)
+   (:vel-y (meters 0.04) (meters 0.02))
+   (:fade-g -0.30476192)
+   (:accel-y (meters -0.0026666666))
+   (:timer (seconds 0.6))
+   (:flags (bit2 bit3))
+   (:conerot-x (degrees 0) (degrees 30))
+   (:conerot-y (degrees 0) (degrees 360))
+   (:rotate-y (degrees 0))))
+
+(defpart 3261 ;; heat waves!
+  :init-specs
+  ((:num 1.0) ;; 1.0
+   (:x (meters -10) (meters 20))
+   (:y (meters 0.5))
+   (:z (meters -10) (meters 20))
+   (:rot-x 5)
+   (:r 8192.0)
+   (:g 5324.8)
+   (:b 5324.8)
+   (:vel-y (meters 0.006666667) (meters 0.006666667))
+   (:fade-r 40.96)
+   (:fade-g 27.306667)
+   (:fade-b 38.229332)
+   (:timer (seconds 0.5))
+   (:flags (aux-list))
+   (:next-time (seconds 0.25))
+   (:next-launcher 3266)
+   (:rotate-y (degrees 0))))
+
+(defpart 3266
+  :init-specs ((:fade-b 16.384)))
+
+(defpart 3265
+  :init-specs ((:fade-a 0.0) (:next-time (seconds 0.05)) (:next-launcher 3267)))
+
+(defpart 3267
+  :init-specs
+  ((:fade-r -1.4)
+   (:fade-g -1.0)
+   (:fade-b -0.7)
+   (:fade-a -0.035)
+   (:next-time (seconds 0.4) (seconds 0.2))
+   (:next-launcher 3268)))
+
+(defpart 3268
+  :init-specs ((:fade-r 0.0) (:fade-g 0.0) (:fade-b 0.0) (:fade-a -0.06)))
+
+(defpart 3269
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2))
+   (:num 0.7)
+   (:scale-x (meters 0.75) (meters 0.25))
+   (:scale-y :copy scale-x)
+   (:r 128.0)
+   (:g 0.0 128.0)
+   (:a 128.0 128.0)
+   (:scalevel-x (meters -0.0029166667))
+   (:scalevel-y :copy scalevel-x)
+   (:accel-y (meters -0.00033333333))
+   (:timer (seconds 0.1) (seconds 0.597))
+   (:flags (bit0 bit3))
+   (:rotate-y (degrees 45))))
+
+(defpart 3270
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2))
+   (:num 1.0 6.0)
+   (:scale-x (meters 0.2) (meters 0.5))
+   (:scale-y :copy scale-x)
+   (:r 256.0)
+   (:g 0.0 128.0)
+   (:a 128.0 128.0)
+   (:vel-y (meters 0.006666667) (meters 0.02))
+   (:scalevel-x (meters -0.0023333333))
+   (:scalevel-y :copy scalevel-x)
+   (:accel-y (meters -0.00066666666))
+   (:timer (seconds 1.2))
+   (:flags (bit0 bit3))
+   (:conerot-x (degrees 0) (degrees 60))
+   (:conerot-y (degrees 0) (degrees 360))))
+
+(defpartgroup group-crescent-lava-burst
+  :id 863
+  :bounds (static-bspherem 0 0 0 14)
+  :parts
+  ((sp-item 3271 :fade-after (meters 40) :falloff-to (meters 40))
+   (sp-item 3272 :fade-after (meters 100) :falloff-to (meters 100))))
+
+(defpart 3272 ;; smoke
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 0.2) ;; 0.2
+   (:x (meters -4) (meters 8))
+   (:y (meters -0.5))
+   (:z (meters -4) (meters 8))
+   (:scale-x (meters 6) (meters 4))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 256.0)
+   (:g 128.0)
+   (:b 64.0)
+   (:a 0.0)
+   (:vel-x (meters -0.02) (meters 0.04))
+   (:vel-y (meters 0.01) (meters 0.02))
+   (:vel-z (meters -0.02) (meters 0.04))
+   (:scalevel-x (meters 0.0033333334))
+   (:rotvel-z (degrees -0.2) (degrees 0.4))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-a 2.5)
+   (:timer (seconds 2))
+   (:flags (bit2))
+   (:next-time (seconds 0.05) (seconds 0.1))
+   (:next-launcher 3273)
+   (:rotate-y (degrees 0))))
+
+(defpart 3271 ;; heat waves!
+  :init-specs
+  ((:num 1.0) ;; 1.0
+   (:x (meters -4) (meters 8))
+   (:y (meters 0.5))
+   (:z (meters -4) (meters 8))
+   (:rot-x 5)
+   (:r 8192.0)
+   (:g 5324.8)
+   (:b 5324.8)
+   (:vel-y (meters 0.006666667) (meters 0.006666667))
+   (:fade-r 40.96)
+   (:fade-g 27.306667)
+   (:fade-b 38.229332)
+   (:timer (seconds 0.5))
+   (:flags (aux-list))
+   (:next-time (seconds 0.25))
+   (:next-launcher 3274)
+   (:rotate-y (degrees 0))))
+
+(defpart 3274
+  :init-specs ((:fade-b 16.384)))
+
+(defpart 3273
+  :init-specs ((:fade-a 0.0) (:next-time (seconds 0.25)) (:next-launcher 3275)))
+
+(defpart 3275
+  :init-specs ((:fade-r -2.0) (:fade-g -0.6) (:next-time (seconds 0.3)) (:next-launcher 3276)))
+
+(defpart 3276
+  :init-specs ((:fade-r 0.0) (:fade-g 0.0) (:fade-a -0.3)))
+
+(defpartgroup group-crescent-small-heatwave
+  :id 864
+  :bounds (static-bspherem 0 0 0 14)
+  :parts
+  ((sp-item 3277 :fade-after (meters 40) :falloff-to (meters 40))
+   (sp-item 3278 :fade-after (meters 100) :falloff-to (meters 100))))
+
+(defpart 3278 ;; smoke
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 0.2 0.3) ;; 0.2
+   (:x (meters -1.5) (meters 3))
+   (:y (meters 0.0))
+   (:z (meters -1.5) (meters 3))
+   (:scale-x (meters 3.5) (meters 2.5))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 260.0)
+   (:g 180.0)
+   (:b 160.0)
+   (:a 0.0)
+   (:vel-x (meters -0.02) (meters 0.04))
+   (:vel-y (meters -0.02) (meters 0.04))
+   (:vel-z (meters -0.02) (meters 0.04))
+   (:scalevel-x (meters 0.000001))
+   (:rotvel-z (degrees -0.2) (degrees 0.4))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-a 0.6)
+   (:timer (seconds 2))
+   (:flags (bit2))
+   (:next-time (seconds 0.2) (seconds 0.15))
+   (:next-launcher 3279)
+   (:rotate-y (degrees 0))))
+
+(defpart 3277 ;; heat waves!
+  :init-specs
+  ((:num 1.0) ;; 1.0
+   (:x (meters -2.5) (meters 5))
+   (:y (meters -1.5))
+   (:z (meters -2.5) (meters 5))
+   (:rot-x 5)
+   (:r 8192.0)
+   (:g 5324.8)
+   (:b 5324.8)
+   (:vel-y (meters 0.006666667) (meters 0.006666667))
+   (:fade-r 40.96)
+   (:fade-g 27.306667)
+   (:fade-b 38.229332)
+   (:timer (seconds 0.5))
+   (:flags (aux-list))
+   (:next-time (seconds 0.25))
+   (:next-launcher 3274)
+   (:rotate-y (degrees 0))))
+
+(defpart 3279
+  :init-specs ((:fade-r -2.0) (:fade-g -1.3) (:fade-b -1.3) (:fade-a -0.40 0.2)))
+
+(defpartgroup group-crescent-lavatube
+  :id 865
+  :bounds (static-bspherem 0 0 0 14)
+  :parts
+  ((sp-item 3280 :fade-after (meters 40) :falloff-to (meters 40))
+   (sp-item 3281 :fade-after (meters 100) :falloff-to (meters 100))))
+
+(defpart 3281 ;; smoke
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 0.2 0.5) ;; 0.5 0.3
+   (:x (meters -10) (meters 20))
+   (:y (meters 0.0))
+   (:z (meters -10) (meters 20))
+   (:scale-x (meters 8.5) (meters 4.5))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 260.0)
+   (:g 160.0)
+   (:b 120.0)
+   (:a 0.0)
+   (:vel-x (meters -0.015) (meters 0.03))
+   (:vel-y (meters 0.005) (meters 0.01))
+   (:vel-z (meters -0.015) (meters 0.03))
+   (:scalevel-x (meters 0.00005))
+   (:rotvel-z (degrees -0.2) (degrees 0.4))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-a 0.07)
+   (:timer (seconds 3.5))
+   (:flags (bit2))
+   (:next-time (seconds 0.2) (seconds 0.7))
+   (:next-launcher 3282)
+   (:rotate-y (degrees 0))))
+
+(defpart 3280 ;; heat waves!
+  :init-specs
+  ((:num 0.1 0.3) ;; 1.0
+   (:x (meters -10) (meters 20))
+   (:y (meters -1.5))
+   (:z (meters -10) (meters 20))
+   (:rot-x 5)
+   (:r 1300.0)
+   (:g 1000.0)
+   (:b 1000.0)
+   (:vel-y (meters 0.002) (meters 0.004))
+   (:fade-r 40.96)
+   (:fade-g 27.306667)
+   (:fade-b 38.229332)
+   (:timer (seconds 2.5))
+   (:flags (aux-list))
+   (:next-time (seconds 0.8))
+   (:next-launcher 3283)
+   (:rotate-y (degrees 0))))
+
+(defpart 3282
+  :init-specs ((:fade-r -2.0) (:fade-g -1.3) (:fade-b -1.3) (:fade-a -0.06 0.03)))
+
+(defpart 3283
+  :init-specs ((:fade-r -40.0) (:fade-g -30.0) (:fade-b -30.0)))
+
+(defpartgroup group-crescent-house-smoke
+  :id 866
+  :bounds (static-bspherem 0 0.5 0 4.5)
+  :parts ((sp-item 3284 :fade-after (meters 175) :falloff-to (meters 175) :period (seconds 5) :length (seconds 2))))
+
+(defpart 3284
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 1.0 0.6)
+   (:x (meters -1.5) (meters 3))
+   (:y (meters 0))
+   (:z (meters -1.5) (meters 3))
+   (:scale-x (meters 2) (meters 2))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 128.0)
+   (:g 128.0)
+   (:b 128.0)
+   (:a 64.0)
+   (:vel-x (meters -0.001) (meters 0.002))
+   (:vel-y (meters 0.002) (meters 0.004))
+   (:vel-z (meters -0.001) (meters 0.002))
+   (:scalevel-x (meters 0.01))
+   (:rotvel-z (degrees -0.1) (degrees 0.2))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-r 0.15 0.05)
+   (:fade-g 0.15 0.05)
+   (:fade-b 0.15 0.05)
+   (:fade-a -0.12 0.06)
+   (:accel-y (meters 0.00016666666))
+   (:friction 0.996)
+   (:timer (seconds 3.5) (seconds 2.5))
+   (:flags (bit2 bit12 bit14))))
+
+(defpartgroup group-crescent-houseflame
+  :id 867
+  :bounds (static-bspherem 0 5 0 6)
+  :parts
+  ((sp-item 3285 :fade-after (meters 180) :falloff-to (meters 180))
+   (sp-item 3286 :fade-after (meters 40) :falloff-to (meters 40) :period (seconds 1.641) :length (seconds 0.2))
+   (sp-item 3287 :fade-after (meters 100) :falloff-to (meters 100))
+   (sp-item 3288 :fade-after (meters 40) :falloff-to (meters 40) :period (seconds 1.23) :length (seconds 0.73))
+   (sp-item 3289 :fade-after (meters 40) :falloff-to (meters 40) :period (seconds 2.3) :length (seconds 0.3))
+   (sp-item 3290 :fade-after (meters 40) :falloff-to (meters 40) :period (seconds 3.06) :length (seconds 2.23))
+   (sp-item 3291 :fade-after (meters 40) :falloff-to (meters 40) :period (seconds 2.5) :length (seconds 0.1))
+   (sp-item 3292 :fade-after (meters 50) :falloff-to (meters 60))))
+
+(defpart 3285
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 0.5 0.4) ;;0.5 0.4
+   (:x (meters -0.20) (meters 0.6))
+   (:y (meters -0.25))
+   (:z (meters -0.20) (meters 0.6))
+   (:scale-x (meters 0.7) (meters 0.6))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 128.0 128.0)
+   (:g 32.0 64.0)
+   (:a 96.0)
+   (:vel-y (meters 0.010) (meters 0.0050))
+   (:rotvel-z (degrees -1.9999999) (degrees 3.9999998))
+   (:fade-g 0.32)
+   (:fade-b 0.32)
+   (:fade-a -0.65)
+   (:accel-y (meters -0.000006666667))
+   (:timer (seconds 0.3) (seconds 0.197))
+   (:flags (bit2 bit3 bit14))
+   (:conerot-x (degrees -8) 4 (degrees 4))
+   (:conerot-y (degrees -180) (degrees 360))
+   (:conerot-z (degrees 15))
+   (:conerot-radius (meters 0) (meters 0.5))))
+
+(defpart 3286
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 0.7 1 1.0) ;; 0.7 1 1.0
+   (:x (meters 0) (meters 0.3))
+   (:y (meters -0.25))
+   (:z (meters 0) (meters 0.3))
+   (:scale-x (meters 0.7) (meters 0.6))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 128.0 128.0)
+   (:g 32.0 64.0)
+   (:a 96.0)
+   (:vel-y (meters 0.015) 1 (meters 0.005))
+   (:rotvel-z (degrees -1.9999999) (degrees 3.9999998))
+   (:fade-g 0.32)
+   (:fade-b 0.32)
+   (:fade-a -0.76)
+   (:accel-y (meters -0.000006666667))
+   (:timer (seconds 0.4))
+   (:flags (bit2 bit3 bit14))
+   (:conerot-x (degrees -8) 4 (degrees 4))
+   (:conerot-y (degrees -180) (degrees 360))
+   (:conerot-z (degrees 15))
+   (:conerot-radius (meters 0) (meters 0.5))))
+
+(defpart 3287
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 0.15 0.2) ;; 0.15 0.2
+   (:x (meters -0.5) (meters 1))
+   (:y (meters -0.25))
+   (:z (meters -0.5) (meters 1))
+   (:scale-x (meters 2) (meters 1))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 128.0)
+   (:g 64.0)
+   (:b 0.0)
+   (:a 20.0 12.0)
+   (:vel-x (meters 0.004) (meters 0.002))
+   (:vel-y (meters 0.015) (meters 0.015))
+   (:vel-z (meters 0.004) (meters 0.002))
+   (:scalevel-x (meters 0.0055555557))
+   (:rotvel-z (degrees -0.99999994) (degrees 1.9999999))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-a -0.0627451)
+   (:accel-y (meters -0.00026666667))
+   (:timer (seconds 2))
+   (:flags (bit2 bit14))
+   (:next-time (seconds 0.5) (seconds 0.197))
+   (:next-launcher 3294)))
+
+(defpart 3288
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 0.4 0.55) ;; 0.4 0.55
+   (:x (meters -0.4) (meters 0.8))
+   (:y (meters -0.10))
+   (:z (meters -0.4) (meters 0.8))
+   (:scale-x (meters 0.7) (meters 0.6))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 128.0 128.0)
+   (:g 32.0 64.0)
+   (:a 96.0)
+   (:vel-y (meters 0.008) (meters 0.004))
+   (:rotvel-z (degrees -1.9999999) (degrees 3.9999998))
+   (:fade-g 0.32)
+   (:fade-b 0.32)
+   (:fade-a -0.5416667)
+   (:accel-y (meters -0.000006666667))
+   (:timer (seconds 0.3) (seconds 0.197))
+   (:flags (bit2 bit3 bit14))
+   (:conerot-x (degrees -8) 4 (degrees 4))
+   (:conerot-y (degrees -180) (degrees 360))
+   (:conerot-z (degrees -15))
+   (:conerot-radius (meters 0) (meters 0.5))))
+
+(defpart 3289
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 0.06 1 0.9) ;;0.06 1 0.9
+   (:x (meters -0.4) (meters 0.3))
+   (:y (meters 0.5))
+   (:z (meters -0.4) (meters 0.3))
+   (:scale-x (meters 0.7) (meters 0.6))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 128.0 128.0)
+   (:g 32.0 64.0)
+   (:a 96.0)
+   (:vel-y (meters 0.015) 1 (meters 0.004))
+   (:rotvel-z (degrees -1.9999999) (degrees 3.9999998))
+   (:fade-g 0.32)
+   (:fade-b 0.32)
+   (:fade-a -0.65)
+   (:accel-y (meters -0.000006666667))
+   (:timer (seconds 0.4))
+   (:flags (bit2 bit3 bit14))
+   (:conerot-x (degrees -8) 4 (degrees 4))
+   (:conerot-y (degrees -180) (degrees 360))
+   (:conerot-z (degrees -15))
+   (:conerot-radius (meters 0) (meters 0.5))))
+
+(defpart 3290
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 0.6 0.9) ;; 0.6 0.9
+   (:x (meters -0.4) (meters 0.8))
+   (:y (meters -0.25))
+   (:z (meters -0.4) (meters 0.9))
+   (:scale-x (meters 0.7) (meters 0.4))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 128.0 128.0)
+   (:g 32.0 64.0)
+   (:a 96.0)
+   (:vel-y (meters 0.01) (meters 0.005))
+   (:rotvel-z (degrees -1.9999999) (degrees 3.9999998))
+   (:fade-g 0.32)
+   (:fade-b 0.32)
+   (:fade-a -0.62)
+   (:accel-y (meters -0.000006666667))
+   (:timer (seconds 0.3) (seconds 0.15))
+   (:flags (bit2 bit3 bit14))
+   (:conerot-x (degrees -8) 4 (degrees 4))
+   (:conerot-y (degrees -180) (degrees 360))
+   (:conerot-z (degrees 0))
+   (:conerot-radius (meters 0) (meters 0.5))))
+
+(defpart 3291
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 0.7 1 1.5) ;; 0.7 1 1.5
+   (:x (meters -0.2) (meters 0.4))
+   (:y (meters 0.5))
+   (:z (meters -0.2) (meters 0.4))
+   (:scale-x (meters 0.6) (meters 0.4))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 128.0 128.0)
+   (:g 32.0 64.0)
+   (:a 96.0)
+   (:vel-y (meters 0.02) 1 (meters 0.005))
+   (:rotvel-z (degrees -1.9999999) (degrees 3.9999998))
+   (:fade-g 0.32)
+   (:fade-b 0.32)
+   (:fade-a -0.8)
+   (:accel-y (meters -0.000006666667))
+   (:timer (seconds 0.4))
+   (:flags (bit2 bit3 bit14))
+   (:conerot-x (degrees -8) 4 (degrees 4))
+   (:conerot-y (degrees -180) (degrees 360))
+   (:conerot-z (degrees 0))
+   (:conerot-radius (meters 0) (meters 0.5))))
+
+(defpart 3292 ;; heatwave
+  :init-specs
+  ((:num 0.4)
+   (:x (meters 0.1))
+   (:rot-x 0.5)
+   (:r 4096.0)
+   (:g 2949.12)
+   (:b 3276.8)
+   (:vel-x (meters 0) (meters 0.004))
+   (:vel-y (meters 0.026666667))
+   (:timer (seconds 0.3))
+   (:flags (aux-list))
+   (:next-time (seconds 0.2))
+   (:next-launcher 3293)
+   (:rotate-y (degrees 0) (degrees 360))))
+
+(defpart 3293
+  :init-specs ((:fade-b -5.4613333)))
+
+(defpart 3294
+  :init-specs ((:fade-g 0.53333336) (:fade-b 1.0666667) (:next-time (seconds 0.4)) (:next-launcher 1152)))
+
+(defpartgroup group-crescent-small-elec
+  :id 868
+  :bounds (static-bspherem 0 0 0 8)
+  :parts ((sp-item 3295 :fade-after (meters 100) :falloff-to (meters 100))))
+
+(defpart 3295
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1f :page #x2))
+   (:num 0.03 0.06)
+   (:x (meters -0.3) (meters 0.6))
+   (:y (meters -0.3) (meters 0.6))
+   (:z (meters -0.3) (meters 0.6))
+   (:scale-x (meters 0.2) (meters 0.5))
+   (:rot-x 4)
+   ;;(:rot-x (meters 0) (meters 360) 1.0)
+   (:rot-z (degrees -120.0) (degrees 120))
+   (:scale-y (meters 0.2) (meters 0.5))
+   (:r 32.0 32.0)
+   (:g 96.0 32.0)
+   (:b 128.0 64.0)
+   (:a 128.0)
+   (:fade-a -0.8)
+   (:timer 180)
+   (:flags (bit2 bit3 bit14))
+   (:next-time 20)
+   (:next-launcher 3296)))
+
+(defpart 3296
+  :init-specs ((:r 64.0) (:g 64.0) (:fade-r -0.4) (:fade-g -0.4) (:fade-a -0.93333334)))
+
+(defpartgroup group-crescent-bubbletube
+  :id 869
+  :bounds (static-bspherem 0 -10 0 12)
+  :parts ((sp-item 3297 :fade-after (meters 100) :falloff-to (meters 100))))
+
+(defpart 3297
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2))
+   (:num 3.0 3.0)
+   (:x (meters -5) (meters 10))
+   (:y (meters -5) (meters 10))
+   (:z (meters -5) (meters 10))
+   (:scale-x (meters 0.2) (meters 0.3))
+   ;; (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 64.0 32.0)
+   (:g 96.0 64.0)
+   (:b 180.0 64.0)
+   (:a 0.0)
+   (:vel-x (meters 0.010) (meters 0.005))
+   (:vel-y (meters 0.03) (meters 0.03))
+   ;; (:scalevel-x (meters -0.0001) (meters 0.0001))
+   ;; (:rotvel-z (degrees -0.3) (degrees 0.6))
+   ;; (:scalevel-y :copy scalevel-x)
+   (:fade-a 0.1 0.05)
+   (:accel-x (meters 0.0008) (meters 0.0002))
+   (:accel-y (meters -0.002) (meters -0.0005))
+   (:friction 0.98)
+   (:timer (seconds 5.5))
+   (:flags (bit2 bit14))
+   (:next-time (seconds 1.80))
+   (:next-launcher 3298)
+   ;; (:conerot-x (degrees 80) (degrees 20))
+   ;; (:conerot-y (degrees -70) (degrees 50.000004))
+   ;; (:conerot-z (degrees 0))
+   ))
+
+(defpart 3298
+  :init-specs
+  ((:fade-a 0.0)
+   ;; (:scalevel-y (meters 0.0035))
+   (:accel-x (meters 0.0003))
+   (:next-time (seconds 2.8))
+   (:next-launcher 3299)))
+
+(defpart 3299
+  :init-specs ((:fade-a -0.6)))
+
+(defpartgroup group-crescent-sink-plat
+  :id 870
+  :bounds (static-bspherem 0 5 0 5)
+  :parts ((sp-item 3301)))
+
+(defpart 3301
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 1.0 2.0)
+   (:x (meters -0.5) (meters 1))
+   (:y (meters -3) (meters 0.5))
+   (:z (meters -0.5) (meters 1))
+   (:scale-x (meters 1.0) (meters 1.0))
+   (:rot-z (degrees -30) (degrees 60))
+   (:scale-y :copy scale-x)
+   (:r 64.0 64.0)
+   (:g 32.0 64.0)
+   (:b 16.0 16.0)
+   (:a 64.0 64.0)
+   (:vel-y (meters 0.005) (meters 0.005))
+   (:vel-z (meters -0.035) (meters 0.015))
+   (:scalevel-y (meters 0.005))
+   (:fade-r -0.25)
+   (:fade-g -0.25)
+   (:fade-b -0.25)
+   (:accel-y (meters -0.001))
+   (:timer (seconds 1))
+   (:flags (bit2 bit3 bit14))
+   (:conerot-x (degrees 90))
+   (:conerot-y (degrees 0) (degrees 360))
+   (:conerot-radius (meters 1.0))))
+
+(defpartgroup group-crescent-emerge-plat
+  :id 871
+  :bounds (static-bspherem 0 5 0 5)
+  :parts ((sp-item 3302)))
+
+(defpart 3302
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 1.0 3.5)
+   (:x (meters -0.2) (meters 0.4))
+   (:y (meters -0.5))
+   (:z (meters -0.2) (meters 0.4))
+   (:scale-x (meters 1.0) (meters 1.0))
+   (:scale-y :copy scale-x)
+   (:r 64.0 64.0)
+   (:g 16.0 64.0)
+   (:b 16.0 16.0)
+   (:a 64.0 64.0)
+   (:vel-y (meters 0.006) (meters 0.004))
+   (:vel-z (meters -0.035) (meters 0.01))
+   (:fade-r -0.15)
+   (:fade-g -0.15)
+   (:fade-b -0.15)
+   ;; (:fade-a -0.2)
+   (:accel-y (meters -0.0010))
+   (:timer (seconds 2))
+   (:flags (bit2 bit3 bit14))
+   (:conerot-x (degrees 90))
+   (:conerot-y (degrees 0) (degrees 360))
+   (:conerot-radius (meters 1.8))))
+
+(defpart 3303 ;; crescentflamepots
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 1.0)
+   (:x (meters -1.2) (meters 2.4))
+   (:z (meters -1.2) (meters 2.4))
+   (:scale-x (meters 4))
+   (:rot-z (degrees -180) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 128.0)
+   (:g 128.0)
+   (:b 0.0)
+   (:a 128.0)
+   (:vel-y (meters 0.06) (meters 0.015))
+   (:scalevel-x (meters -0.0039999997))
+   (:rotvel-z (degrees -1.8) (degrees 1.8))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-g -0.8)
+   (:fade-a -0.55333335)
+   (:accel-y (meters -0.0006))
+   (:timer (seconds 16.68))
+   (:flags (bit2 bit3))))
+
+(defpartgroup group-valley-rock-explosion
+  :id 872
+  :duration (seconds 1)
+  :flags (use-local-clock)
+  :bounds (static-bspherem 0 0 0 8)
+  :parts
+  ((sp-item 3304 :period (seconds 5) :length (seconds 0.017))
+   (sp-item 3305 :period (seconds 5) :length (seconds 0.017))
+   (sp-item 3306 :period (seconds 5) :length (seconds 0.05))))
+
+(defpart 3305
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x12 :page #x2))
+   (:num 3.0 2.0)
+   (:y (meters 4) (meters 3))
+   (:scale-x (meters 25) (meters 10))
+   (:scale-y :copy scale-x)
+   (:r 112.0)
+   (:g 64.0)
+   (:b 72.0)
+   (:a 94.0)
+   (:fade-a -2.1333334)
+   (:timer (seconds 0.4))
+   (:flags (bit2 bit3))))
+
+(defpart 3304
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x1d :page #x2))
+   (:num 48.0 16.0)
+   (:x (meters -4.5) (meters 9))
+   (:y (meters 0) (meters 11))
+   (:z (meters -3) (meters 6))
+   (:scale-x (meters 0.3) (meters 1.0))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 32.0 8.0)
+   (:g 48.0 8.0)
+   (:b 72.0 24.0)
+   (:a 128.0)
+   (:vel-y (meters 0.08) (meters 0.08))
+   (:rotvel-z (degrees -1.2) (degrees 2.4))
+   (:accel-y (meters -0.0026666666))
+   (:friction 0.99)
+   (:timer (seconds 1.5))
+   (:flags (bit2))
+   (:userdata 0.0)
+   (:func 'check-water-level-drop)
+   (:conerot-x (degrees 20) (degrees 50.000004))
+   (:conerot-y (degrees 0) (degrees 360))))
+
+(defpart 3306
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 35.0)
+   (:x (meters -2.5) (meters 5))
+   (:y (meters 3) (meters 10))
+   (:z (meters -2.5) (meters 5))
+   (:scale-x (meters 5.0) (meters 3.5))
+   (:scale-y :copy scale-x)
+   (:r 64.0 24.0)
+   (:g 64.0 40.0)
+   (:b 64.0 24.0)
+   (:a 16.0 32.0)
+   (:vel-y (meters 0.02) (meters 0.02))
+   (:scalevel-x (meters 0.015))
+   (:scalevel-y (meters 0.004))
+   (:accel-y (meters -0.0003))
+   (:friction 0.95)
+   (:timer (seconds 4.0))
+   (:flags (bit2))
+   (:next-time (seconds 0.2) (seconds 1.5))
+   (:next-launcher 3307)
+   (:conerot-x (degrees 70) (degrees 20))
+   (:conerot-y (degrees 0) (degrees 360))))
+
+(defpart 3307
+  :init-specs ((:fade-a -0.10)))
+
+(defpartgroup group-cst-chainmine-explode
+  :id 873
+  :flags (use-local-clock)
+  :bounds (static-bspherem 0 0 0 8)
+  :parts
+  ((sp-item 3308 :period (seconds 2) :length (seconds 0.017))
+   (sp-item 3309 :period (seconds 2) :length (seconds 0.135))
+   (sp-item 3310 :period (seconds 2) :length (seconds 0.067))
+   (sp-item 3311 :period (seconds 2) :length (seconds 0.067))))
+
+(defpart 3309
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2))
+   (:num 8.0)
+   (:y (meters 0))
+   (:scale-x (meters 0.4) (meters 0.8))
+   (:scale-y :copy scale-x)
+   (:r 192.0 64.0)
+   (:g 192.0 64.0)
+   (:b 128.0)
+   (:a 32.0 96.0)
+   (:vel-y (meters 0.053333335) (meters 0.21333334))
+   (:scalevel-x (meters -0.0026666666))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-g -2.1333334)
+   (:fade-b -1.4222223)
+   (:accel-y (meters -0.00016666666) (meters -0.00016666666))
+   (:friction 0.9)
+   (:timer (seconds 1))
+   (:flags (bit2 bit14))
+   (:next-time (seconds 0.1) (seconds 0.297))
+   (:next-launcher 3312)
+   (:conerot-x (degrees 0) (degrees 180))
+   (:conerot-y (degrees 0) (degrees 360))
+   (:conerot-radius (meters 2) (meters 4))))
+
+(defpart 3312
+  :init-specs ((:fade-r 0.0) (:fade-g 0.0) (:fade-b 0.0) (:fade-a -1.0666667)))
+
+(defpart 3311
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2))
+   (:num 6.0)
+   (:y (meters 0))
+   (:scale-x (meters 0.4))
+   (:rot-z (degrees 0) (degrees 180))
+   (:scale-y (meters 16))
+   (:r 255.0)
+   (:g 196.0)
+   (:b 64.0)
+   (:a 32.0 64.0)
+   (:scalevel-y (meters 1.04))
+   (:fade-g -3.2666667)
+   (:fade-b -1.0666667)
+   (:fade-a -1.6)
+   (:timer (seconds 0.2))
+   (:flags (bit2 bit3 bit14))))
+
+(defpart 3308
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #x12 :page #x2))
+   (:num 1.0)
+   (:y (meters 0))
+   (:scale-x (meters 32))
+   (:scale-y :copy scale-x)
+   (:r 255.0)
+   (:g 192.0 32.0)
+   (:b 128.0)
+   (:a 128.0)
+   (:fade-a -2.3272727)
+   (:timer (seconds 0.18))
+   (:flags (bit2 bit3 bit14))))
+
+(defpart 3310
+  :init-specs
+  ((:texture (new 'static 'texture-id :page #x2))
+   (:num 16.0)
+   (:scale-x (meters 4) (meters 2))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 255.0)
+   (:g 128.0 64.0)
+   (:b 128.0)
+   (:a 64.0 64.0)
+   (:vel-y (meters 0.08) (meters 0.04))
+   (:scalevel-x (meters 0.02))
+   (:rotvel-z (degrees -0.6) (degrees 1.2))
+   (:scalevel-y :copy scalevel-x)
+   (:fade-a -0.28444445)
+   (:accel-y (meters 0.00016666666) (meters 0.00016666666))
+   (:friction 0.8)
+   (:timer (seconds 1.7))
+   (:flags (bit2 bit14))
+   (:next-time (seconds 0.14))
+   (:next-launcher 3313)
+   (:conerot-x (degrees 0) (degrees 180))
+   (:conerot-y (degrees 0) (degrees 360))
+   (:conerot-radius (meters 0) (meters 2))))
+
+(defpart 3313
+  :init-specs ((:fade-r -1.0666667) (:fade-g -1.0666667) (:fade-b -2.1166666) (:next-time (seconds 0.2)) (:next-launcher 3314)))
+
+(defpart 3314
+  :init-specs
+  ((:fade-r -0.5688889)
+   (:fade-g -0.28444445)
+   (:fade-b 0.0)
+   (:fade-a -0.21333334)
+   (:next-time (seconds 0.75))
+   (:next-launcher 3315)))
+
+(defpart 3315
+  :init-specs ((:fade-r 0.0) (:fade-g 0.0) (:fade-b 0.0)))
