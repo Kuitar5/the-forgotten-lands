@@ -305,7 +305,8 @@
   (set! (-> arg0 money-count) (-> this money-total))
   (set! (-> arg0 buzzer-count) (-> this buzzer-total))
   (set! (-> arg0 completion-percentage) (calculate-completion (the-as progress #f)))
-  (when (string= (-> this current-continue name) "title-start")
+  ;; TFL note: changed
+  (when (string= (-> this current-continue name) "crescent-top-title")
     (set! (-> arg0 new-game) 1)
     (set! (-> arg0 level-index) (-> (lookup-level-info 'training) index))
     (set! (-> arg0 fuel-cell-count) 0.0)
@@ -637,7 +638,10 @@
          (set! (-> *display* old-integral-frame-counter) (+ (-> *display* integral-frame-counter) -1)))
         (((game-save-elt continue))
          (format (clear *temp-string*) "~G" (&+ (the-as pointer data) 16))
-         (set-continue! this *temp-string*))
+         ;; TFL note: added
+         (defun-extern get-tfl-comm-continue string continue-point)
+         (let ((comm-cont (get-tfl-comm-continue *temp-string*)))
+           (if comm-cont (set-continue! this comm-cont) (set-continue! this *temp-string*))))
         (((game-save-elt life)) (set! (-> this life) (-> data user-float0)))
         (((game-save-elt buzzer-total)) (set! (-> this buzzer-total) (-> data user-float0)))
         (((game-save-elt fuel-cell)) (set! (-> this fuel) (-> data user-float0)))

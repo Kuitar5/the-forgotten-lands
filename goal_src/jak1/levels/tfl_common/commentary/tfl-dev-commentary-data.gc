@@ -1618,3 +1618,8 @@ examples:
                               (target 2166.2231 9.3261 1803.1859 0.0000 -0.9998 0.0000 -0.0179)
                               (camera 2155.8745 14.4761 1810.1951 -0.5888 -0.0000 -0.8082 0.0939 0.9932 -0.0684 0.8027 -0.1162 -0.5848)
                               (load 'val 'valley 'display 'crescent-t 'display))))
+
+(defun get-tfl-comm-continue ((name string))
+  (dotimes (i (length *tfl-commentary-continues*))
+    (if (string= (-> *tfl-commentary-continues* i name) name) (return (-> *tfl-commentary-continues* i))))
+  (the continue-point #f))

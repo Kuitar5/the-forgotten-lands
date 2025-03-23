@@ -532,6 +532,7 @@
 (defbehavior pds-sentinel-commentary-init-by-other pds-sentinel-commentary ((pos vector))
   (pds-reset-part)
   (set! (-> self root) (new 'process 'trsqv))
+  (set! (-> self entity) (the entity-actor (entity-by-name "valley-pds-sentinel-01")))
   (vector-copy! (-> self root trans) pos)
   (initialize-skeleton self *pds-sentinel-sg* '())
   (quaternion-identity! (-> self root quat))

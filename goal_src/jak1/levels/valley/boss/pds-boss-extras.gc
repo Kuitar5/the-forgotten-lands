@@ -274,6 +274,10 @@
     (event
       (case message
         (('explode) (go-virtual explode))
+        (('touch)
+         (if (symbol-member? (-> proc next-state name)
+                             '(target-pole-flip-up-jump target-pole-flip-forward-jump target-pole-flip-up target-pole-flip-forward))
+           (go-virtual explode)))
         (('attack) (if (= (-> proc type) target) (go-virtual explode)))))
   :trans
     (behavior ()

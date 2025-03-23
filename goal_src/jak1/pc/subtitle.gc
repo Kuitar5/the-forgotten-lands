@@ -19,7 +19,8 @@
 ;;;; constants
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defconstant PC_SUBTITLE_FILE_SIZE (* 256 1024)) ;; 256K heap for subtitles. adjust later if necessary.
+;; TFL note: increased heap size
+(defconstant PC_SUBTITLE_FILE_SIZE (* 384 1024)) ;; 256K heap for subtitles. adjust later if necessary.
 
 (defconstant PC_SUBTITLE_FILE_NAME "subtit")
 
