@@ -367,13 +367,15 @@
   (autosplit-flag-task-status-closed! (valley-rock-explosion valley-end need-hint)
                                       (res-crystalc-gondola crystalc-gondola need-resolution))
   (aif (process-by-ename "valley-lab-door-01")
-    (if (= (-> it next-state name) 'opened) (set! (-> *autosplit-info-jak1* lab-door-opened) 1)))
+    (if (= (-> it next-state name) 'opened) (set! (-> *autosplit-info-jak1* lab-door-opened) 1))
+    (set! (-> *autosplit-info-jak1* lab-door-opened) 0))
   (let ((launcher (the process-drawable (process-by-ename "crescent-launcher-03"))))
     (if (and *target*
              launcher
              (< (vector-vector-distance (-> *target* control trans) (-> launcher root trans)) (meters 25))
              (anim-playing? *target* "eichar-launch-jump" (the int #f)))
-      (set! (-> *autosplit-info-jak1* energy-bay-launcher) 1)))
+      (set! (-> *autosplit-info-jak1* energy-bay-launcher) 1)
+      (set! (-> *autosplit-info-jak1* energy-bay-launcher) 0)))
   ;; end
   (none))
 

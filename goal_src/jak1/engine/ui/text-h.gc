@@ -712,6 +712,7 @@
   (progress-tfl-dev-commentary-cancel #xa4e)
   (valley-rock-button-need-cells #xa4f)
   (lab-door-warp-to-geyser #xa50)
+  (mines-ambush-super-yellow-hint #xa51)
   ;; TFL Hint IDs so they only play once. Use up from #xb00
   (crystalc-tfl-hint-01-daxPortal #xb00)
   (crystalc-tfl-hint-02-daxShip #xb01)

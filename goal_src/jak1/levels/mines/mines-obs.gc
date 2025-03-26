@@ -1,6 +1,5 @@
 ;;-*-Lisp-*-
 (in-package goal)
-
 (deftype opm-bone-bridge (process-drawable)
   ((root             collide-shape-moving :override)
    (particle-group   sparticle-launch-group)
@@ -852,7 +851,7 @@
       (case message
         (('touch 'attack)
          (send-event proc
-                     (if (= message 'touch)'attack-or-shove 'attack)
+                     (if (= message 'touch) 'attack-or-shove 'attack)
                      (-> block param 0)
                      (static-attack-info ((mode 'burn) (shove-back (meters 6)) (shove-up (meters 3))))))
         (('trigger) (set! (-> self activated) 0))
@@ -1278,6 +1277,52 @@
         (while (handle->process cam)
           (suspend)))
       (go-virtual battlecontroller-active)))
+
+(defstate battlecontroller-active (mines-battlecontroller)
+  :virtual #t
+  :event battlecontroller-default-event-handler
+  :trans
+    (behavior ()
+      (if (and *target*
+               (>= (-> self activate-distance) (vector-vector-distance (-> self root trans) (-> *target* control trans))))
+        (level-hint-spawn (text-id zero) (the-as string #f) (-> self entity) *entity-pool* (game-task none)))
+      (when (and *target* (>= (-> self die-count) 30) (not (seen-text? *game-info* (text-id mines-ambush-super-yellow-hint))))
+        (mark-text-as-seen *game-info* (text-id mines-ambush-super-yellow-hint))
+        (process-spawn-function process
+          (lambda :behavior process ()
+            (until (search-process-tree *active-pool*
+                                        (lambda ((p process))
+                                          (let ((as-yellow (the tfl-yellow-shot p))) (and (= (-> as-yellow type) tfl-yellow-shot) (-> as-yellow fully-charged?)))))
+              (let ((fnt (new 'stack
+                              'font-context
+                              *font-default-matrix*
+                              56
+                              (if *tfl-hint-semaphore* 140 160)
+                              0.0
+                              (font-color default)
+                              (font-flags shadow kerning))))
+                (set-width! fnt 400)
+                (set-height! fnt 96)
+                (set-scale! fnt 0.75)
+                (set-flags! fnt (font-flags shadow kerning middle large))
+                (print-game-text (lookup-text! *common-text* (text-id mines-ambush-super-yellow-hint) #f) fnt #f 128 22))
+              (suspend)))))
+      (battlecontroller-disable-ocean)
+      (battlecontroller-update-spawners))
+  :code
+    (behavior ()
+      (set-time! (-> self state-time))
+      (battlecontroller-camera-on)
+      (loop
+        (when (time-elapsed? (-> self state-time) (seconds 0.1))
+          (set-time! (-> self state-time))
+          (let ((gp-0 0))
+            (let ((v1-8 (-> self child))) (while v1-8 (+! gp-0 1) (set! v1-8 (-> v1-8 0 brother)) (nop!) (nop!)))
+            (if (and (zero? gp-0) (= (-> self spawn-count) (-> self max-spawn-count))) (go-virtual battlecontroller-die))
+            (when (< gp-0 (-> self target-count))
+              (suspend-for (-> self spawn-period))
+              (battlecontroller-spawn-creature-random-spawner))))
+        (suspend))))
 
 (defstate battlecontroller-die (mines-battlecontroller)
   :virtual #t

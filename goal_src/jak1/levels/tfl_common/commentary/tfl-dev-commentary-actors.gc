@@ -348,6 +348,50 @@
             (fake-gravity self)
             (ja :num! (seek! max 0.21)))))))
 
+(deftype money-commentary (process-drawable)
+  ((old-base    vector :inline)
+   (base        vector :inline)
+   (extra-trans vector :inline)
+   (birth-time  time-frame)
+   (bob-offset  int64)
+   (bob-amount  float))
+  (:state-methods
+   wait))
+
+(defbehavior money-commentary-init-by-other money-commentary ((pos vector))
+  (process-mask-clear! (-> self mask) crate enemy platform ambient)
+  (process-mask-set! (-> self mask) collectable)
+  (set! (-> self root) (new 'process 'trsqv))
+  (vector-copy! (-> self root trans) pos)
+  (vector-copy! (-> self base) (-> self root trans))
+  (vector-copy! (-> self old-base) (-> self root trans))
+  (set! (-> self bob-amount) (meters 0.25))
+  (set! (-> self bob-offset)
+        (+ (the-as int (-> self root trans x)) (the-as int (-> self root trans y)) (the-as int (-> self root trans z))))
+  (set-time! (-> self birth-time))
+  (quaternion-identity! (-> self root quat))
+  (vector-identity! (-> self root scale))
+  (initialize-skeleton self *money-sg* '())
+  (set-part! :id 64)
+  (go-virtual wait))
+
+(defstate wait (money-commentary)
+  :virtual #t
+  :code
+    (behavior ()
+      (loop
+        (quaternion-rotate-y! (-> self root quat) (-> self root quat) (* (degrees 220) (seconds-per-frame)))
+        (let ((bob-amt (-> self bob-amount)))
+          (when (< 0.0 bob-amt)
+            (set! (-> self root trans y)
+                  (+ (-> self base y)
+                     (* bob-amt
+                        (sin (* 109.22667 (the float (mod (+ (- (current-time) (-> self birth-time)) (-> self bob-offset)) (seconds 2))))))))))
+        (ja-post)
+        (with-pc
+          (if (-> *pc-settings* money-starburst?) (spawn (-> self part) (-> self root trans))))
+        (suspend))))
+
 (deftype crate-commentary (process-drawable)
   ((root    collide-shape-moving :override)
    (smush   smush-control :inline)
@@ -436,14 +480,6 @@
   :post ja-post)
 
 (deftype crate-buzzer-commentary (crate-commentary) ())
-
-(defbehavior crate-buzzer-commentary-init-by-other crate-buzzer-commentary ((e entity-actor) (pos vector) (look symbol))
-  (params-init self e)
-  (vector-copy! (-> self root trans) pos)
-  (set! (-> self look) look)
-  (set! (-> self defense) look)
-  (art-init self)
-  (go-virtual wait))
 
 (defmethod art-init ((self crate-buzzer-commentary))
   (call-parent-method self)

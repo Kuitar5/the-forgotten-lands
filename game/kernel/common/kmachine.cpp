@@ -338,6 +338,13 @@ std::vector<std::string> tfl_get_current_hint() {
   return playing;
 }
 
+float tfl_get_hint_vol() {
+  float vol;
+  auto volume = jak1::call_goal_function_by_name("tfl-hint-volume");
+  memcpy(&vol, &volume, 4);
+  return vol;
+}
+
 u32 play_tfl_hint(u32 file_name, u32 volume, u32 interrupt) {
   auto hint_is_playing = jak1::intern_from_c("*tfl-hint-playing?*")->value ==
                          offset_of_s7() + jak1_symbols::FIX_SYM_TRUE;
@@ -390,7 +397,7 @@ u32 play_tfl_hint(u32 file_name, u32 volume, u32 interrupt) {
         if (pause == offset_of_s7()) {
           MiniAudioLib::ma_sound_start(hint);
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));
       }
     };
 
@@ -402,7 +409,8 @@ u32 play_tfl_hint(u32 file_name, u32 volume, u32 interrupt) {
           MiniAudioLib::ma_sound_stop(hint);
           paused_func(hint);
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        MiniAudioLib::ma_sound_set_volume(hint, tfl_get_hint_vol());
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));
       }
     };
 

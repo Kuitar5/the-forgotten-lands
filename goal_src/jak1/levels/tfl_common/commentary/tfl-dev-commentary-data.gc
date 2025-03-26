@@ -232,15 +232,31 @@ examples:
                                kuitar
                                :description "Multi-Purpose Gameplay"
                                :length 32.0
-                               :cmd-list ;; TODO: respawn all 3 orb crates or dummy ones
+                               :spawn-list
+                               ((tfl-static-spawn-func "crate-steel07"
+                                                       (let ((e (the entity-actor (entity-by-name "crystalc-crate-steel-07"))))
+                                                         (if (not (-> e extra process))
+                                                           (ppointer->handle (process-spawn crate-commentary e (-> e extra trans) 'steel))
+                                                           INVALID_HANDLE)))
+                                (tfl-static-spawn-func "crate-steel08"
+                                                       (let ((e (the entity-actor (entity-by-name "crystalc-crate-steel-08"))))
+                                                         (if (not (-> e extra process))
+                                                           (ppointer->handle (process-spawn crate-commentary e (-> e extra trans) 'steel))
+                                                           INVALID_HANDLE)))
+                                (tfl-static-spawn-func "crate-steel09"
+                                                       (let ((e (the entity-actor (entity-by-name "crystalc-crate-steel-09"))))
+                                                         (if (not (-> e extra process))
+                                                           (ppointer->handle (process-spawn crate-commentary e (-> e extra trans) 'steel))
+                                                           INVALID_HANDLE))))
+                               :cmd-list
                                '((start grab)
                                 (start music 5.0)
                                 (start sfx 5.0)
                                 (start dialog 5.0)
-                                ((seconds 3.5) reset-actor crystalc-crate-steel-07 game)
-                                ((seconds 3.8) reset-actor crystalc-crate-steel-08 game)
+                                ((seconds 3.5) spawn 0 "crate-steel07")
+                                ((seconds 3.8) spawn 1 "crate-steel08")
                                 ((seconds 6.0) pov-cam *crc-dev-cam-sg* (vectorm root) "topinfested")
-                                ((seconds 9.0) reset-actor crystalc-crate-steel-09 game)
+                                ((seconds 9.0) spawn 2 "crate-steel09")
                                 (end release)))
        (static-commentary-data :file-name "kui-oneway.mp3"
                                :dev-name
@@ -354,7 +370,7 @@ examples:
                                ((tfl-static-spawn-func "crate-buzzer"
                                                        (let ((e (the entity-actor (entity-by-name "crescent-crate-buzzer-02"))))
                                                          (if (not (-> e extra process))
-                                                           (ppointer->handle (process-spawn crate-buzzer-commentary e (-> e extra trans) 'iron))
+                                                           (ppointer->handle (process-spawn crate-buzzer-commentary :init crate-commentary-init-by-other e (-> e extra trans) 'iron))
                                                            INVALID_HANDLE))))
                                :cmd-list
                                '((start grab)
@@ -515,12 +531,27 @@ examples:
                                kuitar
                                :description "Teaching Super Red Eco"
                                :length 50.0
-                               :cmd-list ;; TODO: dummy orbs? (from 10s to 21s) - Spawn a red bomb (at 25s)
+                               :spawn-list
+                               ((tfl-static-spawn-func "red-bomb" (ppointer->handle (process-spawn super-red-bomb (static-vectorm 739.86 5.12 959.75))))
+                                (tfl-static-spawn-func "money-91"
+                                                       (let ((e (the entity-actor (entity-by-name "energy-bay-money-091"))))
+                                                         (if (not (-> e extra process)) (ppointer->handle (process-spawn money-commentary (-> e extra trans))) INVALID_HANDLE)))
+                                (tfl-static-spawn-func "money-92"
+                                                       (let ((e (the entity-actor (entity-by-name "energy-bay-money-092"))))
+                                                         (if (not (-> e extra process)) (ppointer->handle (process-spawn money-commentary (-> e extra trans))) INVALID_HANDLE)))
+                                (tfl-static-spawn-func "money-93"
+                                                       (let ((e (the entity-actor (entity-by-name "energy-bay-money-093"))))
+                                                         (if (not (-> e extra process)) (ppointer->handle (process-spawn money-commentary (-> e extra trans))) INVALID_HANDLE))))
+                               :cmd-list
                                '((start grab)
                                 (start music 5.0)
                                 (start sfx 5.0)
                                 (start dialog 5.0)
                                 ((seconds 9.0) pov-cam *enb-dev-cam-sg* (vectorm root) "redecofoot")
+                                ((seconds 10) spawn 0 "money-91")
+                                ((seconds 10) spawn 1 "money-92")
+                                ((seconds 10) spawn 2 "money-93")
+                                ((seconds 25) spawn 3 "red-bomb")
                                 (end release)))
        (static-commentary-data :file-name "kui-redecozoomer.mp3"
                                :dev-name
@@ -984,7 +1015,9 @@ examples:
                                :run-on-end
                                (lambda ()
                                  (define-extern robber-dead (state process))
-                                 (aif (process-by-ename "valley-robber-01") (go-process it robber-dead))))
+                                 (aif (process-by-ename "valley-robber-01") (go-process it robber-dead))
+                                 (if (not (task-complete? *game-info* (game-task valley-kill)))
+                                   (close-specific-task! (game-task valley-kill) (task-status need-resolution)))))
        (static-commentary-data :file-name "pex-taigavalley.mp3"
                                :dev-name
                                pex

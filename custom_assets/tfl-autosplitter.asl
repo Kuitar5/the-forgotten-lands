@@ -178,7 +178,7 @@ startup {
   vars.optionLists.Add(vars.tflMiscallenousTasks);
 
   // Treat this one as special, so we can ensure the timer ends no matter what!
-  vars.finalSplitTask = vars.tflMiscallenousTasks[3];
+  // vars.finalSplitTask = vars.tflMiscallenousTasks[3];
 
   vars.DebugOutput("Finished {startup}", true);
 }
@@ -312,7 +312,7 @@ split {
   }
 
   // ALWAYS split if the final split condition is true, so no matter what we exhaust all splits until the end
-  if (vars.watchers[vars.finalSplitTask["id"]].Current == vars.finalSplitTask["splitVal"]) {
-    return true;
-  }
+  // if (vars.watchers[vars.finalSplitTask["id"]].Current == vars.finalSplitTask["splitVal"]) {
+  //   return true;
+  // }
 }

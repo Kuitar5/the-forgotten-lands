@@ -1315,6 +1315,7 @@
        ((2) (go-virtual send-with-delay (-> self plats-3) 'deactivate (seconds 0.25)))))))
 
 (defpost pds-master
+  (set! (-> self death-count) (min 6 (-> *game-info* fuel-cell-deaths)))
   (if (and *target* *pds-debug?*)
     (format *stdcon*
             "stage ~D~%killed ~D needed ~D remaining ~D state ~A deaths ~D~%"

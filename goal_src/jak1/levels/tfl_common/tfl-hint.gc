@@ -230,6 +230,9 @@
            (set-time! (-> self last-time))
            (go tfl-hint-wait)))))))
 
+(defun tfl-hint-volume ()
+  (/ (-> *setting-control* current dialog-volume) 100.0))
+
 (defstatehandler tfl-hint :event tfl-hint-event-handler :post tfl-hint-post)
 
 (defstate tfl-hint-idle (tfl-hint)
