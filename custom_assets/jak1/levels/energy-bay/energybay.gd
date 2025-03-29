@@ -14,9 +14,6 @@
   "lurkercrab.o"
   "energybay-part.o"
   "water-anim-training-ag.go" ; water stuff
-  "eichar-racer+0-ag.go" ; zoomer stuff
-  "ef-plane-ag.go" ; zoomer stuff
-  "racer-ag.go" ; zoomer stuff
   "orb-cache-top-ag.go"
   "sun-iris-door-ag.go"
   "shortcut-boulder-ag.go"

@@ -3323,7 +3323,7 @@
    (sp-item 3646 :fade-after (meters 90) :period (seconds 3.12) :length (seconds 0.017) :binding 3647)
    (sp-item 3646 :fade-after (meters 130) :period (seconds 1.76) :length (seconds 0.017) :binding 3647)
    (sp-item 3646 :fade-after (meters 170) :period (seconds 2.67) :length (seconds 0.017) :binding 3647)
-   (sp-item 3647 :flags (start-dead launch-asap) :binding 3648) ;; small red balls
+   (sp-item 3647 :flags (start-dead launch-asap) :binding 3648) ;; decoy small red balls 
    (sp-item 3647 :flags (start-dead launch-asap) :binding 3648)
    (sp-item 3647 :flags (start-dead launch-asap) :binding 3648)
    (sp-item 3647 :flags (start-dead launch-asap) :binding 3648)
@@ -3331,6 +3331,14 @@
    (sp-item 3647 :flags (start-dead launch-asap) :binding 3648)
    (sp-item 3647 :flags (start-dead launch-asap) :binding 3648)
    (sp-item 3647 :flags (start-dead launch-asap) :binding 3648)
+   (sp-item 3725 :flags (start-dead launch-asap) :binding 3648) ;; small red balls
+   (sp-item 3725 :flags (start-dead launch-asap) :binding 3648)
+   (sp-item 3725 :flags (start-dead launch-asap) :binding 3648)
+   (sp-item 3725 :flags (start-dead launch-asap) :binding 3648)
+   (sp-item 3725 :flags (start-dead launch-asap) :binding 3648)
+   (sp-item 3725 :flags (start-dead launch-asap) :binding 3648)
+   (sp-item 3725 :flags (start-dead launch-asap) :binding 3648)
+   (sp-item 3725 :flags (start-dead launch-asap) :binding 3648)
    (sp-item 3648 :flags (start-dead launch-asap) :binding 3649) ;; 2nd balls
    (sp-item 3648 :flags (start-dead launch-asap) :binding 3649)
    (sp-item 3648 :flags (start-dead launch-asap) :binding 3649)
@@ -3368,7 +3376,29 @@
    (:conerot-x (degrees 0) (degrees 5))
    (:rotate-y (degrees 0) (degrees 360))))
 
-(defpart 3647
+(defpart 3647 ;; Decoy
+  :init-specs
+  ((:texture (new 'static 'texture-id :index #xf :page #x2))
+  ;;  (:num 1.0)
+   (:y (meters 0) (meters 2))
+   (:z (meters 0.5) (meters 0.5))
+   (:scale-x (meters 0.5))
+   (:rot-z (degrees 0) (degrees 360))
+   (:scale-y :copy scale-x)
+   (:r 128.0 128.0)
+   (:g 0.0 64.0)
+   (:b 0.0)
+   (:a 128.0)
+   (:omega 0.0 65536.0)
+   (:vel-x (meters 0.005) (meters 0.002))
+   (:vel-y (meters 0))
+   (:vel-z (meters 0))
+   (:rotvel-z (degrees -0.05) (degrees 0.1))
+   (:fade-a -0.35)
+   (:timer (seconds 0.6) (seconds 0.8))
+   (:flags (bit2 bit3 bit7 bit14))))
+
+(defpart 3725
   :init-specs
   ((:texture (new 'static 'texture-id :index #xf :page #x2))
    (:num 1.0)

@@ -97,28 +97,28 @@ examples:
                                :dev-name
                                kuitar
                                :description "START HERE"
-                               :length 38.0
+                               :length 39.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-intro.mp3"
                                :dev-name
                                kuitar
                                :description "Humble Beginnings"
-                               :length 40.0
+                               :length 41.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-warpgate.mp3"
                                :dev-name
                                kuitar
                                :description "Thrown in a New Place"
-                               :length 29.0
+                               :length 30.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-setpiece.mp3"
                                :dev-name
                                kuitar
                                :description "Grand Reveal"
-                               :length 29.0
+                               :length 30.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -130,21 +130,21 @@ examples:
                                :dev-name
                                kuitar
                                :description "Flow and Speedrunning"
-                               :length 28.0
+                               :length 29.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-cavelayout.mp3"
                                :dev-name
                                kuitar
                                :description "Layout to Avoid Backtracking"
-                               :length 19.0
+                               :length 20.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-hiddenyellow.mp3"
                                :dev-name
                                kuitar
                                :description "Breaking the Player\c12s Prior Assumptions"
-                               :length 21.0
+                               :length 22.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -165,42 +165,42 @@ examples:
                                :dev-name
                                pex
                                :description "Music to My Crystals"
-                               :length 37.0
+                               :length 38.0
                                :cmd-list
-                               '((start grab) (start music 30.0) (start sfx 5.0) (start dialog 5.0) (end release)))
+                               '((start grab) (start music 30.0) (start sfx 5.0) (start dialog 12.0) (end release)))
        (static-commentary-data :file-name "kui-customcamera.mp3"
                                :dev-name
                                kuitar
                                :description "Creating Custom Camera Movements"
-                               :length 34.0
+                               :length 35.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-jaklighting.mp3"
                                :dev-name
                                kuitar
                                :description "Shiny Jak"
-                               :length 22.0
+                               :length 23.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-ship.mp3"
                                :dev-name
                                kuitar
                                :description "How Did This Get Down Here?"
-                               :length 23.0
+                               :length 24.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-electricarc.mp3"
                                :dev-name
                                kuitar
                                :description "One Of Many Flamepot Edits"
-                               :length 27.0
+                               :length 28.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-sculptedwalls.mp3"
                                :dev-name
                                kuitar
                                :description "Sculpting and Texturing the Walls"
-                               :length 17.0
+                               :length 18.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -212,14 +212,14 @@ examples:
                                :dev-name
                                kuitar
                                :description "Multiple Ambiences"
-                               :length 30.0
+                               :length 31.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-fireflypart.mp3"
                                :dev-name
                                kuitar
                                :description "Particles, Particles Everywhere"
-                               :length 26.0
+                               :length 27.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -231,7 +231,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "Multi-Purpose Gameplay"
-                               :length 32.0
+                               :length 33.0
                                :spawn-list
                                ((tfl-static-spawn-func "crate-steel07"
                                                        (let ((e (the entity-actor (entity-by-name "crystalc-crate-steel-07"))))
@@ -262,14 +262,14 @@ examples:
                                :dev-name
                                kuitar
                                :description "Design Philosophy on Intended Routes"
-                               :length 34.0
+                               :length 35.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-gondola.mp3"
                                :dev-name
                                kuitar
                                :description "A Complex First Custom Actor"
-                               :length 41.0
+                               :length 42.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -294,7 +294,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "A Thick Fog for Depth"
-                               :length 16.0
+                               :length 17.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -306,14 +306,14 @@ examples:
                                :dev-name
                                kuitar
                                :description "Baked and Edited Lighting"
-                               :length 28.0
+                               :length 29.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-supergreen.mp3"
                                :dev-name
                                kuitar
                                :description "Exciting New Powerups"
-                               :length 24.0
+                               :length 25.0
                                :spawn-list
                                ((tfl-static-spawn-func "super-eco-crystal0"
                                                        (ppointer->handle (process-spawn super-eco-crystal (static-vectorm -221.67 67.51 -113.47) 'red 20)))
@@ -341,7 +341,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "Not Overwhelming the Player"
-                               :length 17.0
+                               :length 18.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -353,7 +353,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "Checking Both Sides Before Crossing"
-                               :length 30.0
+                               :length 31.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -365,7 +365,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "Visible, but Out of Reach"
-                               :length 15.0
+                               :length 16.0
                                :spawn-list
                                ((tfl-static-spawn-func "crate-buzzer"
                                                        (let ((e (the entity-actor (entity-by-name "crescent-crate-buzzer-02"))))
@@ -385,7 +385,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "A Hybrid Level Design Challenge"
-                               :length 50.0
+                               :length 51.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -397,14 +397,14 @@ examples:
                                :dev-name
                                kuitar
                                :description "Turning up the Difficulty"
-                               :length 36.0
+                               :length 37.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-rocks.mp3"
                                :dev-name
                                kuitar
                                :description "Thousands and Thousands of Rocks"
-                               :length 36.0
+                               :length 37.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -416,7 +416,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "A Hidden Surprise"
-                               :length 17.0
+                               :length 18.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -428,21 +428,21 @@ examples:
                                :dev-name
                                kuitar
                                :description "Think Before You Jump"
-                               :length 20.0
+                               :length 21.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "pex-crescenttop.mp3"
                                :dev-name
                                pex
                                :description "The Music Goes On An Adventure"
-                               :length 41.0
+                               :length 42.0
                                :cmd-list
-                               '((start grab) (start music 30.0) (start sfx 5.0) (start dialog 5.0) (end release)))
+                               '((start grab) (start music 30.0) (start sfx 5.0) (start dialog 12.0) (end release)))
        (static-commentary-data :file-name "kui-bigcable.mp3"
                                :dev-name
                                kuitar
                                :description "Big Cables for Big Clues"
-                               :length 19.0
+                               :length 20.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -454,14 +454,14 @@ examples:
                                :dev-name
                                kuitar
                                :description "Do It Again, but Faster"
-                               :length 22.0
+                               :length 23.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-enbjump.mp3"
                                :dev-name
                                kuitar
                                :description "A Long Way Down"
-                               :length 19.0
+                               :length 20.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -473,7 +473,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "A Seamless World"
-                               :length 38.0
+                               :length 39.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -497,21 +497,21 @@ examples:
                                :dev-name
                                kuitar
                                :description "Landing in Energy Bay"
-                               :length 28.0
+                               :length 29.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "pex-energybay.mp3"
                                :dev-name
                                pex
                                :description "Music Between Sea and Turbines"
-                               :length 44.0
+                               :length 45.0
                                :cmd-list
-                               '((start grab) (start music 30.0) (start sfx 5.0) (start dialog 5.0) (end release)))
+                               '((start grab) (start music 30.0) (start sfx 5.0) (start dialog 12.0) (end release)))
        (static-commentary-data :file-name "kui-coloredcable.mp3"
                                :dev-name
                                kuitar
                                :description "A Trail of Breadcrumbs"
-                               :length 43.0
+                               :length 44.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -523,14 +523,14 @@ examples:
                                :dev-name
                                kuitar
                                :description "Dropping Into a Zoomer Playground"
-                               :length 25.0
+                               :length 26.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-redecofoot.mp3"
                                :dev-name
                                kuitar
                                :description "Teaching Super Red Eco"
-                               :length 50.0
+                               :length 51.0
                                :spawn-list
                                ((tfl-static-spawn-func "red-bomb" (ppointer->handle (process-spawn super-red-bomb (static-vectorm 739.86 5.12 959.75))))
                                 (tfl-static-spawn-func "money-91"
@@ -557,14 +557,14 @@ examples:
                                :dev-name
                                kuitar
                                :description "Nitro-Powered Zoomer"
-                               :length 22.0
+                               :length 23.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-boulder.mp3"
                                :dev-name
                                kuitar
                                :description "Fixing Some Mistakes"
-                               :length 37.0
+                               :length 38.0
                                :cmd-list ;; TODO: dummy orbs? (from 17s to 30s)
                                '((start grab)
                                 (start music 5.0)
@@ -576,7 +576,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "A Hybrid Challenge for a Hybrid Level"
-                               :length 28.0
+                               :length 29.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -645,7 +645,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "A Case of the Invisible Ring"
-                               :length 24.0
+                               :length 25.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -676,14 +676,14 @@ examples:
                                :dev-name
                                kuitar
                                :description "Overlapping Multiple Objectives"
-                               :length 44.0
+                               :length 45.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-lowreskui.mp3"
                                :dev-name
                                kuitar
                                :description "A Secret Dev Pic You Can Collect"
-                               :length 26.0
+                               :length 27.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -705,21 +705,21 @@ examples:
                                :dev-name
                                kuitar
                                :description "An Industrial and Machinery Feel"
-                               :length 16.5
+                               :length 17.5
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "pex-openmines.mp3"
                                :dev-name
                                pex
                                :description "Mining For Dangerous Notes"
-                               :length 39.0
+                               :length 40.0
                                :cmd-list
-                               '((start grab) (start music 30.0) (start sfx 5.0) (start dialog 5.0) (end release)))
+                               '((start grab) (start music 30.0) (start sfx 5.0) (start dialog 12.0) (end release)))
        (static-commentary-data :file-name "kui-dropplat.mp3"
                                :dev-name
                                kuitar
                                :description "Think Before You Jump, Part 2"
-                               :length 38.0
+                               :length 39.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -744,14 +744,14 @@ examples:
                                :dev-name
                                kuitar
                                :description "A Descent Into \c12res-lump\c12 Madness"
-                               :length 54.0
+                               :length 55.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-kegmaze.mp3"
                                :dev-name
                                kuitar
                                :description "A Deadly Maze"
-                               :length 25.0
+                               :length 26.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -763,7 +763,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "Combatting Frustration"
-                               :length 32.0
+                               :length 33.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -801,7 +801,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "Learning New Mechanics in a Hectic Battle"
-                               :length 106.0
+                               :length 107.0
                                :spawn-list
                                ((tfl-static-spawn-func "target-blast-part"
                                                        (ppointer->handle (process-spawn target-commentary
@@ -832,7 +832,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "Flamepot Without the Flame"
-                               :length 21.5
+                               :length 22.5
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -850,7 +850,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "A Problem of Scale"
-                               :length 22.0
+                               :length 23.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -862,14 +862,14 @@ examples:
                                :dev-name
                                kuitar
                                :description "Constrained Design"
-                               :length 33.0
+                               :length 34.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-quicksandlurker.mp3"
                                :dev-name
                                kuitar
                                :description "Creating an Aimbot"
-                               :length 39.0
+                               :length 40.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        ;; Taiga Valley dev commentary
@@ -877,7 +877,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "An Explosive Start"
-                               :length 21.0
+                               :length 22.0
                                :spawn-list
                                ((tfl-static-spawn-func "valley-rock0"
                                                        (ppointer->handle (process-spawn valley-rock-commentary (the entity-actor (entity-by-name "crescent-valley-rock-01"))))))
@@ -896,14 +896,14 @@ examples:
                                :dev-name
                                kuitar
                                :description "Giving TFL Its Own Collectable Count"
-                               :length 47.0
+                               :length 48.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-valleyspiral.mp3"
                                :dev-name
                                kuitar
                                :description "Hiding Loads"
-                               :length 34.0
+                               :length 35.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -930,14 +930,14 @@ examples:
                                :dev-name
                                kuitar
                                :description "A Dynamic Obstacle"
-                               :length 100.0
+                               :length 101.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-ecochoice.mp3"
                                :dev-name
                                kuitar
                                :description "Insert Matrix Pill Choice Meme Here"
-                               :length 17.0
+                               :length 18.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -949,7 +949,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "Falling With Style"
-                               :length 70.0
+                               :length 71.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -961,7 +961,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "Creating Custom Ocean Maps"
-                               :length 32.0
+                               :length 33.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -992,7 +992,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "A Striking Visual Change"
-                               :length 38.0
+                               :length 39.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -1004,32 +1004,45 @@ examples:
                                :dev-name
                                kuitar
                                :description "Combining Old Enemies With New Mechanics"
-                               :length 38.0
+                               :length 39.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
                                 (start sfx 5.0)
                                 (start dialog 5.0)
-                                ((seconds 1.5) reset-actor valley-robber-01 game)
-                                (end release))
-                               :run-on-end
-                               (lambda ()
-                                 (define-extern robber-dead (state process))
-                                 (aif (process-by-ename "valley-robber-01") (go-process it robber-dead))
-                                 (if (not (task-complete? *game-info* (game-task valley-kill)))
-                                   (close-specific-task! (game-task valley-kill) (task-status need-resolution)))))
+                                ((seconds 0.5) manipy-spawn 0 *robber-sg* (static-vectorm 1067 45 1977))
+                                ((seconds 1.0)
+                                 manipy-event
+                                 0
+                                 trans-hook
+                                 (,(lambda :behavior manipy ()
+                                    (define-extern *robber-shadow-control* shadow-control)
+                                    (let ((timer (- (current-time) (-> (the tfl-commentary-node (ppointer->process (-> self parent))) play-time))))
+                                      (cond
+                                        ((= timer (seconds 1.5)) (set! (-> self draw shadow-ctrl) *robber-shadow-control*))
+                                        ((and (> timer (seconds 1.5)) (< timer (seconds 8.0)))
+                                         (vector-seek! (-> self root trans) (static-vectorm 1067 29 1977) (meters (* 6.0 (seconds-per-frame)))))
+                                        ((and (> timer (seconds 18.0)) (< timer (seconds 22.0)))
+                                         (vector-seek! (-> self root trans) (static-vectorm 1067 43 1977) (meters (* 8.0 (seconds-per-frame)))))
+                                        ((and (> timer (seconds 24.0)) (< timer (seconds 28.0)))
+                                         (vector-seek! (-> self root trans) (static-vectorm 1066 43 1992) (meters (* 8.0 (seconds-per-frame)))))
+                                        ((and (> timer (seconds 30.0)) (< timer (seconds 34.0)))
+                                         (vector-seek! (-> self root trans) (static-vectorm 1060 43 1967) (meters (* 8.0 (seconds-per-frame)))))))
+                                    (quaternion-rotate-y! (-> self root quat) (-> self root quat) (degrees (* 20.0 (seconds-per-frame)))))))
+                                (end kill manipy 0)
+                                (end release)))
        (static-commentary-data :file-name "pex-taigavalley.mp3"
                                :dev-name
                                pex
                                :description "The Sounds of the Taiga"
-                               :length 48.0
+                               :length 49.0
                                :cmd-list
-                               '((start grab) (start music 30.0) (start sfx 5.0) (start dialog 5.0) (end release)))
+                               '((start grab) (start music 30.0) (start sfx 5.0) (start dialog 12.0) (end release)))
        (static-commentary-data :file-name "kui-snowtransition.mp3"
                                :dev-name
                                kuitar
                                :description "Abusing Vertex Alpha for Smooth Transitions"
-                               :length 26.0
+                               :length 27.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -1041,7 +1054,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "Dynamic Particles"
-                               :length 45.0
+                               :length 46.0
                                :cmd-list
                                '((start music 5.0)
                                 (start sfx 5.0)
@@ -1071,7 +1084,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "A slide Into Your Doom"
-                               :length 32.0
+                               :length 33.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -1083,7 +1096,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "The Defense System Visuals"
-                               :length 43.0
+                               :length 44.0
                                :spawn-list
                                ((tfl-static-spawn-func "sentinel"
                                                        (ppointer->handle (process-spawn pds-sentinel-commentary (static-vectorm 2060.62 14.0 1915.71)))))
@@ -1103,7 +1116,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "The Defense System Code"
-                               :length 41.0
+                               :length 42.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -1129,14 +1142,14 @@ examples:
                                :dev-name
                                kuitar
                                :description "The Defense System Mechanics"
-                               :length 79.0
+                               :length 80.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))
        (static-commentary-data :file-name "kui-pdstrap.mp3"
                                :dev-name
                                kuitar
                                :description "The Defense System Traps"
-                               :length 59.0
+                               :length 60.0
                                :cmd-list
                                '((start grab)
                                 (start music 5.0)
@@ -1165,12 +1178,12 @@ examples:
                                :dev-name
                                pex
                                :description "Orchestral Overflow"
-                               :length 58.0
+                               :length 59.0
                                :cmd-list
                                '((start grab)
                                 (start music 25.0)
                                 (start sfx 5.0)
-                                (start dialog 5.0)
+                                (start dialog 12.0)
                                 (start proc
                                        0
                                        (code ,(lambda :behavior tfl-commentary-proc ()
@@ -1185,7 +1198,7 @@ examples:
                                :dev-name
                                kuitar
                                :description "A Time Consuming Project"
-                               :length 116.0
+                               :length 117.0
                                :cmd-list
                                '((start grab) (start music 5.0) (start sfx 5.0) (start dialog 5.0) (end release)))))
 

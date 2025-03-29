@@ -1995,9 +1995,9 @@
                                         (checkpt "open-mines-minecart1" #f))
                   (static-load-boundary :flags (player)
                                         :top (meters 161.91)
-                                        :bot (meters 147.71)
+                                        :bot (meters 145.71)
                                         :points
-                                        ((meters -447.89) (meters 1163.4) (meters -440.24) (meters 1175.0))
+                                        ((meters -445.8) (meters 1162.0) (meters -438.16) (meters 1173.6))
                                         :fwd
                                         (checkpt "open-mines-minecart1" #f)
                                         :bwd
