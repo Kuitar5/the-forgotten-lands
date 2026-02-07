@@ -133,9 +133,7 @@
    (tube-sound-id   sound-id)
    (tube-sound-vol  float)))
 
-
 (deftype tube-bank (basic) ())
-
 
 (define *TUBE-bank* (new 'static 'tube-bank))
 
@@ -631,7 +629,6 @@
    slide-control-watch
    slide-control-ride))
 
-
 (defun distance-from-tangent ((arg0 path-control) (arg1 float) (arg2 vector) (arg3 vector) (arg4 vector) (arg5 vector))
   (eval-path-curve-div! arg0 arg2 arg1 'interp)
   (path-control-method-12 arg0 arg3 arg1)
@@ -677,9 +674,11 @@
       (set! (-> self pos) 0.2))
   :trans
     (behavior ()
-      (if (and (let* ((plat (the process-drawable (process-by-ename (res-lump-struct (-> self entity) 'plat-hack string))))
-                      (riders (aif plat (the collide-sticky-rider-group (-> (the collide-shape (-> plat root)) riders)))))
-                 (if riders (zero? (-> riders num-riders)))) ;; TFL note: added hack to check if you're riding specific platform in the lump
+      (if (and (if (not (= (-> *game-info* current-continue level) 'sunken)) ;; TFL note: added hack to check if we should do the hack
+                 (let* ((plat (the process-drawable (process-by-ename (res-lump-struct (-> self entity) 'plat-hack string))))
+                        (riders (aif plat (the collide-sticky-rider-group (-> (the collide-shape (-> plat root)) riders)))))
+                   (if riders (zero? (-> riders num-riders)))) ;; TFL note: added hack to check if you're riding specific platform in the lump
+                 #t)
                (and *target* (>= 81920.0 (vector-vector-distance (-> self root trans) (-> *target* control trans))))
                (and (< 0.0 (vector-dot (vector-! (new 'stack-no-clear 'vector) (-> *target* control trans) (-> self trans)) (-> self rot)))
                     (send-event *target* 'change-mode 'tube self)))
